@@ -7,7 +7,7 @@ generates a large number of sequences that accumulate substitutions with their l
 
 <img src=images/presume_concept.jpg width=10000x3000>
 
-**Figure. 1** Schematic diagram of PRESUME. PRESUME simulates the propagation and diversification of sequences that accumulate substitutions and generates a large set of descendant sequences with lineage information. *m* refers to a maternal sequence, and *d<sub>1</sub>* and *d<sub>2</sub>* refers to two daughter sequences derived from *m*. In this simulation, the doubling times of the two daughter sequences (*t<sub>d1</sub>* and *t<sub>d2</sub>*) are incompletely inherited from the doubling time of the mother sequence (*t<sub>m</sub>*). This occurs under a stochastic model, in which 1/*t<sub>d1</sub>* and 1/*t<sub>d2</sub>* follow a normal distribution where the mean and variance are 1/*t<sub>m</sub>* and *&sigma;*<sup>2</sup> respectively. Additionally, sequence extinction is set at a random rate (&epsilon;) and also occurs when the sequence doubling speed reaches a negative value. The substitution probabilities at different positions in each sequence of length *L* are defined in a time-dependent manner using GTR-Gamma model with parameters *Q*, *&alpha;* and *&mu;*, or set to a certain rate *&phi;* (see [SubstitutionModelDetails.PRESUME.pdf](link)). Accordingly, in PRESUME, all the user defined parameters are *&sigma;*, &epsilon;, *L*, *Q*, *&alpha;*, *&mu;* and *&phi;*.
+**Figure. 1** Schematic diagram of PRESUME. PRESUME simulates the propagation and diversification of sequences that accumulate substitutions and generates a large set of descendant sequences with lineage information. *m* refers to a maternal sequence, and *d<sub>1</sub>* and *d<sub>2</sub>* refers to two daughter sequences derived from *m*. In this simulation, the doubling times of the two daughter sequences (*t<sub>d1</sub>* and *t<sub>d2</sub>*) are incompletely inherited from the doubling time of the mother sequence (*t<sub>m</sub>*). This occurs under a stochastic model, in which 1/*t<sub>d1</sub>* and 1/*t<sub>d2</sub>* follow a normal distribution where the mean and variance are 1/*t<sub>m</sub>* and *&sigma;*<sup>2</sup> respectively. Additionally, sequence extinction is set at a random rate (&epsilon;) and also occurs when the sequence doubling speed reaches a negative value. The substitution probabilities at different positions in each sequence of length *L* are defined in a time-dependent manner using GTR-Gamma model with parameters *Q*, *&alpha;* and *&mu;*, or set to a certain rate *&phi;* (see [SubstitutionModelDetails.PRESUME.pdf](https://github.com/yachielab/PRESUME/blob/master/SubstitutionModelDetails.PRESUME.pdf)). Accordingly, in PRESUME, all the user defined parameters are *&sigma;*, &epsilon;, *L*, *Q*, *&alpha;*, *&mu;* and *&phi;*.
 
 ### Supported Environment
 
@@ -76,7 +76,7 @@ Generation of ~100 sequences using GTR-Gamma model with the default parameter se
 PRESUME.py -n 100 --gtrgamma default --save
 ```
 
-Output: a directory `[PRESUMEout](link)` containing the following files will be created in your working directory:
+Output: a directory `[PRESUMEout](https://github.com/yachielab/PRESUME/tree/master/example/example_1/PRESUMEout)` containing the following files will be created in your working directory:
 
 1. `PRESUMEout.fa` : a FASTA file for generated descendant sequences
 
@@ -94,7 +94,7 @@ Generation of ~100 sequences using a time-independent model with the substitutio
 PRESUME.py -n 100 --timeind 0.05 -s 10
 ```
 
-Output data: a directory `[PRESUMEout](link)` will be created in your working directory.
+Output data: a directory `[PRESUMEout](https://github.com/yachielab/PRESUME/tree/master/example/example_2/PRESUMEout)` will be created in your working directory.
 
  **Example 3**
 
@@ -104,7 +104,7 @@ Generation of ~10,000 sequences using GTR-Gamma model with a defined parameter s
 PRESUME.py -n 10000 --gtrgamma GTR{0.927000/2.219783/1.575175/0.861651/4.748809/1.000000}+FU{0.298/0.215/0.304/0.183}+G{0.553549} --qsub 
 ```
 
-Output data: a directory `[PRESUMEout](link)` will be created in your working directory.
+Output data: a directory `[PRESUMEout](https://github.com/yachielab/PRESUME/tree/master/example/example_3/PRESUMEout)` will be created in your working directory.
 
 See [SubstitutionModelDetails.PRESUME.pdf]() for more details of how to specify the GTR-Gamma model parameters.
 
