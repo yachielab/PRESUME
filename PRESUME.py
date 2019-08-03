@@ -398,7 +398,7 @@ def CombineTrees():
             "intermediate/DOWN/esu_{0}/PRESUMEout/SEQ_{0}_attached.nwk".\
             format(tip.name)
         shutil.move(newick_from, newick_to)
-    Phylo.write(top_tree, 'PRESUMEout.nwk', 'newick')
+    Phylo.write(top_tree, 'PRESUMEout_combined.nwk', 'newick')
     return len(top_tree.get_terminals())
 
 
@@ -731,6 +731,7 @@ def main(timelimit):
         fa_count = count_sequence("PRESUMEout.fa")
         tip_count = CombineTrees()  # Combine trees
         shutil.move("PRESUMEout.nwk", "intermediate")
+        os.rename("PRESUMEout_combined.nwk", "PRESUMEout.nwk")
         if (not args.debug):
             shutil.rmtree("intermediate")
 
