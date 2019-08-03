@@ -1015,6 +1015,8 @@ if __name__ == "__main__":
         seed = args.seed
     elif args.seed == "rand":
         seed = np.random.randint(0, args.r)
+    elif args.seed is None:
+        seed = 0
     else:
         seed = int(args.seed)
     np.random.seed(int(seed))
