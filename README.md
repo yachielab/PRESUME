@@ -91,7 +91,7 @@ Output: a directory `[PRESUMEout](https://github.com/yachielab/PRESUME/tree/mast
 Generation of ~100 sequences using a time-independent model with the substitution frequency of 5% per site per generation along with a highly unbalanced lineage trajectory (*&sigma;* of 10).
 
 ```
-PRESUME.py -n 100 --timeind 0.05 -s 10
+PRESUME.py -n 100 --constant 0.05 -s 10
 ```
 
 Output data: a directory `[PRESUMEout](https://github.com/yachielab/PRESUME/tree/master/example/example_2/PRESUMEout)` will be created in your working directory.
