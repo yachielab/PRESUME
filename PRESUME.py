@@ -22,7 +22,6 @@ import subprocess
 import shutil
 import re
 import csv
-import matplotlib.pyplot as plt
 
 LOGO = '''
 ######     ######     #######     #####     #     #    #     #    #######
@@ -224,14 +223,6 @@ def compare_sequences(motherseq, myseq):
         its_a_match = motherseq[position] == myseq[position]
         score += [int(0)] if its_a_match else [int(1)]
     return score
-
-
-def dev_scatter(data):
-    writedata = np.array(data)
-    plt.scatter(writedata.T[0], writedata.T[1])
-    plt.savefig("time.pdf", bbox_inches="tight")
-    plt.yscale('log')
-    plt.savefig("time_log.pdf", bbox_inches="tight")
 
 
 def argument_saver(args):
