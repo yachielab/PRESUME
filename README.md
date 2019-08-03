@@ -142,7 +142,7 @@ Options:
     --gtrgamma <String>
       Execute GTR-Gamma model to simulate sequence diversification with its parameters
         Parameter format： --gtrgamma GTR{A-C/A-G/A-T/C-G/C-T/G-T}+FU{piA/piC/piG/piT}+G{alpha}
-        For more details, see <link>
+        For more details, see https://github.com/yachielab/PRESUME/blob/master/SubstitutionModelDetails.PRESUME.pdf
         or you can use the default parameter set by 
           --gtrgamma default
         which is equivalent to
