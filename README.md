@@ -76,7 +76,7 @@ Generation of ~100 sequences using GTR-Gamma model with the default parameter se
 PRESUME.py -n 100 --gtrgamma default --save
 ```
 
-Output: a directory [PRESUMEout](https://github.com/yachielab/PRESUME/tree/master/example/example_1/PRESUMEout) containing the following files will be created in your working directory:
+Output: a directory [`PRESUMEout`](https://github.com/yachielab/PRESUME/tree/master/example/example_1/PRESUMEout) containing the following files will be created in your working directory:
 
 1. `PRESUMEout.fa` : a FASTA file for generated descendant sequences
 
@@ -94,7 +94,7 @@ Generation of ~100 sequences using a time-independent model with the substitutio
 PRESUME.py -n 100 --constant 0.05 -s 10
 ```
 
-Output data: a directory [PRESUMEout](https://github.com/yachielab/PRESUME/tree/master/example/example_2/PRESUMEout) will be created in your working directory.
+Output data: a directory [`PRESUMEout`](https://github.com/yachielab/PRESUME/tree/master/example/example_2/PRESUMEout) will be created in your working directory.
 
  **Example 3**
 
@@ -104,7 +104,7 @@ Generation of ~10,000 sequences using GTR-Gamma model with a defined parameter s
 PRESUME.py -n 10000 --gtrgamma GTR{0.927000/2.219783/1.575175/0.861651/4.748809/1.000000}+FU{0.298/0.215/0.304/0.183}+G{0.553549} --qsub 
 ```
 
-Output data: a directory [PRESUMEout](https://github.com/yachielab/PRESUME/tree/master/example/example_3/PRESUMEout) will be created in your working directory.
+Output data: a directory [`PRESUMEout`](https://github.com/yachielab/PRESUME/tree/master/example/example_3/PRESUMEout) will be created in your working directory.
 
 See [SubstitutionModelDetails.PRESUME.pdf]() for more details of how to specify the GTR-Gamma model parameters.
 
