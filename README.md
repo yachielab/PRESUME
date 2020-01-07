@@ -178,6 +178,8 @@ Options:
         Seed number for generation of random values. Default: 0
     --monitor <float>
 　　　　　　Monitoring paramater. Default: 1
+    --viewANC
+        Output ancestoral sequences as "ancestoral_sequences.fasta"
 ```
 
 ### Contact

@@ -7,7 +7,7 @@ __author__ = "\
             Naoki Konno <naoki@bs.s.u-tokyo.ac.jp>, \
             Nozomu Yachie <nzmyachie@gmail.com>"
 
-__date__ = "2019/8/1"
+__date__ = "2020/1/7"
 
 import random
 import numpy as np
@@ -425,8 +425,9 @@ def mut_rate_log_writer(lst):
 
     with open("mut_rate_log.csv", "w") as f:
         csvout = csv.writer(f)
-        for item in score_ary:
-            csvout.writerow([item])
+        csvout.writerow(["position", "mutation_rate"])
+        for idx, item in enumerate(score_ary):
+            csvout.writerow([idx+1, item])
 
 
 def unbalance(clade):
@@ -531,7 +532,9 @@ def main(timelimit):
 
             elif(SEQqueue[k].t < timelimit):
                 esu = SEQqueue.pop(k)
-
+                # save ancestoral sequences
+                if args.viewANC:
+                    fasta_writer(esu.id, esu.seq, "ancestoral_sequences.fasta", True)
                 # duplication
                 if args.CV:
                     daughter = [SEQ(i, esu.id, esu.seq, esu.CV,
@@ -621,11 +624,7 @@ def main(timelimit):
             else create_newick(Lineage)
 
         if args.debug:
-            list_of_BI = Um_analyzer(returned_tree)
-            with open("balancedness_log.csv", "w") as f:
-                writer = csv.writer(f)
-                for item in list_of_BI:
-                    writer.writerow([item])
+            mut_rate_log_writer(mut_rate_log)
 
     # in case of distributed computing
     if (args.qsub):
@@ -922,6 +921,13 @@ if __name__ == "__main__":
         )
 
     # for debug
+    parser.add_argument(
+        "--viewANC",
+        help="generate fasta of ancestoral sequences",
+        action="store_true",
+        default=False
+        )
+
     parser.add_argument(
         "--save",
         help="generate args.csv",
