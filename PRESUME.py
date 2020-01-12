@@ -513,7 +513,10 @@ def main(timelimit):
         if (c == 0):
             print("All SEQs dead!")
             all_dead(args.idANC)
-            os.remove("ancestoral_sequences.fasta")
+            try:
+                os.remove("ancestoral_sequences.fasta")
+            except FileNotFoundError:
+                pass
             if args.save:
                 argument_saver(args)
             return 1
@@ -584,7 +587,10 @@ def main(timelimit):
         if (c == 0):
             print("All SEQs dead!")
             all_dead(args.idANC)
-            os.remove("ancestoral_sequences.fasta")
+            try:
+                os.remove("ancestoral_sequences.fasta")
+            except FileNotFoundError:
+                pass
             if args.save:
                 argument_saver(args)
             return 1
