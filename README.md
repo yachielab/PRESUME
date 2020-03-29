@@ -122,7 +122,7 @@ Usage:
     PRESUME.py 
     [-v] [--version] [-h] [--help] [-n sequence_number] [-L sequence_length] [-s standard_deviation]
     [-e extinction_probability] [--gtrgamma model_parameters] [-m mean_substitution_rate]
-    [--timeind substitution_probability] [--qsub] [--output directory_path] [-f input_file]
+    [--constant substitution_probability] [--qsub] [--output directory_path] [-f input_file]
     [--load file_name] [-u sequences_number] [--debug] [--bar] [--save] 
     [-r max_retrial_number] [--seed random_seed] [--limit time_limit] 
 
