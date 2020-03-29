@@ -18,6 +18,7 @@ import argparse
 import pickle
 import os
 import time
+import re
 
 LOGO='''
 ######     ######     #######     #####     #     #    #     #    #######
@@ -114,7 +115,6 @@ def translate_tree(topology_dict, branch_length_dict):
     time_zero=time.time()
     cnt = 0
     while (stack !=[]):
-        if (cnt % 100 == 0):print (time.time()-time_zero)
         clade=stack.pop()
         node_name=clade.name
         mother_seq=clade.seq
@@ -137,8 +137,23 @@ def P(t, gamma, Al, U): # return transition matrix
     return np.dot(np.dot(U,exp_rambda),np.linalg.inv(U))
 
 def PRESUME_nwk2fa(args):
+    argname = dir(args)
+    print(argname)
+    while argname != []:
+        arg = argname.pop()
+        find_dunder = re.match('^_', arg)
+        if not find_dunder:
+            if arg in {"tree","m","output","gtrgamma"} and args.__dict__[arg] is not None:
+                name=arg
+                val=args.__dict__[arg]
+                print("PRESUMEnwk2fa: LOADED {1} as {0}".format(name, val))
+    print("PRESUMEnwk2fa: other arguments are ignored(using default).")
+
     ######## substitution rate matrix (GTR-Gamma model) -> define substitution matrix function ########
-    MODEL="GTR{0.927000/2.219783/1.575175/0.861651/4.748809/1.000000}+FU{0.298/0.215/0.304/0.183}+G4{0.553549}"
+    if args.gtrgamma is None or str(args.gtrgamma) == "default":
+        MODEL="GTR{0.927000/2.219783/1.575175/0.861651/4.748809/1.000000}+FU{0.298/0.215/0.304/0.183}+G4{0.553549}"
+    else:
+        MODEL=str(args.gtrgamma)
     models_str=(MODEL).split("+")
     abcdef=(models_str[0].split("{"))[1].split("}")[0].split("/")
     piACGT=(models_str[1].split("{"))[1].split("}")[0].split("/")
@@ -155,7 +170,7 @@ def PRESUME_nwk2fa(args):
     piT = float(piACGT[3])
     if (abs(piA+piC+piG+piT-1)>0.001): print("error piA+piC+piG+piT not equal to 1!"); sys.exit(1)
     R=np.matrix([[-(a1*piC+a2*piG+a3*piT),a1*piC,a2*piG,a3*piT],[a1*piA,-(a1*piA+a4*piG+a5*piT),a4*piG, a5*piT],[a2*piA,a4*piC,-(a2*piA+a4*piC+a6*piT),a6*piT],[a3*piA,a5*piC,a6*piG,-(a3*piA+a5*piC+a6*piG)]]) # substitution rate matrix
-    print("substitution rate matrix:")
+    print("PRESUMEnwk2fa:substitution rate matrix:")
     print(R)
     global Al, U
     Al, U = np.linalg.eig(R) # Al: eigen values (np.array), U: eigen vectors matrix : R = U * diag(Al) * U^(-1) 
