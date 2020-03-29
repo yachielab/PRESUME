@@ -424,6 +424,7 @@ def mut_rate_log_writer(L_dict, dead_lst):
             score = np.array(L_dict[name])
             mutation_counter += score
 
+    print("[DEBUG]dead sequences:", len(dead_lst))
     print("[DEBUG]event:", event)
     print("[DEBUG]seq_length:", seq_length)
 
@@ -980,6 +981,12 @@ if __name__ == "__main__":
         default=False
         )
 
+    parser.add_argument(
+        "--tree",
+        help="file name of a guide tree in Newick format(for debug, unsupported.)",
+        type=str,
+        default=None,
+    )
     args = parser.parse_args()
 
     #   to show help
@@ -992,6 +999,11 @@ if __name__ == "__main__":
         print(LOGO)
         exit()
 
+    if args.tree:
+        import submodule.nwk2fa as n2f
+        n2f.PRESUME_nwk2fa(args)
+        exit()
+    
     # read argument from input CSV
     if args.param:
         with open(args.param, "rt") as fin:
