@@ -7,7 +7,7 @@ __author__ = "\
             Naoki Konno <naoki@bs.s.u-tokyo.ac.jp>, \
             Nozomu Yachie <nzmyachie@gmail.com>"
 
-__date__ = "2019/8/1"
+__date__ = "2020/1/12"
 
 import random
 import numpy as np
@@ -278,6 +278,7 @@ def create_newick(Lineage):
         init_clade = Phylo.BaseTree.Clade(name="0")
         tree = Phylo.BaseTree.Tree(init_clade)
         stack = [init_clade]
+        list_of_dead = []
         while(stack != []):
             clade = stack.pop()
             SEQid = int(clade.name)
@@ -304,9 +305,11 @@ def create_newick(Lineage):
                         return
                     # if either of the children is dead, renew SEQid
                     # to be the id of alive child
-                    elif(Lineage[Lineage[SEQid][1]] != ["dead"]):
+                    elif(Lineage[Lineage[SEQid][1]] != ["dead"]):   
+                        list_of_dead.append(Lineage[SEQid][2])
                         SEQid = Lineage[SEQid][1]
                     elif(Lineage[Lineage[SEQid][2]] != ["dead"]):
+                        list_of_dead.append(Lineage[SEQid][1])
                         SEQid = Lineage[SEQid][2]
                     # if the clade of renewed SEQid is a terminal,
                     # rename the clade
@@ -336,7 +339,8 @@ def create_newick(Lineage):
         else:
             # file write in case of downstream lineage
             Phylo.write(tree, "SEQ_"+str(args.idANC)+".nwk", 'newick')
-        return len(tree.get_terminals()), tree
+        
+        return len(tree.get_terminals()), tree, list_of_dead
 
     except Exception as e:
         raise CreateNewickError(e)
@@ -410,23 +414,25 @@ def progress_bar(pbar, current_value):
     pbar.refresh()
 
 
-def mut_rate_log_writer(lst):
-    event = len(lst)
-    seq_length = len(lst[0])
+def mut_rate_log_writer(L_dict, dead_lst):
+    event = len(L_dict)
+    seq_length = len(L_dict[next(iter(L_dict))])
     mutation_counter = np.zeros(seq_length)
+    list_of_death=dead_lst
+    for name in L_dict.keys():
+        if name not in list_of_death:
+            score = np.array(L_dict[name])
+            mutation_counter += score
 
-    for item in lst:
-        score = np.array(item)
-        mutation_counter += score
-    score_ary = mutation_counter * 1.0 / event
-
-    print("event:", event)
-    print("seq_length:", seq_length)
+    print("[DEBUG]dead sequences:", len(dead_lst))
+    print("[DEBUG]event:", event)
+    print("[DEBUG]seq_length:", seq_length)
 
     with open("mut_rate_log.csv", "w") as f:
         csvout = csv.writer(f)
-        for item in score_ary:
-            csvout.writerow([item])
+        csvout.writerow(["position", "mutation_rate"])
+        for idx, item in enumerate(mutation_counter):
+            csvout.writerow([idx+1, item])
 
 
 def unbalance(clade):
@@ -489,7 +495,7 @@ def main(timelimit):
 
     # DEBUG: for gathering mutation rate of each site
     if args.debug:
-        mut_rate_log = []
+        mut_rate_log = {}
 
     # First of all, there exits only 1 SEQ.
     if args.CV:
@@ -508,6 +514,10 @@ def main(timelimit):
         if (c == 0):
             print("All SEQs dead!")
             all_dead(args.idANC)
+            try:
+                os.remove("ancestoral_sequences.fasta")
+            except FileNotFoundError:
+                pass
             if args.save:
                 argument_saver(args)
             return 1
@@ -531,7 +541,9 @@ def main(timelimit):
 
             elif(SEQqueue[k].t < timelimit):
                 esu = SEQqueue.pop(k)
-
+                # save ancestoral sequences
+                if args.viewANC:
+                    fasta_writer(esu.id, esu.seq, "ancestoral_sequences.fasta", True)
                 # duplication
                 if args.CV:
                     daughter = [SEQ(i, esu.id, esu.seq, esu.CV,
@@ -549,7 +561,7 @@ def main(timelimit):
                 if args.debug:
                     for sister in daughter:
                         if sister.is_alive:
-                            mut_rate_log.append(sister.mutation_rate)
+                            mut_rate_log[sister.id]=sister.mutation_rate
 
                 # [<mother>, <daughter1>, <daughter2> ]
                 Lineage[esu.id] = [esu.idM, i, i+1]
@@ -576,6 +588,10 @@ def main(timelimit):
         if (c == 0):
             print("All SEQs dead!")
             all_dead(args.idANC)
+            try:
+                os.remove("ancestoral_sequences.fasta")
+            except FileNotFoundError:
+                pass
             if args.save:
                 argument_saver(args)
             return 1
@@ -616,16 +632,10 @@ def main(timelimit):
         # create newick
         del(SEQqueue)
         print("creating newick...\n")
-        tip_count, returned_tree = create_newick(Lineage) \
-            if args.qsub \
-            else create_newick(Lineage)
+        tip_count, returned_tree, list_of_dead = create_newick(Lineage)
 
         if args.debug:
-            list_of_BI = Um_analyzer(returned_tree)
-            with open("balancedness_log.csv", "w") as f:
-                writer = csv.writer(f)
-                for item in list_of_BI:
-                    writer.writerow([item])
+            mut_rate_log_writer(mut_rate_log, list_of_dead)
 
     # in case of distributed computing
     if (args.qsub):
@@ -715,10 +725,9 @@ def main(timelimit):
         # remove extinct downstream lineages
         survey_all_dead_lineages(Lineage)
 
-        if args.qsub:
-            create_newick(Lineage)
-        else:
-            create_newick(Lineage)
+        tip_count, returned_tree, list_of_dead = create_newick(Lineage)
+        if args.debug:
+            mut_rate_log_writer(mut_rate_log, list_of_dead)
 
         command = "cat PRESUME.e*.* > intermediate/err; \
                 cat PRESUME.o*.* > intermediate/out; rm PRESUME.*"
@@ -769,7 +778,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='PRESUME.py', add_help=False)
     parser.add_argument(
         "--param",
-        help="lord argument file(csv file)",
+        help="load argument file(csv file)",
         type=str
         )
     parser.add_argument(
@@ -923,6 +932,13 @@ if __name__ == "__main__":
 
     # for debug
     parser.add_argument(
+        "--viewANC",
+        help="generate fasta of ancestoral sequences",
+        action="store_true",
+        default=False
+        )
+
+    parser.add_argument(
         "--save",
         help="generate args.csv",
         action="store_true",
@@ -965,6 +981,12 @@ if __name__ == "__main__":
         default=False
         )
 
+    parser.add_argument(
+        "--tree",
+        help="file name of a guide tree in Newick format(for debug, unsupported.)",
+        type=str,
+        default=None,
+    )
     args = parser.parse_args()
 
     #   to show help
@@ -977,6 +999,11 @@ if __name__ == "__main__":
         print(LOGO)
         exit()
 
+    if args.tree:
+        import submodule.nwk2fa as n2f
+        n2f.PRESUME_nwk2fa(args)
+        exit()
+    
     # read argument from input CSV
     if args.param:
         with open(args.param, "rt") as fin:
