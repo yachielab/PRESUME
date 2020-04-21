@@ -778,7 +778,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='PRESUME.py', add_help=False)
     parser.add_argument(
         "--param",
-        help="lord argument file(csv file)",
+        help="load argument file(csv file)",
         type=str
         )
     parser.add_argument(
