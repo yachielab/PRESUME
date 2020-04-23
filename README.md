@@ -16,11 +16,12 @@ generates a large number of sequences that accumulate substitutions with their l
 
 ### Software Dependency
 
-1. Python3 (newer than 3.7.0) with Biopython module (required) and tqdm module (optional; if you want to visualize a simulation progress)
+1. Python3 (newer than 3.7.0) with Biopython module *required* and tqdm module *optional; if you want to visualize a simulation progress*
 
 ### Software Installation
 
 ##### Installation of PRESUME
+Each step of installation takes less than 1 min.
 
 1. Download PRESUME by
 
@@ -43,7 +44,6 @@ generates a large number of sequences that accumulate substitutions with their l
    ```
    wget https://repo.anaconda.com/archive/Anaconda3-2018.12-Linux-x86_64.sh
    bash Anaconda3-2018.12-Linux-x86_64.sh
-   bash
    ```
 
 2. Set $PATH to anaconda3/bin
@@ -70,7 +70,7 @@ The software functions can be tested by the following example commands:
 
 **Example 1**
 
-Generation of ~100 sequences using GTR-Gamma model with the default parameter set without distributed computing.
+Generation of ~100 sequences using GTR-Gamma model with the default parameter set without distributed computing. The computation will take several minutes.
 
 ```
 PRESUME.py -n 100 --gtrgamma default --save
@@ -88,7 +88,7 @@ Output: a directory [`PRESUMEout`](https://github.com/yachielab/PRESUME/tree/mas
 
 **Example 2**
 
-Generation of ~100 sequences using a time-independent model with the substitution frequency of 5% per site per generation along with a highly unbalanced lineage trajectory (*&sigma;* of 10).
+Generation of ~100 sequences using a time-independent model with the substitution frequency of 5% per site per generation along with a highly unbalanced lineage trajectory (*&sigma;* of 10). The computation will take several minutes.
 
 ```
 PRESUME.py -n 100 --constant 0.05 -s 10
@@ -98,7 +98,7 @@ Output data: a directory [`PRESUMEout`](https://github.com/yachielab/PRESUME/tre
 
  **Example 3**
 
-Generation of ~10,000 sequences using GTR-Gamma model with a defined parameter set with distributed computing.
+Generation of ~10,000 sequences using GTR-Gamma model with a defined parameter set with distributed computing. The computation will take several minutes.
 
 ```
 PRESUME.py -n 10000 --gtrgamma GTR{0.927000/2.219783/1.575175/0.861651/4.748809/1.000000}+FU{0.298/0.215/0.304/0.183}+G{0.553549} --qsub 
