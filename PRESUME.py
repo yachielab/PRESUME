@@ -31,10 +31,10 @@ LOGO = '''
 #          #   #      #                #    #     #    #     #    #
 #          #    #     #          #     #    #     #    #     #    #
 #          #     #    #######     #####      #####     #     #    #######
-PREparation of many diversified SeqUences by siMulation of Evolutionary process
-Ver. 1.0.0
-Build Aug, 1, 2019
-github: https://github.com/yachielab/PRESUME
+
+Version:     1.0
+Last update: April 24, 2020
+GitHub:      https://github.com/yachielab/PRESUME
 '''
 
 # set environment
@@ -146,6 +146,17 @@ class SimulationFailureError(PresumeException):
         Take:{}
         """.format(self.take_count)
         return message
+    
+class ExceptionOfCodeOcenan(PresumeException):
+    def __init__(self):
+        self.message="""
+        PRESUME: Because Code Ocean does not support Univa Grid Engine, 
+        distributed computing mode(the option of --qsub) is disabled.
+        If you want to use it, please install PRESUME from http:/github.com/yachielab/PRESUME.
+        """
+
+    def __str__(self):
+        return self.message
 
 
 #   for Simulation
@@ -512,7 +523,6 @@ def main(timelimit):
     # SEQs propagation
     while(True):
         if (c == 0):
-            print("All SEQs dead!")
             all_dead(args.idANC)
             try:
                 os.remove("ancestoral_sequences.fasta")
@@ -586,7 +596,6 @@ def main(timelimit):
                 return 1
 
         if (c == 0):
-            print("All SEQs dead!")
             all_dead(args.idANC)
             try:
                 os.remove("ancestoral_sequences.fasta")
@@ -605,7 +614,7 @@ def main(timelimit):
                 delta_timelimit = inittimelimit/(timelimit/inittimelimit)
                 timelimit += delta_timelimit
             else:
-                print("\nnumber of cells reached "+str(C))
+                print("Number of generated sequences reached "+str(C))
                 break
 
     # output initial sequence
@@ -615,7 +624,7 @@ def main(timelimit):
     # or "downstream SEQ simulation of distributed computing"
     if(not args.qsub):
         # create fasta
-        print("\n\ncreating fasta...")
+        print("Generating a FASTA file...")
         for esu in SEQqueue:
             if(args.idANC is None):
                 esu_name = str(esu.id)
@@ -631,7 +640,7 @@ def main(timelimit):
 
         # create newick
         del(SEQqueue)
-        print("creating newick...\n")
+        print("Generating a Newick file......")
         tip_count, returned_tree, list_of_dead = create_newick(Lineage)
 
         if args.debug:
@@ -745,7 +754,6 @@ def main(timelimit):
             shutil.rmtree("intermediate")
 
     # error check
-    print("\n\nchecking error...\n")
     if(fa_count != tip_count):
         raise OutputError(fa_count, tip_count)
         return 0
@@ -754,11 +762,11 @@ def main(timelimit):
     if args.save:
         argument_saver(args)
 
-    print("==============================")
-    print("final timelimit: "+str(2*timelimit))
-    print("generated alive SEQs: "+str(tip_count))
-    print("seed: "+str(seed))
-    print("==============================")
+    print("=====================================================")
+    print("Simulation end time point:         "+str(2*timelimit))
+    print("Number of generated sequences:     "+str(tip_count))
+    print("Seed for random number generation: "+str(seed))
+    print("=====================================================\n")
     return 0
 
 
@@ -874,7 +882,8 @@ if __name__ == "__main__":
 
     parser.add_argument(
         "-m",
-        help="mean of relative substitution rate according to gamma distribution \
+        help="mean of relative  \
+        titution rate according to gamma distribution \
             (default=1)",
         type=float,
         default=1
@@ -988,7 +997,12 @@ if __name__ == "__main__":
         default=None,
     )
     args = parser.parse_args()
-
+    
+    # "Code Ocean" specific process
+    if args.qsub:
+        raise ExceptionOfCodeOcenan
+        quit()
+    
     #   to show help
     if args.help:
         import PRESUME_help as ph
@@ -1108,7 +1122,7 @@ if __name__ == "__main__":
             [a1*piA, -(a1*piA+a4*piG+a5*piT), a4*piG, a5*piT],
             [a2*piA, a4*piC, -(a2*piA+a4*piC+a6*piT), a6*piT],
             [a3*piA, a5*piC, a6*piG, -(a3*piA+a5*piC+a6*piG)]])
-        print("substitution rate matrix:")
+        print("Substitution rate matrix:")
         print(R)
         # Al: eigen values (np.array),
         # U: eigen vectors matrix :
@@ -1150,4 +1164,4 @@ if __name__ == "__main__":
         return_main = main(args.monitor)
     else:
         counter = recursive_main(args.monitor, args.r, main)
-        print("Take:", counter)
+#         print("Number of retrials:", counter)
