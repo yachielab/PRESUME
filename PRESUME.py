@@ -32,7 +32,7 @@ LOGO = '''
 #          #    #     #          #     #    #     #    #     #    #
 #          #     #    #######     #####      #####     #     #    #######
 
-Version:     1.0
+Version:     1.0.0
 Last update: April 24, 2020
 GitHub:      https://github.com/yachielab/PRESUME
 '''
@@ -999,9 +999,9 @@ if __name__ == "__main__":
     args = parser.parse_args()
     
     # "Code Ocean" specific process
-    if args.qsub:
-        raise ExceptionOfCodeOcenan
-        quit()
+    # if args.qsub:
+    #     raise ExceptionOfCodeOcenan
+    #     quit()
     
     #   to show help
     if args.help:

@@ -48,7 +48,7 @@ Each step of installation takes less than 1 min.
 
 2. Set $PATH to anaconda3/bin
 
-##### Installation of [Biopython](https://anaconda.org/anaconda/biopython) (required)
+##### Installation of [Biopython](https://anaconda.org/anaconda/biopython) 1.76 (required)
 
 1. Install Biopython by
 
@@ -56,7 +56,7 @@ Each step of installation takes less than 1 min.
    conda install -c anaconda biopython
    ```
 
-##### Installation of [tqdm](https://anaconda.org/conda-forge/tqdm) (optional)
+##### Installation of [tqdm](https://anaconda.org/conda-forge/tqdm) 4.43.0 (optional)
 
 1. Install tqdm by
 
