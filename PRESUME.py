@@ -230,7 +230,7 @@ class SEQ():
 
     def gen_indels(self): # pos2inprob, in_lengths, pos2delprob, del_lengths were defined from argument files
 
-        def randomstr(self, alphabet, length):
+        def randomstr(alphabet, length):
             seq=""
             for _ in range(length):
                 seq = seq + random.choice(alphabet)
