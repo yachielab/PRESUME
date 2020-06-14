@@ -228,6 +228,12 @@ class SEQ():
             ['A', 'C', 'G', 'T'], k=1, weights=np.array(matrix[base[c]])[0]
             )[0]
     
+    def randomstr(self, alphabet, length):
+        seq=""
+        for _ in range(length):
+            seq = seq + random.choice(alphabet)
+        return seq
+
     def gen_indels(self): # pos2inprob, in_lengths, pos2delprob, del_lengths were defined from argument files
 
         seq_length = len(pos2inprob)
@@ -248,7 +254,7 @@ class SEQ():
 
                         length = random.choice(in_lengths)
 
-                        generated_indels.append( ( 'in',  pos, length ) )
+                        generated_indels.append( ( 'in',  pos, length, randomstr(['A','T','G','C'], length) ) )
             
             elif (indel == 'del' ):
 
@@ -396,12 +402,6 @@ def create_newick(Lineage):
 
 def fasta_writer(name, seq, indels, file_name, overwrite_mode):
 
-    def randomstr(alphabet, length):
-        seq=""
-        for _ in range(length):
-            seq = seq + random.choice(alphabet)
-        return seq
-
     if overwrite_mode:
         writer_mode = "a"
     else:
@@ -439,7 +439,7 @@ def fasta_writer(name, seq, indels, file_name, overwrite_mode):
                     if( indel[1] in refpos2pos.keys() ):
                         start  = refpos2pos[indel[1]]
                         length = indel[2]
-                        seq    = seq[:start] + randomstr(['A','T','G','C'], length)+ seq[start:]
+                        seq    = seq[:start] + indel[3] + seq[start:]
                         
                         pos2refposindel = pos2refposindel[:start] + ["in"]*length + pos2refposindel[start:]
 
