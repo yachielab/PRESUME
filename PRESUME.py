@@ -780,7 +780,7 @@ def main(timelimit):
                     format(str(esu.id))
                 with open(indel_file_path, 'w') as handle:
                     for indel in esu.indels:
-                        print(str(indel[0])+"\t"+str(indel[1])+"\t"+str(indel[2])+"\n")
+                        handle.write(str(indel[0])+"\t"+str(indel[1])+"\t"+str(indel[2])+"\n")
 
             with open("intermediate/shell/esu_"+str(itr)+".sh", 'w') as qf:
                 qf.write("#!/bin/bash\n")
@@ -1205,6 +1205,7 @@ if __name__ == "__main__":
     else:
         seed = int(args.seed)
     np.random.seed(int(seed))
+    random.seed(int(seed))
 
 
     # parameters###### (corresponding to the Figure.2a)
