@@ -227,14 +227,14 @@ class SEQ():
         return random.choices(
             ['A', 'C', 'G', 'T'], k=1, weights=np.array(matrix[base[c]])[0]
             )[0]
-    
-    def randomstr(self, alphabet, length):
-        seq=""
-        for _ in range(length):
-            seq = seq + random.choice(alphabet)
-        return seq
 
     def gen_indels(self): # pos2inprob, in_lengths, pos2delprob, del_lengths were defined from argument files
+
+        def randomstr(self, alphabet, length):
+            seq=""
+            for _ in range(length):
+                seq = seq + random.choice(alphabet)
+            return seq
 
         seq_length = len(pos2inprob)
         
