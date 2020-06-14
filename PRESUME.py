@@ -1311,7 +1311,7 @@ if __name__ == "__main__":
     if(CRISPR):
         if (args.indels is not None):
             initindels = []
-            with open(args.indel, 'r') as handle:
+            with open(args.indels, 'r') as handle:
                 for line in handle:
                     chunks = line.split()
                     initindels.append(chunks[0], int(chunks[1]), int(chunks[2]))
