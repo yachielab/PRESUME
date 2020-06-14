@@ -106,6 +106,18 @@ PRESUME.py -n 10000 --gtrgamma GTR{0.927000/2.219783/1.575175/0.861651/4.748809/
 
 Output data: a directory [`PRESUMEout`](https://github.com/yachielab/PRESUME/tree/master/example/example_3/PRESUMEout) will be created in your working directory.
 
+**Example 4**
+
+Generation of ~100 sequences using GTR-Gamma model and an original indel model with a defined parameter set with distributed computing. The computation will take ~1 minute.
+
+```shell
+PRESUME.py -n 100 --gtrgamma default --inprob prob.txt --inlength length.txt --delprob prob.txt --dellength length.txt
+```
+
+Input data: [`prob.txt`]() defines indel probability per generation for each initial sequence postion and [`length.txt`]() defines the distribution of each indel 
+
+Output data: a directory [`PRESUMEout`](https://github.com/yachielab/PRESUME/tree/master/example/example_3/PRESUMEout) will be created in your working directory.
+
 See [SubstitutionModelDetails.PRESUME.pdf](https://github.com/yachielab/PRESUME/blob/master/SubstitutionModelDetails.PRESUME.pdf) for more details of how to specify the GTR-Gamma model parameters.
 
 ***
