@@ -417,7 +417,6 @@ def fasta_writer(name, seq, indels, file_name, overwrite_mode):
                 refpos2pos[refpos] = pos
 
             for indel in indels:
-                print(indel)
 
                 if (indel[0] == 'del'):
 
