@@ -1284,6 +1284,10 @@ if __name__ == "__main__":
         # set indel parameters from raw lab experiments
         CRISPR      = False
         if (args.inprob != None): 
+            inprob_file    = os.path.abspath(args.inprob)
+            inlength_file  = os.path.abspath(args.inlength)
+            delprob_file   = os.path.abspath(args.delprob)
+            dellength_file = os.path.abspath(args.dellength)
             pos2inprob  = make_list(args.inprob  , 'float')
             in_lengths  = make_list(args.inlength, 'int'  )
             pos2delprob = make_list(args.delprob , 'float')
