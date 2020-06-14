@@ -7,7 +7,7 @@ __author__ = "\
             Naoki Konno <naoki@bs.s.u-tokyo.ac.jp>, \
             Nozomu Yachie <nzmyachie@gmail.com>"
 
-__date__ = "2020/1/12"
+__date__ = "2020/6/14"
 
 import random
 import numpy as np
@@ -162,7 +162,7 @@ class ExceptionOfCodeOcenan(PresumeException):
 #   for Simulation
 class SEQ():
     # idM & mseq means id & sequence of mother SEQ, respectively.
-    def __init__(self, SEQid, idM, mseq, CVM, rM, dM, tM, CV=False):
+    def __init__(self, SEQid, idM, mseq, CVM, rM, dM, tM, indelsM, CV=False): # indels: list of [('in' or 'del', start_pos, length)]
         self.id = SEQid  # for example: 0,1,2,...
         self.idM = idM
         self.CV = max(np.random.normal(CVM, CVM*alpha), 0)  # should be > 0
@@ -178,8 +178,12 @@ class SEQ():
             else:
                 self.d = 1/self.r
 
-            self.t = tM + self.d  # time t of doubling of this SEQ
-            self.seq = self.daughterseq(str(mseq), dM)
+            self.t      = tM + self.d  # time t of doubling of this SEQ
+            self.seq    = self.daughterseq(str(mseq), dM)
+
+            if (CRISPR): self.indels = indelsM + self.gen_indels() # CRISPR == True if an inprob file path is specified 
+            else       : self.indels = None
+
             self.mutation_rate = compare_sequences(str(mseq), self.seq)
 
     def growing_rate_dist(self, mu, sigma):
@@ -223,7 +227,40 @@ class SEQ():
         return random.choices(
             ['A', 'C', 'G', 'T'], k=1, weights=np.array(matrix[base[c]])[0]
             )[0]
+    
+    def gen_indels(self): # pos2inprob, in_lengths, pos2delprob, del_lengths were defined from argument files
 
+        seq_length = len(pos2inprob)
+        
+        shuffled_in_pos  = list(range(seq_length)); random.shuffle(shuffled_in_pos)
+        shuffled_del_pos = list(range(seq_length)); random.shuffle(shuffled_del_pos)
+        indel_order      = ['in', 'del'];                random.shuffle(indel_order)
+
+        generated_indels = []
+
+        for indel in indel_order:
+
+            if (indel == 'in'):
+
+                for pos in shuffled_in_pos:
+
+                    if ( random.random() < pos2inprob[pos] ):
+
+                        length = random.choice(in_lengths)
+
+                        generated_indels.append( ( 'in',  pos, length ) )
+            
+            elif (indel == 'del' ):
+
+                for pos in shuffled_del_pos:
+                    
+                    if ( random.random() < pos2delprob[pos] ):
+
+                        length = random.choice(del_lengths)
+
+                        generated_indels.append( ( 'del', pos, length ) )
+            
+        return generated_indels
 
 def compare_sequences(motherseq, myseq):
     if len(motherseq) != len(myseq):
@@ -357,12 +394,60 @@ def create_newick(Lineage):
         raise CreateNewickError(e)
 
 
-def fasta_writer(name, seq, file_name, overwrite_mode):
+def fasta_writer(name, seq, indels, file_name, overwrite_mode):
+
+    def randomstr(alphabet, length):
+        seq=""
+        for _ in range(length):
+            seq = seq + random.choice(alphabet)
+        return seq
+
     if overwrite_mode:
         writer_mode = "a"
     else:
         writer_mode = "w"
+
     with open(file_name, writer_mode) as writer:
+
+        if (indels != None):
+            
+            refpos2pos = {}
+            pos2refposindel= list(range(len(seq)))
+            for pos, refpos in enumerate(pos2refposindel):
+                refpos2pos[refpos] = pos
+
+            for indel in indels:
+
+                if (indel[0] == 'del'):
+
+                    if( indel[1] in refpos2pos.keys() ):
+                        start  = refpos2pos[indel[1]]
+                        length = indel[2]
+                        end    = start + length - 1 
+                        seq    = seq[:start] + seq[(end+1):]
+
+                        for pos in range(start, end+1):
+                            pos2refposindel[pos] = "del"
+                        
+                        refpos2pos = {}
+                        for pos, refposindel in enumerate(pos2refposindel):
+                            if(type(refposindel)==int):
+                                refpos2pos[refposindel] = pos
+                
+                elif ( indel[0] == "in" ):
+
+                    if( indel[1] in refpos2pos.keys() ):
+                        start  = refpos2pos[indel[1]]
+                        length = indel[2]
+                        seq    = seq[:start] + randomstr(['A','T','G','C'], length)+ seq[start:]
+                        
+                        pos2refposindel = pos2refposindel[:start] + ["in"]*length + pos2refposindel[start:]
+
+                        refpos2pos = {}
+                        for pos, refposindel in enumerate(pos2refposindel):
+                            if(type(refposindel)==int):
+                                refpos2pos[refposindel] = pos
+
         SEQ_seq = SeqRecord(Seq(seq))
         SEQ_seq.id = str(name)
         SEQ_seq.description = ""
@@ -470,6 +555,14 @@ def Um_analyzer(tree):
             quene.extend(m_clade.clades)
     return list_of_u
 
+def make_list(txtfile, datatype):
+    List=[]
+    with open(txtfile, 'r') as handle:
+        for line in handle:
+            if(datatype=='float'): List.append(float(line.split("\n")[0]))
+            elif(datatype=='int'): List.append(int(line.split("\n")[0]))
+    return List
+
 
 # main
 def main(timelimit):
@@ -512,13 +605,15 @@ def main(timelimit):
     if args.CV:
         SEQqueue.append(
             SEQ(i, -1, initseq, sigma_origin, growing_rate_origin,
-                dorigin, args.tMorigin, True))
+                dorigin, args.tMorigin, initindels, True))
     else:
-        SEQqueue.append(SEQ(i, -1, initseq, sigma_origin, growing_rate_origin,
-                            dorigin, args.tMorigin, True))
+        SEQqueue.append(
+            SEQ(i, -1, initseq, sigma_origin, growing_rate_origin,
+                dorigin, args.tMorigin, initindels, True))
     SEQqueue[0].seq = initseq
+    SEQqueue[0].indels = initindels
     i += 1
-    c = 1  # current number of SEQs
+    c  = 1  # current number of SEQs
 
     # SEQs propagation
     while(True):
@@ -553,18 +648,18 @@ def main(timelimit):
                 esu = SEQqueue.pop(k)
                 # save ancestoral sequences
                 if args.viewANC:
-                    fasta_writer(esu.id, esu.seq, "ancestoral_sequences.fasta", True)
+                    fasta_writer(esu.id, esu.seq, esu.indels, "ancestoral_sequences.fasta", True)
                 # duplication
                 if args.CV:
                     daughter = [SEQ(i, esu.id, esu.seq, esu.CV,
-                                    esu.d, esu.r, esu.t, True),
+                                    esu.d, esu.r, esu.t, esu.indels, True),
                                 SEQ(i+1, esu.id, esu.seq, esu.CV,
-                                    esu.d, esu.r, esu.t, True)]
+                                    esu.d, esu.r, esu.t, esu.indels, True)]
                 else:
                     daughter = [SEQ(i, esu.id, esu.seq, esu.CV,
-                                    esu.d, esu.r, esu.t),
+                                    esu.d, esu.r, esu.t, esu.indels),
                                 SEQ(i+1, esu.id, esu.seq, esu.CV,
-                                    esu.d, esu.r, esu.t)]
+                                    esu.d, esu.r, esu.t, esu.indels)]
 
                 SEQqueue.extend(daughter)
 
@@ -618,7 +713,7 @@ def main(timelimit):
                 break
 
     # output initial sequence
-    fasta_writer("root", initseq, "root.fa", False)
+    fasta_writer("root", initseq, None, "root.fa", False)
 
     # in case of "sequential computing"
     # or "downstream SEQ simulation of distributed computing"
@@ -634,7 +729,8 @@ def main(timelimit):
                 new_esu_name = "{}_{}".\
                     format(esu_name_prefix, esu_name_suffix)
                 esu_name = new_esu_name
-            fasta_writer(esu_name, esu.seq, "PRESUMEout.fa", True)
+            #print(esu_name,esu.indels)
+            fasta_writer(esu_name, esu.seq, esu.indels, "PRESUMEout.fa", True)
 
         fa_count = count_sequence("PRESUMEout.fa")
 
@@ -653,6 +749,9 @@ def main(timelimit):
         os.mkdir("intermediate/DOWN")
         os.mkdir("intermediate/fasta")
         os.mkdir("intermediate/shell")
+
+        if(CRISPR): os.mkdir("intermediate/indel")
+
         PATH = (((
             subprocess.Popen('echo $PATH', stdout=subprocess.PIPE,
                              shell=True)
@@ -673,7 +772,15 @@ def main(timelimit):
             fasta_file_path = \
                 "intermediate/fasta/{}.fa".\
                 format(str(esu.id))
-            fasta_writer(esu.id, esu.seq, fasta_file_path, True)
+            fasta_writer(esu.id, esu.seq, None, fasta_file_path, True)
+            
+            if(CRISPR):
+                indel_file_path =\
+                    "intermediate/indel/{}.txt".\
+                    format(str(esu.id))
+                with open(indel_file_path, 'w') as handle:
+                    for indel in esu.indels:
+                        print(indel[0]+"\t"+indel[1]+"\t"+indel[2]+"\n")
 
             with open("intermediate/shell/esu_"+str(itr)+".sh", 'w') as qf:
                 qf.write("#!/bin/bash\n")
@@ -686,33 +793,28 @@ def main(timelimit):
                 qf.write("pwd\n")
 
                 # divide until time point of (2 * timelimit)
+                python_command = PYTHON3 + " " + PRESUME + "/PRESUME.py "\
+                    "--monitor " + str(2*timelimit)\
+                    + " -L "+str(L)\
+                    + " -f "+"../../../fasta/"+str(esu.id)+".fa"\
+                    + " -d "+str(esu.d)\
+                    + " -s "+str(sigma_origin)\
+                    + " -T "+str(T)\
+                    + " -e "+str(e)\
+                    + " -u "+str(UPPER_LIMIT)\
+                    + " --idANC "+str(esu.id)\
+                    + " --tMorigin "+str(esu.t-esu.d)\
+                    + " --seed " + str(np.random.randint(0, args.r))
                 if args.CV:
-                    python_command = PYTHON3 + " " + PRESUME + "/PRESUME.py "\
-                        "--monitor " + str(2*timelimit)\
-                        + " -L "+str(L)\
-                        + " -f "+"../../../fasta/"+str(esu.id)+".fa"\
-                        + " -d "+str(esu.d)\
-                        + " -s "+str(sigma_origin)\
-                        + " -T "+str(T)\
-                        + " -e "+str(e)\
-                        + " -u "+str(UPPER_LIMIT)\
-                        + " --idANC "+str(esu.id)\
-                        + " --tMorigin "+str(esu.t-esu.d)\
-                        + " --CV"\
-                        + " --seed " + str(np.random.randint(0, args.r))
-                else:
-                    python_command = PYTHON3 + " " + PRESUME + "/PRESUME.py "\
-                        "--monitor " + str(2*timelimit)\
-                        + " -L "+str(L)\
-                        + " -f "+"../../../fasta/"+str(esu.id)+".fa"\
-                        + " -d "+str(esu.d)\
-                        + " -s "+str(sigma_origin)\
-                        + " -T "+str(T)\
-                        + " -e "+str(e)\
-                        + " -u "+str(UPPER_LIMIT)\
-                        + " --idANC "+str(esu.id)\
-                        + " --tMorigin "+str(esu.t-esu.d)\
-                        + " --seed " + str(np.random.randint(0, args.r))
+                    python_command += " --CV"
+                
+                if CRISPR:
+                    python_command += \
+                        " --inprob "     + args.inprob   +\
+                        " --inlength "   + args.inlength +\
+                        " --delprob "    + args.delprob  +\
+                        " --dellength "  + args.dellength+\
+                        " --indels "     + "../../../indel/"+str(esu.id)+".txt"
 
                 qf.write(python_command)
                 if (args.gtrgamma is not None):
@@ -783,7 +885,7 @@ def recursive_main(timelimit, limit, main_func, repeated=1):
 #   interface
 if __name__ == "__main__":
     # interface
-    parser = argparse.ArgumentParser(description='PRESUME.py', add_help=False)
+    parser = argparse.ArgumentParser(description='PRESUME.py', add_help=True)
     parser.add_argument(
         "--param",
         help="load argument file(csv file)",
@@ -975,13 +1077,14 @@ if __name__ == "__main__":
         type=str,
         default=None
         )
-
+    '''
     parser.add_argument(
         "-h", "--help",
         help="print help document",
         action='store_true',
         default=False
         )
+    '''
 
     parser.add_argument(
         "--polyC",
@@ -996,6 +1099,44 @@ if __name__ == "__main__":
         type=str,
         default=None,
     )
+
+
+    parser.add_argument(
+        "--inprob",
+        help="file name of insertion probability for each position",
+        type=str,
+        default=None,
+    )
+
+    parser.add_argument(
+        "--inlength",
+        help="file name of insertion length distribution",
+        type=str,
+        default=None,
+    )
+    
+    parser.add_argument(
+        "--delprob",
+        help="file name of deletion probability for each position",
+        type=str,
+        default=None,
+    )
+
+    parser.add_argument(
+        "--dellength",
+        help="file name of insertion length distribution",
+        type=str,
+        default=None,
+    )
+
+    parser.add_argument(
+        "--indels",
+        help="file name of indels accumulated before simualtion (for distributed computing mode)",
+        type=str,
+        default=None,
+    )
+
+
     args = parser.parse_args()
     
     # "Code Ocean" specific process
@@ -1004,10 +1145,12 @@ if __name__ == "__main__":
     #     quit()
     
     #   to show help
+    '''
     if args.help:
         import PRESUME_help as ph
         print(ph.help_description())
         exit()
+    '''
 
     if args.version:
         print(LOGO)
@@ -1063,13 +1206,6 @@ if __name__ == "__main__":
         seed = int(args.seed)
     np.random.seed(int(seed))
 
-    # setup directory
-    OUTDIR = args.output
-    if not os.path.exists(OUTDIR):
-        os.makedirs(OUTDIR)
-    os.chdir(OUTDIR)
-    os.makedirs("PRESUMEout", exist_ok=True)
-    os.chdir("PRESUMEout")
 
     # parameters###### (corresponding to the Figure.2a)
     L = args.L
@@ -1145,6 +1281,15 @@ if __name__ == "__main__":
         shape = float(gamma_str[0])  # shape of gamma distribution
         gamma = np.random.gamma(shape, m / shape, L)  # mean is args.m
 
+        # set indel parameters from raw lab experiments
+        CRISPR      = False
+        if (args.inprob != None): 
+            pos2inprob  = make_list(args.inprob  , 'float')
+            in_lengths  = make_list(args.inlength, 'int'  )
+            pos2delprob = make_list(args.delprob , 'float')
+            del_lengths = make_list(args.dellength,'int'  )
+            CRISPR      = True
+
     # initial sequence specification
     if (args.f is not None):
         with open(args.f, 'r') as handle:
@@ -1157,6 +1302,27 @@ if __name__ == "__main__":
         initseq = ''.join([
             np.random.choice(['A', 'G', 'C', 'T']) for i in range(L)
             ])
+    
+    # initial indel specification (for distributed computing mode)
+    if(CRISPR):
+        if (args.indels is not None):
+            initindels = []
+            with open(args.indel, 'r') as handle:
+                for line in handle:
+                    chunks = line.split()
+                    initindels.append(chunks[0], chunks[1], chunks[2])
+        else:
+            initindels=[]
+    else:
+        initindels=None
+
+    # setup directory
+    OUTDIR = args.output
+    if not os.path.exists(OUTDIR):
+        os.makedirs(OUTDIR)
+    os.chdir(OUTDIR)
+    os.makedirs("PRESUMEout", exist_ok=True)
+    os.chdir("PRESUMEout")
 
     #   excecute main
     print(LOGO)
@@ -1164,4 +1330,4 @@ if __name__ == "__main__":
         return_main = main(args.monitor)
     else:
         counter = recursive_main(args.monitor, args.r, main)
-#         print("Number of retrials:", counter)
+#       print("Number of retrials:", counter)
