@@ -756,7 +756,9 @@ def main(timelimit):
 
         if (c == 0):
             all_dead(args.idANC)
-            
+            fa_count  = 0
+            tip_count = 0
+
         else: 
             fa_count = count_sequence("PRESUMEout.fa")
 
@@ -769,7 +771,7 @@ def main(timelimit):
                 mut_rate_log_writer(mut_rate_log, list_of_dead)
 
     # in case of distributed computing
-    if (args.qsub):
+    else :
         # preparation for qsub
         os.mkdir("intermediate")
         os.mkdir("intermediate/DOWN")
