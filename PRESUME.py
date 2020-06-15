@@ -473,13 +473,12 @@ def fasta_writer(name, seq, indels, file_name, overwrite_mode):
 
 def survey_all_dead_lineages(Lineage):
     try:
-        command = "cat intermediate/DOWN/*/all_SEQ_dead.out \
+        command = "cat intermediate/DOWN/*/PRESUMEout/all_SEQ_dead.out \
             > intermediate/all_dead.out; \
-            rm intermediate/DOWN/*/all_SEQ_dead.out"
+            rm intermediate/DOWN/*/PRESUMEout/all_SEQ_dead.out"
         subprocess.call(command, shell=True)
 
     except Exception as e:
-        print(e)
         print("no lineages extinct")
         return
 
