@@ -170,8 +170,14 @@ class SEQ():
             self.r = self.growing_rate_dist(rM, rM*self.CV)
         else:
             self.r = self.growing_rate_dist(rM, self.CV)
-        self.is_alive = self.r >= 0 and np.random.rand() > e
+        
+        self.is_alive = (self.r >= 0 and np.random.rand() > e)
 
+        
+        
+        
+        
+        
         if(self.is_alive):
             if self.r == 0:
                 self.d = float("inf")
@@ -418,40 +424,51 @@ def fasta_writer(name, seq, indels, file_name, overwrite_mode):
 
             for indel in indels:
 
-                if (indel[0] == 'del'):
+                if ( len (seq) > 0 ):
 
-                    if( indel[1] in refpos2pos.keys() ):
-                        start  = refpos2pos[indel[1]]
-                        length = indel[2]
-                        end    = start + length - 1 
-                        seq    = seq[:start] + seq[(end+1):]
+                    if (indel[0] == 'del'):
 
-                        for pos in range(start, end+1):
-                            pos2refposindel[pos] = "del"
-                        
-                        refpos2pos = {}
-                        for pos, refposindel in enumerate(pos2refposindel):
-                            if(type(refposindel)==int):
-                                refpos2pos[refposindel] = pos
+                        if( indel[1] in refpos2pos.keys() ):
+                            start  = refpos2pos[indel[1]]
+                            length = indel[2]
+                            end    = start + length - 1 
+                            seq    = seq[:start] + seq[(end+1):]
+
+                            for pos in range(start, end+1):
+                                if pos < len(pos2refposindel):
+                                    pos2refposindel[pos] = "del"
+                            
+                            refpos2pos = {}
+                            for pos, refposindel in enumerate(pos2refposindel):
+                                if(type(refposindel)==int):
+                                    refpos2pos[refposindel] = pos
+                    
+                    elif ( indel[0] == "in" ):
+
+                        if( indel[1] in refpos2pos.keys() ):
+                            start  = refpos2pos[indel[1]]
+                            length = indel[2]
+                            seq    = seq[:start] + indel[3] + seq[start:]
+                            
+                            pos2refposindel = pos2refposindel[:start] + ["in"]*length + pos2refposindel[start:]
+
+                            refpos2pos = {}
+                            for pos, refposindel in enumerate(pos2refposindel):
+                                if(type(refposindel)==int):
+                                    refpos2pos[refposindel] = pos
                 
-                elif ( indel[0] == "in" ):
+                else:
+                    
+                    return True # True means the sequence died
 
-                    if( indel[1] in refpos2pos.keys() ):
-                        start  = refpos2pos[indel[1]]
-                        length = indel[2]
-                        seq    = seq[:start] + indel[3] + seq[start:]
-                        
-                        pos2refposindel = pos2refposindel[:start] + ["in"]*length + pos2refposindel[start:]
-
-                        refpos2pos = {}
-                        for pos, refposindel in enumerate(pos2refposindel):
-                            if(type(refposindel)==int):
-                                refpos2pos[refposindel] = pos
+        if ( len (seq) <= 0 ):
+            return True # True means the sequence died
 
         SEQ_seq = SeqRecord(Seq(seq))
         SEQ_seq.id = str(name)
         SEQ_seq.description = ""
         SeqIO.write(SEQ_seq, writer, "fasta")
+        return False
 
 
 def survey_all_dead_lineages(Lineage):
@@ -648,7 +665,7 @@ def main(timelimit):
                 esu = SEQqueue.pop(k)
                 # save ancestoral sequences
                 if args.viewANC:
-                    fasta_writer(esu.id, esu.seq, esu.indels, "ancestoral_sequences.fasta", True)
+                    fasta_writer(esu.id, esu.seq, esu.indels, "ancestral_sequences.fasta", True)
                 # duplication
                 if args.CV:
                     daughter = [SEQ(i, esu.id, esu.seq, esu.CV,
@@ -730,7 +747,11 @@ def main(timelimit):
                     format(esu_name_prefix, esu_name_suffix)
                 esu_name = new_esu_name
             #print(esu_name,esu.indels)
-            fasta_writer(esu_name, esu.seq, esu.indels, "PRESUMEout.fa", True)
+            esu_zero_length = fasta_writer(esu_name, esu.seq, esu.indels, "PRESUMEout.fa", True) # fasta_writer() returns True if the seq. length <= 0
+            if (esu_zero_length):
+                Lineage[esu.id] = ["dead"]
+                if(esu.id != 0):
+                    death(Lineage, esu.idM)
 
         fa_count = count_sequence("PRESUMEout.fa")
 
@@ -768,64 +789,71 @@ def main(timelimit):
 
         itr = 0
         for esu in SEQqueue:
-            itr += 1
+
             fasta_file_path = \
                 "intermediate/fasta/{}.fa".\
                 format(str(esu.id))
-            fasta_writer(esu.id, esu.seq, None, fasta_file_path, True)
+            esu_zero_length = fasta_writer(esu.id, esu.seq, None, fasta_file_path, True)
             
-            if(CRISPR):
-                indel_file_path =\
-                    "intermediate/indel/{}.txt".\
-                    format(str(esu.id))
-                with open(indel_file_path, 'w') as handle:
-                    for indel in esu.indels:
-                        handle.write(str(indel[0])+"\t"+str(indel[1])+"\t"+str(indel[2])+"\n")
+            if (esu_zero_length): # if the sequence length <= 0
+                Lineage[esu.id] = ["dead"]
+                if(esu.id != 0):
+                    death(Lineage, esu.idM)
+            
+            else:
+                itr += 1
+                if(CRISPR):
+                    indel_file_path =\
+                        "intermediate/indel/{}.txt".\
+                        format(str(esu.id))
+                    with open(indel_file_path, 'w') as handle:
+                        for indel in esu.indels:
+                            handle.write(str(indel[0])+"\t"+str(indel[1])+"\t"+str(indel[2])+"\n")
 
-            with open("intermediate/shell/esu_"+str(itr)+".sh", 'w') as qf:
-                qf.write("#!/bin/bash\n")
-                qf.write("#$ -S /bin/bash\n")
-                qf.write("#$ -cwd\n")
-                qf.write("PATH={}\n".format(PATH))
-                qf.write("LD_LIBRARY_PATH={}\n".format(LD_LIBRARY_PATH))
-                qf.write("mkdir intermediate/DOWN/esu_"+str(esu.id)+"\n")
-                qf.write("cd intermediate/DOWN/esu_"+str(esu.id)+"\n")
-                qf.write("pwd\n")
+                with open("intermediate/shell/esu_"+str(itr)+".sh", 'w') as qf:
+                    qf.write("#!/bin/bash\n")
+                    qf.write("#$ -S /bin/bash\n")
+                    qf.write("#$ -cwd\n")
+                    qf.write("PATH={}\n".format(PATH))
+                    qf.write("LD_LIBRARY_PATH={}\n".format(LD_LIBRARY_PATH))
+                    qf.write("mkdir intermediate/DOWN/esu_"+str(esu.id)+"\n")
+                    qf.write("cd intermediate/DOWN/esu_"+str(esu.id)+"\n")
+                    qf.write("pwd\n")
 
-                # divide until time point of (2 * timelimit)
-                python_command = PYTHON3 + " " + PRESUME + "/PRESUME.py "\
-                    "--monitor " + str(2*timelimit)\
-                    + " -L "+str(L)\
-                    + " -f "+"../../fasta/"+str(esu.id)+".fa"\
-                    + " -d "+str(esu.d)\
-                    + " -s "+str(sigma_origin)\
-                    + " -T "+str(T)\
-                    + " -e "+str(e)\
-                    + " -u "+str(UPPER_LIMIT)\
-                    + " --idANC "+str(esu.id)\
-                    + " --tMorigin "+str(esu.t-esu.d)\
-                    + " --seed " + str(np.random.randint(0, args.r))
-                if args.CV:
-                    python_command += " --CV"
-                
-                if CRISPR:
-                    python_command += \
-                        " --inprob "     + args.inprob   +\
-                        " --inlength "   + args.inlength +\
-                        " --delprob "    + args.delprob  +\
-                        " --dellength "  + args.dellength+\
-                        " --indels "     + "../../indel/"+str(esu.id)+".txt"
+                    # divide until time point of (2 * timelimit)
+                    python_command = PYTHON3 + " " + PRESUME + "/PRESUME.py "\
+                        "--monitor " + str(2*timelimit)\
+                        + " -L "+str(L)\
+                        + " -f "+"../../fasta/"+str(esu.id)+".fa"\
+                        + " -d "+str(esu.d)\
+                        + " -s "+str(sigma_origin)\
+                        + " -T "+str(T)\
+                        + " -e "+str(e)\
+                        + " -u "+str(UPPER_LIMIT)\
+                        + " --idANC "+str(esu.id)\
+                        + " --tMorigin "+str(esu.t-esu.d)\
+                        + " --seed " + str(np.random.randint(0, args.r))
+                    if args.CV:
+                        python_command += " --CV"
+                    
+                    if CRISPR:
+                        python_command += \
+                            " --inprob "     + args.inprob   +\
+                            " --inlength "   + args.inlength +\
+                            " --delprob "    + args.delprob  +\
+                            " --dellength "  + args.dellength+\
+                            " --indels "     + "../../indel/"+str(esu.id)+".txt"
 
-                qf.write(python_command)
-                if (args.gtrgamma is not None):
-                    qf.write(" --gtrgamma "+str(args.gtrgamma)+"\n")
-                if (args.constant is not None):
-                    qf.write(" --constant "+str(args.constant)+"\n")
+                    qf.write(python_command)
+                    if (args.gtrgamma is not None):
+                        qf.write(" --gtrgamma "+str(args.gtrgamma)+"\n")
+                    if (args.constant is not None):
+                        qf.write(" --constant "+str(args.constant)+"\n")
 
         del(SEQqueue)
         # submit job script to grid engine
         print("\ncreating bottom trees by qsub ...")
-        submit_command = "qsub -l d_rt=1:00:00 -l s_rt=1:00:00 -sync y -t 1-{0} \
+        submit_command = "qsub -sync y -t 1-{0} \
             {1}/exe_PRESUME.sh &> intermediate/qsub.out".\
             format(str(itr), PRESUME)
 
