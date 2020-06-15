@@ -319,7 +319,7 @@ def death(Lineage, SEQid):
 # if all SEQ died, create a file "all_SEQ_dead.out"
 def all_dead(idANC):
     with open("all_SEQ_dead.out", 'w') as handle:
-        handle.write(str(args.idANC)+"\n")
+        handle.write(str(idANC)+"\n")
 
 
 # count number & length of sequences in a specified fasta file
@@ -752,16 +752,21 @@ def main(timelimit):
                 Lineage[esu.id] = ["dead"]
                 if(esu.id != 0):
                     death(Lineage, esu.idM)
+                c -= 1
 
-        fa_count = count_sequence("PRESUMEout.fa")
+        if (c == 0):
+            all_dead(args.idANC)
+            
+        else: 
+            fa_count = count_sequence("PRESUMEout.fa")
 
-        # create newick
-        del(SEQqueue)
-        print("Generating a Newick file......")
-        tip_count, returned_tree, list_of_dead = create_newick(Lineage)
+            # create newick
+            del(SEQqueue)
+            print("Generating a Newick file......")
+            tip_count, returned_tree, list_of_dead = create_newick(Lineage)
 
-        if args.debug:
-            mut_rate_log_writer(mut_rate_log, list_of_dead)
+            if args.debug:
+                mut_rate_log_writer(mut_rate_log, list_of_dead)
 
     # in case of distributed computing
     if (args.qsub):
@@ -799,6 +804,7 @@ def main(timelimit):
                 Lineage[esu.id] = ["dead"]
                 if(esu.id != 0):
                     death(Lineage, esu.idM)
+                c -= 1
             
             else:
                 itr += 1
