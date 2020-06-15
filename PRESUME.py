@@ -258,7 +258,7 @@ class SEQ():
 
                     if ( random.random() < pos2inprob[pos] ):
 
-                        length = random.choice(in_lengths)
+                        length = random.choices(in_lengths[0], k = 1, weights = in_lengths[1])
 
                         generated_indels.append( ( 'in',  pos, length, randomstr(['A','T','G','C'], length) ) )
             
@@ -268,7 +268,7 @@ class SEQ():
                     
                     if ( random.random() < pos2delprob[pos] ):
 
-                        length = random.choice(del_lengths)
+                        length = random.choices(del_lengths[0], k = 1, weights = del_lengths[1])
 
                         generated_indels.append( ( 'del', pos, length ) )
             
@@ -571,14 +571,13 @@ def Um_analyzer(tree):
             quene.extend(m_clade.clades)
     return list_of_u
 
-def make_list(txtfile, datatype):
+def make_list(txtfile, datatype, column):
     List=[]
     with open(txtfile, 'r') as handle:
         for line in handle:
-            if(datatype=='float'): List.append(float(line.split("\n")[0]))
-            elif(datatype=='int'): List.append(int(line.split("\n")[0]))
+            if(datatype=='float'): List.append(float(line.split("\n")[0].split("\t")[column]))
+            elif(datatype=='int'): List.append(int  (line.split("\n")[0].split("\t")[column]))
     return List
-
 
 # main
 def main(timelimit):
@@ -1325,10 +1324,12 @@ if __name__ == "__main__":
             args.inlength  = os.path.abspath(args.inlength)
             args.delprob   = os.path.abspath(args.delprob)
             args.dellength = os.path.abspath(args.dellength)
-            pos2inprob  = make_list(args.inprob  , 'float')
-            in_lengths  = make_list(args.inlength, 'int'  )
-            pos2delprob = make_list(args.delprob , 'float')
-            del_lengths = make_list(args.dellength,'int'  )
+            pos2inprob  =   make_list(args.inprob  , 'float', column = 0)
+            in_lengths  = [ make_list(args.inlength, 'int'  , column = 0)   ,
+                            make_list(args.inlength, 'float', column = 1)   ]
+            pos2delprob =   make_list(args.delprob , 'float', column = 0)
+            del_lengths = [ make_list(args.dellength,'int'  , column = 0)   ,
+                            make_list(args.inlength, 'float', column = 1)   ]
             CRISPR      = True
 
     # initial sequence specification
