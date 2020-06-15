@@ -114,9 +114,9 @@ Generation of ~100 sequences using GTR-Gamma model and an original indel model w
 PRESUME.py -n 100 --gtrgamma default --inprob prob.txt --inlength length.txt --delprob prob.txt --dellength length.txt
 ```
 
-Input data: [`prob.txt`](https://github.com/UTNK/PRESUME/blob/hotfix/example/example_4/prob.txt) defines indel probability per generation for each initial sequence postion and [`length.txt`](https://github.com/UTNK/PRESUME/blob/hotfix/example/example_4/length.txt) defines the distribution of each indel 
+Input data: [`prob.txt`](https://github.com/yachielab/PRESUME/example/example_4/example_4/prob.txt) defines indel probability per generation for each initial sequence postion and [`length.txt`](https://github.com/yachielab/PRESUME/example/example_4/length.txt) defines the distribution of each indel 
 
-Output data: a directory [`PRESUMEout`](https://github.com/yachielab/PRESUME/tree/master/example/example_4/PRESUMEout) will be created in your working directory.
+Output data: a directory [`PRESUMEout`](https://github.com/yachielab/PRESUME/example/example_4/PRESUMEout) will be created in your working directory.
 
 See [SubstitutionModelDetails.PRESUME.pdf](https://github.com/yachielab/PRESUME/blob/master/SubstitutionModelDetails.PRESUME.pdf) for more details of how to specify the GTR-Gamma model parameters.
 
