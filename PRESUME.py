@@ -808,7 +808,8 @@ def main(timelimit):
                         format(str(esu.id))
                     with open(indel_file_path, 'w') as handle:
                         for indel in esu.indels:
-                            handle.write(str(indel[0])+"\t"+str(indel[1])+"\t"+str(indel[2])+"\n")
+                            if (indel[0] == "del") : handle.write(str(indel[0])+"\t"+str(indel[1])+"\t"+str(indel[2])+"\n")
+                            elif (indel[0] == "in"): handle.write(str(indel[0])+"\t"+str(indel[1])+"\t"+str(indel[2])+"\t"+str(indel[3])+"\n")
 
                 with open("intermediate/shell/esu_"+str(itr)+".sh", 'w') as qf:
                     qf.write("#!/bin/bash\n")
@@ -1343,7 +1344,8 @@ if __name__ == "__main__":
             with open(args.indels, 'r') as handle:
                 for line in handle:
                     chunks = line.split()
-                    initindels.append((chunks[0], int(chunks[1]), int(chunks[2])))
+                    if (chunks[0] == "del") : initindels.append((chunks[0], int(chunks[1]), int(chunks[2])))
+                    elif (chunks[1] == "in"): initindels.append((chunks[0], int(chunks[1]), int(chunks[2]), chunks[3]))
         else:
             initindels=[]
     else:
