@@ -258,8 +258,8 @@ class SEQ():
 
                     if ( random.random() < pos2inprob[pos] ):
 
-                        length = random.choices(in_lengths[0], k = 1, weights = in_lengths[1])
-
+                        length = random.choices(in_lengths[0], k = 1, weights = in_lengths[1])[0]
+                        
                         generated_indels.append( ( 'in',  pos, length, randomstr(['A','T','G','C'], length) ) )
             
             elif (indel == 'del' ):
@@ -268,7 +268,7 @@ class SEQ():
                     
                     if ( random.random() < pos2delprob[pos] ):
 
-                        length = random.choices(del_lengths[0], k = 1, weights = del_lengths[1])
+                        length = random.choices(del_lengths[0], k = 1, weights = del_lengths[1])[0]
 
                         generated_indels.append( ( 'del', pos, length ) )
             
