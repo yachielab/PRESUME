@@ -774,7 +774,7 @@ def main(timelimit):
                                 format(esu_name_prefix, esu_name_suffix)
                             esu_name = new_esu_name
 
-                        handle.write(str(esu.id)+"\t")
+                        handle.write(esu_name+"\t")
                         
                         for indel in esu.indels:
                             if (indel[0] == "del") : 
