@@ -7,7 +7,7 @@ generates a large number of sequences that accumulate substitutions with their l
 
 <img src=images/presume_concept.jpg width=50%>
 
-**Figure 1.** Schematic diagram of PRESUME. PRESUME simulates the propagation and diversification of sequences that accumulate substitutions and generates a large set of descendant sequences with lineage information. *m* refers to a maternal sequence, and *d<sub>1</sub>* and *d<sub>2</sub>* refers to two daughter sequences derived from *m*. In this simulation, the doubling times of the two daughter sequences (*t<sub>d1</sub>* and *t<sub>d2</sub>*) are incompletely inherited from the doubling time of the mother sequence (*t<sub>m</sub>*). This occurs under a stochastic model, in which 1/*t<sub>d1</sub>* and 1/*t<sub>d2</sub>* follow a normal distribution where the mean and variance are 1/*t<sub>m</sub>* and *&sigma;*<sup>2</sup> respectively. Additionally, sequence extinction is set at a random rate (&epsilon;) and also occurs when the sequence doubling speed reaches a negative value. The substitution probabilities at different positions in each sequence of length *L* are defined in a time-dependent manner using GTR-Gamma model with parameters *Q*, *&alpha;* and *&mu;*, or set to a certain rate *&phi;* (see [SubstitutionModelDetails.PRESUME.pdf](https://github.com/yachielab/PRESUME/blob/master/SubstitutionModelDetails.PRESUME.pdf)). Accordingly, in PRESUME, all the user defined parameters are *&sigma;*, &epsilon;, *L*, *Q*, *&alpha;*, *&mu;* and *&phi;*.
+**Figure 1.** Schematic diagram of PRESUME. PRESUME simulates the propagation and diversification of sequences that accumulate substitutions and generates a large set of descendant sequences with lineage information. *m* refers to a maternal sequence, and *d<sub>1</sub>* and *d<sub>2</sub>* refers to two daughter sequences derived from *m*. In this simulation, the doubling times of the two daughter sequences (*t<sub>d1</sub>* and *t<sub>d2</sub>*) are incompletely inherited from the doubling time of the mother sequence (*t<sub>m</sub>*). This occurs under a stochastic model, in which 1/*t<sub>d1</sub>* and 1/*t<sub>d2</sub>* follow a normal distribution where the mean and variance are 1/*t<sub>m</sub>* and *&sigma;*<sup>2</sup> respectively. Additionally, sequence extinction is set at a random rate (&epsilon;) and also occurs when the sequence doubling speed reaches a negative value. The substitution probabilities at different positions in each sequence of length *L* are defined in a time-dependent manner using GTR-Gamma model with parameters *Q*, *&alpha;* and *&mu;*, or set to a certain rate *&phi;* (see [SubstitutionModelDetails.PRESUME.pdf](https://github.com/yachielab/PRESUME/blob/master/SubstitutionModelDetails.PRESUME.pdf)).
 
 ### Supported Environment
 
@@ -114,9 +114,9 @@ Generation of ~100 sequences using GTR-Gamma model and an original indel model w
 PRESUME.py -n 100 --gtrgamma default --inprob prob.txt --inlength length.txt --delprob prob.txt --dellength length.txt
 ```
 
-Input data: [`prob.txt`](https://github.com/UTNK/PRESUME/blob/hotfix/example/example_4/prob.txt) defines indel probability per generation for each initial sequence postion and [`length.txt`](https://github.com/UTNK/PRESUME/blob/hotfix/example/example_4/length.txt) defines the distribution of each indel 
+Input data: [`prob.txt`](https://github.com/yachielab/PRESUME/example/example_4/example_4/prob.txt) defines indel probability per generation for each initial sequence postion and [`length.txt`](https://github.com/yachielab/PRESUME/example/example_4/length.txt) defines the distribution of each indel 
 
-Output data: a directory [`PRESUMEout`](https://github.com/yachielab/PRESUME/tree/master/example/example_3/PRESUMEout) will be created in your working directory.
+Output data: a directory [`PRESUMEout`](https://github.com/yachielab/PRESUME/example/example_4/PRESUMEout) will be created in your working directory.
 
 See [SubstitutionModelDetails.PRESUME.pdf](https://github.com/yachielab/PRESUME/blob/master/SubstitutionModelDetails.PRESUME.pdf) for more details of how to specify the GTR-Gamma model parameters.
 
@@ -197,7 +197,7 @@ Options:
 
 ### Contact
 
-1. Keito Watano (National Institute of Technology, Asahikawa College) watano.k10.yachielab@gmail.com
+1. Keito Watano (The University of Tokyo) watano.k10.yachielab@gmail.com
 2. Naoki Konno (The University of Tokyo) [naoki@bs.s.u-tokyo.ac.jp](mailto:naoki@bs.s.u-tokyo.ac.jp)
 3. Nozomu Yachie (The University of Tokyo) [nzmyachie@gmail.com](mailto:yachie@synbiol.rcast.u-tokyo.ac.jp)
 
