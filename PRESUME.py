@@ -471,7 +471,6 @@ def fasta_writer(name, seq, indels, file_name, overwrite_mode):
         SeqIO.write(SEQ_seq, writer, "fasta")
         return False
 
-
 def survey_all_dead_lineages(Lineage):
     try:
         command = "cat intermediate/DOWN/*/PRESUMEout/all_SEQ_dead.out \
@@ -761,6 +760,24 @@ def main(timelimit):
         else: 
             fa_count = count_sequence("PRESUMEout.fa")
 
+            # record indels
+            if(CRISPR):
+                with open("indel.txt", 'w') as handle:
+                    for e, esu in enumerate(SEQqueue):
+                        handle.write(str(esu.id)+"\t")
+                        for indel in esu.indels:
+                            if (indel[0] == "del") : 
+                                mid    = indel[1] # pos is the midpoint of deletion
+                                length = indel[2]
+                                handle.write("D_mid"+str(mid)+"_len"+str(length))
+                            elif (indel[0] == "in"): 
+                                pos    = indel[1] # pos is the midpoint of deletion
+                                seq    = indel[3]
+                                handle.write("I_pos"+str(mid+0.5)+"_"+seq)
+                            if (e < len(SEQqueue)-1):
+                                handle.write(";")
+                        handle.write("\n")
+
             # create newick
             del(SEQqueue)
             print("Generating a Newick file......")
@@ -881,7 +898,7 @@ def main(timelimit):
         subprocess.call(command, shell=True)
         if args.f is None:
             command = "cat intermediate/DOWN/*/PRESUMEout/PRESUMEout.fa \
-                    > PRESUMEout.fa"
+                    > PRESUMEout.fa; cat intermediate/DOWN/*/PRESUMEout/indel.txt > indel.txt"
             subprocess.call(command, shell=True)  # combine fasta
 
         fa_count = count_sequence("PRESUMEout.fa")
