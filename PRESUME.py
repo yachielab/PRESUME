@@ -764,7 +764,18 @@ def main(timelimit):
             if(CRISPR):
                 with open("indel.txt", 'w') as handle:
                     for esu_idx, esu in enumerate(SEQqueue):
+
+                        if(args.idANC is None):
+                            esu_name = str(esu.id)
+                        else:
+                            esu_name_prefix = str(hex(args.idANC)).split("x")[1]
+                            esu_name_suffix = str(hex(esu.id)).split("x")[1]
+                            new_esu_name = "{}_{}".\
+                                format(esu_name_prefix, esu_name_suffix)
+                            esu_name = new_esu_name
+
                         handle.write(str(esu.id)+"\t")
+                        
                         for indel in esu.indels:
                             if (indel[0] == "del") : 
                                 mid    = indel[1] # pos is the midpoint of deletion
