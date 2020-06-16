@@ -773,7 +773,7 @@ def main(timelimit):
                             elif (indel[0] == "in"): 
                                 pos    = indel[1] # pos is the midpoint of deletion
                                 seq    = indel[3]
-                                handle.write("I_pos"+str(mid+0.5)+"_"+seq)
+                                handle.write("I_pos"+str(pos+0.5)+"_"+seq)
                             if (esu_idx < len(SEQqueue)-1):
                                 handle.write(";")
                         handle.write("\n")
