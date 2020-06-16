@@ -763,7 +763,7 @@ def main(timelimit):
             # record indels
             if(CRISPR):
                 with open("indel.txt", 'w') as handle:
-                    for e, esu in enumerate(SEQqueue):
+                    for esu_idx, esu in enumerate(SEQqueue):
                         handle.write(str(esu.id)+"\t")
                         for indel in esu.indels:
                             if (indel[0] == "del") : 
@@ -774,7 +774,7 @@ def main(timelimit):
                                 pos    = indel[1] # pos is the midpoint of deletion
                                 seq    = indel[3]
                                 handle.write("I_pos"+str(mid+0.5)+"_"+seq)
-                            if (e < len(SEQqueue)-1):
+                            if (esu_idx < len(SEQqueue)-1):
                                 handle.write(";")
                         handle.write("\n")
 
