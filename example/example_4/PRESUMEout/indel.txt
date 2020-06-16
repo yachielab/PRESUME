@@ -1,0 +1,128 @@
+127	
+128	
+129	D_mid799_len1;
+130	D_mid799_len1;
+131	D_mid797_len2;
+132	D_mid797_len2;
+133	D_mid797_len2;
+134	D_mid797_len2;
+135	I_pos554.5_GG;D_mid183_len1;
+136	I_pos554.5_GG;D_mid183_len1;
+137	I_pos554.5_GG;D_mid183_len1;
+138	I_pos554.5_GG;D_mid183_len1;
+139	D_mid550_len1;
+140	
+141	D_mid585_len2;
+142	
+143	I_pos504.5_CC;
+144	I_pos504.5_CC;
+145	I_pos504.5_CC;
+146	I_pos504.5_CC;
+147	
+148	I_pos673.5_TG;
+149	
+150	
+151	
+152	
+153	D_mid660_len2;I_pos164.5_C;I_pos871.5_TC;
+154	
+155	
+156	
+157	I_pos909.5_A;
+158	D_mid110_len1;
+159	
+160	
+161	
+162	
+163	
+164	I_pos754.5_GT;
+165	
+166	
+167	D_mid750_len1;
+168	D_mid750_len1;I_pos726.5_TG;
+169	I_pos348.5_CC;
+170	I_pos551.5_G;
+171	I_pos707.5_C;
+172	I_pos707.5_C;I_pos578.5_G;
+173	I_pos707.5_C;I_pos658.5_TT;
+174	I_pos707.5_C;
+175	I_pos282.5_GG;
+176	I_pos282.5_GG;I_pos68.5_G;
+177	I_pos282.5_GG;D_mid261_len2;D_mid129_len2;
+178	I_pos282.5_GG;D_mid261_len2;
+179	I_pos282.5_GG;
+180	I_pos282.5_GG;
+181	I_pos282.5_GG;
+182	I_pos282.5_GG;I_pos410.5_C;
+183	D_mid191_len1;I_pos299.5_T;D_mid3_len2;
+184	D_mid191_len1;I_pos299.5_T;D_mid3_len2;
+185	D_mid191_len1;I_pos299.5_T;
+186	D_mid191_len1;I_pos299.5_T;
+187	D_mid191_len1;I_pos28.5_AC;
+188	D_mid191_len1;I_pos28.5_AC;D_mid662_len1;
+189	D_mid191_len1;I_pos28.5_AC;I_pos863.5_G;
+190	D_mid191_len1;I_pos28.5_AC;I_pos863.5_G;
+191	I_pos171.5_AA;D_mid760_len1;
+192	I_pos171.5_AA;
+193	I_pos171.5_AA;
+194	I_pos171.5_AA;
+195	D_mid591_len2;
+196	
+197	I_pos788.5_T;
+198	
+199	D_mid687_len1;
+200	D_mid687_len1;
+201	
+202	
+203	
+204	
+205	
+206	
+207	
+208	
+209	
+210	
+211	I_pos419.5_A;I_pos763.5_AA;
+212	
+213	
+214	
+215	I_pos361.5_T;D_mid737_len1;
+216	I_pos361.5_T;D_mid737_len1;
+217	I_pos361.5_T;
+218	I_pos361.5_T;
+219	I_pos361.5_T;D_mid941_len2;
+220	I_pos361.5_T;D_mid941_len2;
+221	I_pos361.5_T;
+222	I_pos361.5_T;I_pos188.5_A;
+223	
+224	
+225	
+226	
+227	D_mid660_len1;
+228	
+229	
+230	D_mid645_len2;
+231	I_pos405.5_CA;
+232	I_pos405.5_CA;
+233	I_pos478.5_CC;
+234	
+235	
+236	
+237	
+238	
+239	D_mid324_len2;
+240	D_mid324_len2;D_mid350_len2;
+241	D_mid324_len2;D_mid227_len2;
+242	D_mid324_len2;D_mid227_len2;I_pos268.5_C;
+243	
+244	D_mid365_len2;
+245	I_pos584.5_CA;
+246	
+247	D_mid898_len1;D_mid205_len2;
+248	D_mid898_len1;
+249	
+250	
+251	D_mid631_len1;D_mid52_len1;
+252	D_mid631_len1;I_pos362.5_TA;
+253	D_mid631_len1;I_pos881.5_CG;
+254	D_mid631_len1I_pos881.5_CG
