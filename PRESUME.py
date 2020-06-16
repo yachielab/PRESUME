@@ -267,7 +267,7 @@ class SEQ():
                 for pos in shuffled_del_pos:
                     
                     if ( random.random() < pos2delprob[pos] ):
-
+                        
                         length = random.choices(del_lengths[0], k = 1, weights = del_lengths[1])[0]
 
                         generated_indels.append( ( 'del', pos, length ) )
@@ -1358,7 +1358,7 @@ if __name__ == "__main__":
                             make_list(args.inlength, 'float', column = 1)   ]
             pos2delprob =   make_list(args.delprob , 'float', column = 0)
             del_lengths = [ make_list(args.dellength,'int'  , column = 0)   ,
-                            make_list(args.inlength, 'float', column = 1)   ]
+                            make_list(args.dellength, 'float', column = 1)   ]
             CRISPR      = True
 
     # initial sequence specification
