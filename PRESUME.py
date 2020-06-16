@@ -429,9 +429,10 @@ def fasta_writer(name, seq, indels, file_name, overwrite_mode):
                     if (indel[0] == 'del'):
 
                         if( indel[1] in refpos2pos.keys() ):
-                            start  = refpos2pos[indel[1]]
+                            mid    = refpos2pos[indel[1]] # pos is the midpoint of deleton
                             length = indel[2]
-                            end    = start + length - 1 
+                            start  = max ( 0, mid - length//2 )
+                            end    = min ( len(seq) - 1, start + length - 1) 
                             seq    = seq[:start] + seq[(end+1):]
 
                             for pos in range(start, end+1):
