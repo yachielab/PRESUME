@@ -776,7 +776,7 @@ def main(timelimit):
 
                         handle.write(esu_name+"\t")
                         
-                        for indel in esu.indels:
+                        for indel_idx, indel in enumerate(esu.indels):
                             if (indel[0] == "del") : 
                                 mid    = indel[1] # pos is the midpoint of deletion
                                 length = indel[2]
@@ -785,7 +785,7 @@ def main(timelimit):
                                 pos    = indel[1] # pos is the midpoint of deletion
                                 seq    = indel[3]
                                 handle.write("I_pos"+str(pos+0.5)+"_"+seq)
-                            if (esu_idx < len(SEQqueue)-1):
+                            if (indel_idx < len(esu.indels)-1):
                                 handle.write(";")
                         handle.write("\n")
 
