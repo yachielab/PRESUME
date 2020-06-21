@@ -449,6 +449,7 @@ def fasta_writer(name, seq, indels, file_name, overwrite_mode, Nchunks):
                         if (indel[0] == 'del'):
 
                             if( indel[1] in refpos2pos.keys() ):
+                                true_indels.append(indel)
                                 mid    = refpos2pos[indel[1]] # pos is the midpoint of deleton
                                 length = indel[2]
                                 start  = max ( 0, mid - length//2 )
@@ -463,11 +464,11 @@ def fasta_writer(name, seq, indels, file_name, overwrite_mode, Nchunks):
                                 for pos, refposindel in enumerate(pos2refposindel):
                                     if(type(refposindel)==int):
                                         refpos2pos[refposindel] = pos
-                                        true_indels.append(indel)
                         
                         elif ( indel[0] == "in" ):
 
                             if( indel[1] in refpos2pos.keys() ):
+                                true_indels.append(indel)
                                 start  = refpos2pos[indel[1]]
                                 length = indel[2]
                                 chunk    = chunk[:start] + indel[3] + chunk[start:]
@@ -478,7 +479,6 @@ def fasta_writer(name, seq, indels, file_name, overwrite_mode, Nchunks):
                                 for pos, refposindel in enumerate(pos2refposindel):
                                     if(type(refposindel)==int):
                                         refpos2pos[refposindel] = pos
-                                        true_indels.append(indel)
                     
                     else:
                         
@@ -858,7 +858,7 @@ def main(timelimit):
                 format(str(esu.id))
             true_indels, esu_zero_length = fasta_writer(esu.id, esu.seq, None, fasta_file_path, True, Nchunks=1)
             esu.indels = true_indels
-            
+
             if (esu_zero_length): # if the sequence length <= 0
                 Lineage[esu.id] = ["dead"]
                 if(esu.id != 0):
