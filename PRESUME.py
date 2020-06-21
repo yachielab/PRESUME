@@ -811,7 +811,7 @@ def main(timelimit):
                             elif (indel[0] == "in"): 
                                 pos    = indel[1] # pos is the midpoint of deletion
                                 seq    = indel[3]
-                                handle.write("I_pos"+str(pos+0.5)+"_"+seq)
+                                handle.write("I_"+str(pos+0.5)+"_"+seq)
                             if (indel_idx < len(esu.indels)-1):
                                 handle.write(";")
                         handle.write("\n")
@@ -889,16 +889,17 @@ def main(timelimit):
                     # divide until time point of (2 * timelimit)
                     python_command = PYTHON3 + " " + PRESUME + "/PRESUME.py "\
                         "--monitor " + str(2*timelimit)\
-                        + " -L "+str(L)\
-                        + " -f "+"../../fasta/"+str(esu.id)+".fa"\
-                        + " -d "+str(esu.d)\
-                        + " -s "+str(sigma_origin)\
-                        + " -T "+str(T)\
-                        + " -e "+str(e)\
-                        + " -u "+str(UPPER_LIMIT)\
-                        + " --idANC "+str(esu.id)\
-                        + " --tMorigin "+str(esu.t-esu.d)\
-                        + " --seed " + str(np.random.randint(0, args.r))
+                        + " -L " + str(L)\
+                        + " -f " + "../../fasta/"+str(esu.id)+".fa"\
+                        + " -d " + str(esu.d)\
+                        + " -s " + str(sigma_origin)\
+                        + " -T " + str(T)\
+                        + " -e " + str(e)\
+                        + " -u " + str(UPPER_LIMIT)\
+                        + " --idANC "    + str(esu.id)\
+                        + " --tMorigin " + str(esu.t - esu.d)\
+                        + " --seed "     + str(np.random.randint(0, args.r))\
+                        + " --chunks "   + str(args.chunks)
                     if args.CV:
                         python_command += " --CV"
                     
