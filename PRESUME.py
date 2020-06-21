@@ -827,7 +827,7 @@ def main(timelimit):
     # in case of distributed computing
     else :
         # Root sequence
-        fasta_writer("root", initseq, None, "root.fa", False, Nchunks = 1)
+        fasta_writer("root", initseq, None, "root.fa", False, Nchunks = args.chunks)
         # preparation for qsub
         os.mkdir("intermediate")
         os.mkdir("intermediate/DOWN")
