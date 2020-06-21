@@ -409,7 +409,7 @@ def fasta_writer(name, seq, indels, file_name, overwrite_mode, Nchunks):
     else:
         writer_mode = "w"
 
-    Lchunk = len(seq) // Nchunks + 1
+    Lchunk = len(seq) // Nchunks
 
     is_dead = True
     true_indels = [] # List of indels 
@@ -935,11 +935,12 @@ def main(timelimit):
         if args.debug:
             mut_rate_log_writer(mut_rate_log, list_of_dead)
 
-        command = "cat PRESUME.e*.* > intermediate/err; \
-                cat PRESUME.o*.* > intermediate/out; rm PRESUME.*"
+        command = "cat PRESUME.e*.* > intermediate/err 2> /dev/null; \
+                   cat PRESUME.o*.* > intermediate/out 2> /dev/null; \
+                   rm PRESUME.*"
         subprocess.call(command, shell=True)
         if args.f is None:
-            command = "cat intermediate/DOWN/*/PRESUMEout/indel.txt > indel.txt;"
+            command = "cat intermediate/DOWN/*/PRESUMEout/indel.txt > indel.txt &> /dev/null;"
             if (args.chunks == 1):
                 command += "cat intermediate/DOWN/*/PRESUMEout/PRESUMEout.fa > PRESUMEout.fa;"
             else:
