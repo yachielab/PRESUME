@@ -939,8 +939,12 @@ def main(timelimit):
                 cat PRESUME.o*.* > intermediate/out; rm PRESUME.*"
         subprocess.call(command, shell=True)
         if args.f is None:
-            command = "cat intermediate/DOWN/*/PRESUMEout/PRESUMEout.fa \
-                    > PRESUMEout.fa; cat intermediate/DOWN/*/PRESUMEout/indel.txt > indel.txt"
+            command = "cat intermediate/DOWN/*/PRESUMEout/indel.txt > indel.txt;"
+            if (args.chunks == 1):
+                command += "cat intermediate/DOWN/*/PRESUMEout/PRESUMEout.fa > PRESUMEout.fa;"
+            else:
+                for i in range(args.chunks):
+                    command += "cat intermediate/DOWN/*/PRESUMEout/PRESUMEout."+str(i)+".fa > PRESUMEout."+str(i)+".fa;"
             subprocess.call(command, shell=True)  # combine fasta
 
         if(args.chunks == 1):
