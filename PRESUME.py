@@ -173,11 +173,6 @@ class SEQ():
             self.r = self.growing_rate_dist(rM, self.CV)
         
         self.is_alive = (self.r >= 0 and np.random.rand() > e)
-
-        
-        
-        
-        
         
         if(self.is_alive):
             if self.r == 0:
@@ -417,6 +412,7 @@ def fasta_writer(name, seq, indels, file_name, overwrite_mode, Nchunks):
     Lchunk = len(seq) // Nchunks + 1
 
     is_dead = True
+    true_indels = [] # List of indels 
     for chunkidx in range(Nchunks):
 
         chunk = seq[ Lchunk*chunkidx:Lchunk*(chunkidx+1) ]
@@ -446,7 +442,7 @@ def fasta_writer(name, seq, indels, file_name, overwrite_mode, Nchunks):
                 for pos, refpos in enumerate(pos2refposindel):
                     refpos2pos[refpos] = pos
 
-                for indel in indels:
+                for indel in ext_indels:
 
                     if ( len (chunk) > 0 ):
 
@@ -467,6 +463,7 @@ def fasta_writer(name, seq, indels, file_name, overwrite_mode, Nchunks):
                                 for pos, refposindel in enumerate(pos2refposindel):
                                     if(type(refposindel)==int):
                                         refpos2pos[refposindel] = pos
+                                        true_indels.append(indel)
                         
                         elif ( indel[0] == "in" ):
 
@@ -481,6 +478,7 @@ def fasta_writer(name, seq, indels, file_name, overwrite_mode, Nchunks):
                                 for pos, refposindel in enumerate(pos2refposindel):
                                     if(type(refposindel)==int):
                                         refpos2pos[refposindel] = pos
+                                        true_indels.append(indel)
                     
                     else:
                         
@@ -495,7 +493,7 @@ def fasta_writer(name, seq, indels, file_name, overwrite_mode, Nchunks):
                 SeqIO.write(SEQ_seq, writer, "fasta")
                 is_dead = False
     
-    return is_dead
+    return true_indels, is_dead
 
 def survey_all_dead_lineages(Lineage):
     try:
@@ -689,7 +687,7 @@ def main(timelimit):
                 esu = SEQqueue.pop(k)
                 # save ancestoral sequences
                 if args.viewANC:
-                    fasta_writer(esu.id, esu.seq, esu.indels, "ancestral_sequences.fasta", True, Nchunks = args.chunks)
+                    true_indels, is_dead = fasta_writer(esu.id, esu.seq, esu.indels, "ancestral_sequences.fasta", True, Nchunks = args.chunks)
                 # duplication
                 if args.CV:
                     daughter = [SEQ(i, esu.id, esu.seq, esu.CV,
@@ -770,7 +768,10 @@ def main(timelimit):
                 new_esu_name = "{}_{}".\
                     format(esu_name_prefix, esu_name_suffix)
                 esu_name = new_esu_name
-            esu_zero_length = fasta_writer(esu_name, esu.seq, esu.indels, "PRESUMEout.fa", True, Nchunks=args.chunks) # fasta_writer() returns True if the seq. length <= 0
+            
+            true_indels, esu_zero_length = fasta_writer(esu_name, esu.seq, esu.indels, "PRESUMEout.fa", True, Nchunks=args.chunks) # fasta_writer() returns True if the seq. length <= 0
+            esu.indels = true_indels
+
             if (esu_zero_length):
                 Lineage[esu.id] = ["dead"]
                 if(esu.id != 0):
@@ -855,7 +856,8 @@ def main(timelimit):
             fasta_file_path = \
                 "intermediate/fasta/{}.fa".\
                 format(str(esu.id))
-            esu_zero_length = fasta_writer(esu.id, esu.seq, None, fasta_file_path, True, Nchunks=1)
+            true_indels, esu_zero_length = fasta_writer(esu.id, esu.seq, None, fasta_file_path, True, Nchunks=1)
+            esu.indels = true_indels
             
             if (esu_zero_length): # if the sequence length <= 0
                 Lineage[esu.id] = ["dead"]
