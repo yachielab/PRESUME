@@ -940,7 +940,7 @@ def main(timelimit):
                    rm PRESUME.*"
         subprocess.call(command, shell=True)
         if args.f is None:
-            command = "cat intermediate/DOWN/*/PRESUMEout/indel.txt > indel.txt &> /dev/null;"
+            command = "cat intermediate/DOWN/*/PRESUMEout/indel.txt > indel.txt 2> /dev/null;"
             if (args.chunks == 1):
                 command += "cat intermediate/DOWN/*/PRESUMEout/PRESUMEout.fa > PRESUMEout.fa;"
             else:
