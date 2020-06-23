@@ -402,7 +402,7 @@ def create_newick(Lineage):
         raise CreateNewickError(e)
 
 
-def fasta_writer(name, seq, indels, file_name, overwrite_mode, Nchunks):
+def fasta_writer(name, seq, indels, file_name, overwrite_mode, Nchunks, indelseq=True):
 
     if overwrite_mode:
         writer_mode = "a"
@@ -450,36 +450,39 @@ def fasta_writer(name, seq, indels, file_name, overwrite_mode, Nchunks):
 
                             if( indel[1] in refpos2pos.keys() ):
                                 true_indels.append(global_indel)
-                                mid    = refpos2pos[indel[1]] # pos is the midpoint of deleton
-                                length = indel[2]
-                                start  = max ( 0, mid - length//2 )
-                                end    = min ( len(chunk) - 1, start + length - 1) 
-                                chunk  = chunk[:start] + chunk[(end+1):]
+                                if ( indelseq ):
+                                    mid    = refpos2pos[indel[1]] # pos is the midpoint of deleton
+                                    length = indel[2]
+                                    start  = max ( 0, mid - length//2 )
+                                    end    = min ( len(chunk) - 1, start + length - 1) 
+                                    chunk  = chunk[:start] + chunk[(end+1):]
 
-                                for pos in range(start, end+1):
-                                    if pos < len(pos2refposindel):
-                                        pos2refposindel[pos] = "del"
-                                
-                                refpos2pos = {}
-                                for pos, refposindel in enumerate(pos2refposindel):
-                                    if(type(refposindel)==int):
-                                        refpos2pos[refposindel] = pos
+                                    for pos in range(start, end+1):
+                                        if pos < len(pos2refposindel):
+                                            pos2refposindel[pos] = "del"
+                                    
+                                    refpos2pos = {}
+                                    for pos, refposindel in enumerate(pos2refposindel):
+                                        if(type(refposindel)==int):
+                                            refpos2pos[refposindel] = pos
                         
                         elif ( indel[0] == "in" ):
 
                             if( indel[1] in refpos2pos.keys() ):
                                 true_indels.append(global_indel)
-                                start  = refpos2pos[indel[1]]
-                                length = indel[2]
-                                chunk    = chunk[:start] + indel[3] + chunk[start:]
-                                
-                                pos2refposindel = pos2refposindel[:start] + ["in"]*length + pos2refposindel[start:]
 
-                                refpos2pos = {}
-                                for pos, refposindel in enumerate(pos2refposindel):
-                                    if(type(refposindel)==int):
-                                        refpos2pos[refposindel] = pos
-                    
+                                if( indelseq ):
+                                    start  = refpos2pos[indel[1]]
+                                    length = indel[2]
+                                    chunk    = chunk[:start] + indel[3] + chunk[start:]
+                                    
+                                    pos2refposindel = pos2refposindel[:start] + ["in"]*length + pos2refposindel[start:]
+
+                                    refpos2pos = {}
+                                    for pos, refposindel in enumerate(pos2refposindel):
+                                        if(type(refposindel)==int):
+                                            refpos2pos[refposindel] = pos
+                        
                     else:
                         
                         dropout = True
@@ -856,7 +859,7 @@ def main(timelimit):
             fasta_file_path = \
                 "intermediate/fasta/{}.fa".\
                 format(str(esu.id))
-            true_indels, esu_zero_length = fasta_writer(esu.id, esu.seq, None, fasta_file_path, True, Nchunks=1)
+            true_indels, esu_zero_length = fasta_writer(esu.id, esu.seq, None, fasta_file_path, True, Nchunks=1, indelseq=False)
             print(esu.indels, true_indels)
             esu.indels = true_indels
 
