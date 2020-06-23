@@ -860,7 +860,6 @@ def main(timelimit):
                 "intermediate/fasta/{}.fa".\
                 format(str(esu.id))
             true_indels, esu_zero_length = fasta_writer(esu.id, esu.seq, esu.indels, fasta_file_path, True, Nchunks=1, indelseq=False)
-            print(esu.indels, true_indels)
             esu.indels = true_indels
 
             if (esu_zero_length): # if the sequence length <= 0
@@ -902,7 +901,7 @@ def main(timelimit):
                         + " -u " + str(UPPER_LIMIT)\
                         + " --idANC "    + str(esu.id)\
                         + " --tMorigin " + str(esu.t - esu.d)\
-                        + " --seed "     + str(np.random.randint(0, args.r))\
+                        + " --seed "     + str(np.random.randint(0, 100))\
                         + " --chunks "   + str(args.chunks)
                     if args.CV:
                         python_command += " --CV"
@@ -1436,8 +1435,6 @@ if __name__ == "__main__":
             initindels=[]
     else:
         initindels=None
-    
-    print(initindels)
 
     # setup directory
     OUTDIR = args.output
