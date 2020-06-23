@@ -1391,20 +1391,20 @@ if __name__ == "__main__":
         shape = float(gamma_str[0])  # shape of gamma distribution
         gamma = np.random.gamma(shape, m / shape, L)  # mean is args.m
 
-        # set indel parameters from raw lab experiments
-        CRISPR      = False
-        if (args.inprob != None): 
-            args.inprob    = os.path.abspath(args.inprob)
-            args.inlength  = os.path.abspath(args.inlength)
-            args.delprob   = os.path.abspath(args.delprob)
-            args.dellength = os.path.abspath(args.dellength)
-            pos2inprob  =   make_list(args.inprob  , 'float', column = 0)
-            in_lengths  = [ make_list(args.inlength, 'int'  , column = 0)   ,
-                            make_list(args.inlength, 'float', column = 1)   ]
-            pos2delprob =   make_list(args.delprob , 'float', column = 0)
-            del_lengths = [ make_list(args.dellength,'int'  , column = 0)   ,
-                            make_list(args.dellength, 'float', column = 1)   ]
-            CRISPR      = True
+    # set indel parameters from raw lab experiments
+    CRISPR      = False
+    if (args.inprob != None): 
+        args.inprob    = os.path.abspath(args.inprob)
+        args.inlength  = os.path.abspath(args.inlength)
+        args.delprob   = os.path.abspath(args.delprob)
+        args.dellength = os.path.abspath(args.dellength)
+        pos2inprob  =   make_list(args.inprob  , 'float', column = 0)
+        in_lengths  = [ make_list(args.inlength, 'int'  , column = 0)   ,
+                        make_list(args.inlength, 'float', column = 1)   ]
+        pos2delprob =   make_list(args.delprob , 'float', column = 0)
+        del_lengths = [ make_list(args.dellength,'int'  , column = 0)   ,
+                        make_list(args.dellength,'float', column = 1)   ]
+        CRISPR      = True
 
     # initial sequence specification
     if (args.f is not None):
