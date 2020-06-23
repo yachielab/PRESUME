@@ -1430,8 +1430,8 @@ if __name__ == "__main__":
             with open(args.indels, 'r') as handle:
                 for line in handle:
                     chunks = line.split()
-                    if (chunks[0] == "del") : initindels.append((chunks[0], int(chunks[1]), int(chunks[2])))
-                    elif (chunks[1] == "in"): initindels.append((chunks[0], int(chunks[1]), int(chunks[2]), chunks[3]))
+                    if (chunks[0] == "del") : initindels.append([chunks[0], int(chunks[1]), int(chunks[2])])
+                    elif (chunks[1] == "in"): initindels.append([chunks[0], int(chunks[1]), int(chunks[2]), chunks[3]])
         else:
             initindels=[]
     else:
