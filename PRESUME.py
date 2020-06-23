@@ -901,7 +901,7 @@ def main(timelimit):
                         + " -u " + str(UPPER_LIMIT)\
                         + " --idANC "    + str(esu.id)\
                         + " --tMorigin " + str(esu.t - esu.d)\
-                        + " --seed "     + str(np.random.randint(0, 100))\
+                        + " --seed "     + str(np.random.randint(0, 10000))\
                         + " --chunks "   + str(args.chunks)
                     if args.CV:
                         python_command += " --CV"
