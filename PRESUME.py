@@ -940,7 +940,7 @@ def main(timelimit):
                    rm PRESUME.*"
         subprocess.call(command, shell=True)
         if args.f is None:
-            command = "cat intermediate/DOWN/*/PRESUMEout/indel.txt > indel.txt 2> /dev/null;"
+            command = "cat intermediate/DOWN/*/PRESUMEout/indel.txt > indel_combined.txt 2> /dev/null;"
             if (args.chunks == 1):
                 command += "cat intermediate/DOWN/*/PRESUMEout/PRESUMEout.fa > PRESUMEout.fa;"
             else:
@@ -1432,6 +1432,8 @@ if __name__ == "__main__":
             initindels=[]
     else:
         initindels=None
+    
+    print(initindels)
 
     # setup directory
     OUTDIR = args.output
