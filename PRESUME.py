@@ -859,7 +859,7 @@ def main(timelimit):
             fasta_file_path = \
                 "intermediate/fasta/{}.fa".\
                 format(str(esu.id))
-            true_indels, esu_zero_length = fasta_writer(esu.id, esu.seq, None, fasta_file_path, True, Nchunks=1, indelseq=False)
+            true_indels, esu_zero_length = fasta_writer(esu.id, esu.seq, esu.indels, fasta_file_path, True, Nchunks=1, indelseq=False)
             print(esu.indels, true_indels)
             esu.indels = true_indels
 
