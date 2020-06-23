@@ -431,7 +431,7 @@ def fasta_writer(name, seq, indels, file_name, overwrite_mode, Nchunks):
                 if ( pos//Lchunk == chunkidx ):
                     ext_indel    = copy.deepcopy(indel)
                     ext_indel[1] = pos % Lchunk
-                    ext_indels.append(ext_indel)
+                    ext_indels.append((ext_indel,indel))
 
         with open(chunk_file_name, writer_mode) as writer:
 
@@ -442,14 +442,14 @@ def fasta_writer(name, seq, indels, file_name, overwrite_mode, Nchunks):
                 for pos, refpos in enumerate(pos2refposindel):
                     refpos2pos[refpos] = pos
 
-                for indel in ext_indels:
+                for indel, global_indel in ext_indels:
 
                     if ( len (chunk) > 0 ):
 
                         if (indel[0] == 'del'):
 
                             if( indel[1] in refpos2pos.keys() ):
-                                true_indels.append(indel)
+                                true_indels.append(global_indel)
                                 mid    = refpos2pos[indel[1]] # pos is the midpoint of deleton
                                 length = indel[2]
                                 start  = max ( 0, mid - length//2 )
@@ -468,7 +468,7 @@ def fasta_writer(name, seq, indels, file_name, overwrite_mode, Nchunks):
                         elif ( indel[0] == "in" ):
 
                             if( indel[1] in refpos2pos.keys() ):
-                                true_indels.append(indel)
+                                true_indels.append(global_indel)
                                 start  = refpos2pos[indel[1]]
                                 length = indel[2]
                                 chunk    = chunk[:start] + indel[3] + chunk[start:]
