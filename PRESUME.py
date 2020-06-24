@@ -766,6 +766,8 @@ def main(timelimit):
         fasta_writer("root", initseq, None, "root.fa", False, Nchunks = args.chunks)
         # create fasta
         print("Generating a FASTA file...")
+
+        esuname2zerolength={}
         for esu in SEQqueue:
             if(args.idANC is None):
                 esu_name = str(esu.id)
@@ -778,6 +780,7 @@ def main(timelimit):
             
             true_indels, esu_zero_length = fasta_writer(esu_name, esu.seq, esu.indels, "PRESUMEout.fa", True, Nchunks=args.chunks) # fasta_writer() returns True if the seq. length <= 0
             esu.indels = true_indels
+            esuname2zerolength[esu_name] = esu_zero_length
 
             if (esu_zero_length):
                 Lineage[esu.id] = ["dead"]
@@ -808,20 +811,21 @@ def main(timelimit):
                                 format(esu_name_prefix, esu_name_suffix)
                             esu_name = new_esu_name
 
-                        handle.write(esu_name+"\t")
-                        
-                        for indel_idx, indel in enumerate(esu.indels):
-                            if (indel[0] == "del") : 
-                                mid    = indel[1] # pos is the midpoint of deletion
-                                length = indel[2]
-                                handle.write("D_mid"+str(mid)+"_len"+str(length))
-                            elif (indel[0] == "in"): 
-                                pos    = indel[1] # pos is the midpoint of deletion
-                                seq    = indel[3]
-                                handle.write("I_"+str(pos+0.5)+"_"+seq)
-                            if (indel_idx < len(esu.indels)-1):
-                                handle.write(";")
-                        handle.write("\n")
+                        if (not esuname2zerolength[esu_name]):
+                            handle.write(esu_name+"\t")
+                            
+                            for indel_idx, indel in enumerate(esu.indels):
+                                if (indel[0] == "del") : 
+                                    mid    = indel[1] # pos is the midpoint of deletion
+                                    length = indel[2]
+                                    handle.write("D_mid"+str(mid)+"_len"+str(length))
+                                elif (indel[0] == "in"): 
+                                    pos    = indel[1] # pos is the midpoint of deletion
+                                    seq    = indel[3]
+                                    handle.write("I_"+str(pos+0.5)+"_"+seq)
+                                if (indel_idx < len(esu.indels)-1):
+                                    handle.write(";")
+                            handle.write("\n")
 
             # create newick
             del(SEQqueue)
