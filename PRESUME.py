@@ -416,6 +416,7 @@ def fasta_writer(name, seq, indels, file_name, overwrite_mode, Nchunks, indelseq
     for chunkidx in range(Nchunks):
 
         chunk = seq[ Lchunk*chunkidx:Lchunk*(chunkidx+1) ]
+        chunk_default = copy.deepcopy(chunk)
 
         # set output FASTA name
         if ( Nchunks > 1 ):
@@ -450,38 +451,36 @@ def fasta_writer(name, seq, indels, file_name, overwrite_mode, Nchunks, indelseq
 
                             if( indel[1] in refpos2pos.keys() ):
                                 true_indels.append(global_indel)
-                                if ( indelseq ):
-                                    mid    = refpos2pos[indel[1]] # pos is the midpoint of deleton
-                                    length = indel[2]
-                                    start  = max ( 0, mid - length//2 )
-                                    end    = min ( len(chunk) - 1, start + length - 1) 
-                                    chunk  = chunk[:start] + chunk[(end+1):]
+                                mid    = refpos2pos[indel[1]] # pos is the midpoint of deleton
+                                length = indel[2]
+                                start  = max ( 0, mid - length//2 )
+                                end    = min ( len(chunk) - 1, start + length - 1) 
+                                chunk  = chunk[:start] + chunk[(end+1):]
 
-                                    for pos in range(start, end+1):
-                                        if pos < len(pos2refposindel):
-                                            pos2refposindel[pos] = "del"
+                                for pos in range(start, end+1):
+                                    if pos < len(pos2refposindel):
+                                        pos2refposindel[pos] = "del"
                                     
-                                    refpos2pos = {}
-                                    for pos, refposindel in enumerate(pos2refposindel):
-                                        if(type(refposindel)==int):
-                                            refpos2pos[refposindel] = pos
+                                refpos2pos = {}
+                                for pos, refposindel in enumerate(pos2refposindel):
+                                    if(type(refposindel)==int):
+                                        refpos2pos[refposindel] = pos
                         
                         elif ( indel[0] == "in" ):
 
                             if( indel[1] in refpos2pos.keys() ):
                                 true_indels.append(global_indel)
 
-                                if( indelseq ):
-                                    start  = refpos2pos[indel[1]]
-                                    length = indel[2]
-                                    chunk    = chunk[:start] + indel[3] + chunk[start:]
+                                start  = refpos2pos[indel[1]]
+                                length = indel[2]
+                                chunk    = chunk[:start] + indel[3] + chunk[start:]
                                     
-                                    pos2refposindel = pos2refposindel[:start] + ["in"]*length + pos2refposindel[start:]
+                                pos2refposindel = pos2refposindel[:start] + ["in"]*length + pos2refposindel[start:]
 
-                                    refpos2pos = {}
-                                    for pos, refposindel in enumerate(pos2refposindel):
-                                        if(type(refposindel)==int):
-                                            refpos2pos[refposindel] = pos
+                                refpos2pos = {}
+                                for pos, refposindel in enumerate(pos2refposindel):
+                                    if(type(refposindel)==int):
+                                        refpos2pos[refposindel] = pos
                         
                     else:
                         
@@ -489,7 +488,12 @@ def fasta_writer(name, seq, indels, file_name, overwrite_mode, Nchunks, indelseq
                         break # True means the sequence died
 
             dropout = (len (chunk) <= 0)
+            
             if ( not dropout ):
+                
+                if(indelseq):
+                    chunk = chunk_default
+                
                 SEQ_seq = SeqRecord(Seq(chunk))
                 SEQ_seq.id = str(name)
                 SEQ_seq.description = ""
