@@ -931,7 +931,7 @@ def main(timelimit):
         del(SEQqueue)
         # submit job script to grid engine
         print("\ncreating bottom trees by qsub ...")
-        submit_command = "qsub -sync y -t 1-{0} \
+        submit_command = "qsub " + args.dop + " -sync y -t 1-{0} \
             {1}/exe_PRESUME.sh &> intermediate/qsub.out".\
             format(str(itr), PRESUME)
 
@@ -1253,6 +1253,13 @@ if __name__ == "__main__":
         "--chunks",
         help="number of chunks for each sequence unit",
         type=int,
+        default=1,
+    )
+
+    parser.add_argument(
+        "--dop",
+        help="Option of qsub for downstream simulation (for distributed computing mode)",
+        type=str,
         default=1,
     )
 
