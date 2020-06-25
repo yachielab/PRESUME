@@ -491,7 +491,7 @@ def fasta_writer(name, seq, indels, file_name, overwrite_mode, Nchunks, indelseq
             
             if ( not dropout ):
                 
-                if(indelseq):
+                if(not indelseq):
                     chunk = chunk_default
                 
                 SEQ_seq = SeqRecord(Seq(chunk))
