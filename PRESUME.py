@@ -1260,7 +1260,7 @@ if __name__ == "__main__":
         "--dop",
         help="Option of qsub for downstream simulation (for distributed computing mode)",
         type=str,
-        default=1,
+        default="",
     )
 
 
