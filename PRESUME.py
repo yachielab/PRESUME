@@ -22,6 +22,7 @@ import subprocess
 import shutil
 import re
 import csv
+import copy
 
 LOGO = '''
 ######     ######     #######     #####     #     #    #     #    #######
@@ -172,11 +173,6 @@ class SEQ():
             self.r = self.growing_rate_dist(rM, self.CV)
         
         self.is_alive = (self.r >= 0 and np.random.rand() > e)
-
-        
-        
-        
-        
         
         if(self.is_alive):
             if self.r == 0:
@@ -260,17 +256,17 @@ class SEQ():
 
                         length = random.choices(in_lengths[0], k = 1, weights = in_lengths[1])[0]
                         
-                        generated_indels.append( ( 'in',  pos, length, randomstr(['A','T','G','C'], length) ) )
+                        generated_indels.append( [ 'in',  pos, length, randomstr(['A','T','G','C'], length) ] )
             
             elif (indel == 'del' ):
 
                 for pos in shuffled_del_pos:
                     
                     if ( random.random() < pos2delprob[pos] ):
-
+                        
                         length = random.choices(del_lengths[0], k = 1, weights = del_lengths[1])[0]
 
-                        generated_indels.append( ( 'del', pos, length ) )
+                        generated_indels.append( [ 'del', pos, length ] )
             
         return generated_indels
 
@@ -406,76 +402,111 @@ def create_newick(Lineage):
         raise CreateNewickError(e)
 
 
-def fasta_writer(name, seq, indels, file_name, overwrite_mode):
+def fasta_writer(name, seq, indels, file_name, overwrite_mode, Nchunks, indelseq=True):
 
     if overwrite_mode:
         writer_mode = "a"
     else:
         writer_mode = "w"
 
-    with open(file_name, writer_mode) as writer:
+    Lchunk = len(seq) // Nchunks
 
+    is_dead = True
+    true_indels = [] # List of indels 
+    for chunkidx in range(Nchunks):
+
+        chunk = seq[ Lchunk*chunkidx:Lchunk*(chunkidx+1) ]
+        chunk_default = copy.deepcopy(chunk)
+
+        # set output FASTA name
+        if ( Nchunks > 1 ):
+            chunk_file_name = file_name.split(".fa")[0]+"."+str(chunkidx)+".fa"
+        else:
+            chunk_file_name = file_name
+
+        # extract edits which occurred in the chunk
+        ext_indels = []
         if (indels != None):
-            
-            refpos2pos = {}
-            pos2refposindel= list(range(len(seq)))
-            for pos, refpos in enumerate(pos2refposindel):
-                refpos2pos[refpos] = pos
-
             for indel in indels:
+                pos = indel[1]
+                if ( pos//Lchunk == chunkidx ):
+                    ext_indel    = copy.deepcopy(indel)
+                    ext_indel[1] = pos % Lchunk
+                    ext_indels.append((ext_indel,indel))
 
-                if ( len (seq) > 0 ):
+        with open(chunk_file_name, writer_mode) as writer:
 
-                    if (indel[0] == 'del'):
-
-                        if( indel[1] in refpos2pos.keys() ):
-                            mid    = refpos2pos[indel[1]] # pos is the midpoint of deleton
-                            length = indel[2]
-                            start  = max ( 0, mid - length//2 )
-                            end    = min ( len(seq) - 1, start + length - 1) 
-                            seq    = seq[:start] + seq[(end+1):]
-
-                            for pos in range(start, end+1):
-                                if pos < len(pos2refposindel):
-                                    pos2refposindel[pos] = "del"
-                            
-                            refpos2pos = {}
-                            for pos, refposindel in enumerate(pos2refposindel):
-                                if(type(refposindel)==int):
-                                    refpos2pos[refposindel] = pos
-                    
-                    elif ( indel[0] == "in" ):
-
-                        if( indel[1] in refpos2pos.keys() ):
-                            start  = refpos2pos[indel[1]]
-                            length = indel[2]
-                            seq    = seq[:start] + indel[3] + seq[start:]
-                            
-                            pos2refposindel = pos2refposindel[:start] + ["in"]*length + pos2refposindel[start:]
-
-                            refpos2pos = {}
-                            for pos, refposindel in enumerate(pos2refposindel):
-                                if(type(refposindel)==int):
-                                    refpos2pos[refposindel] = pos
+            if (indels != None):
                 
-                else:
-                    
-                    return True # True means the sequence died
+                refpos2pos      = {}
+                pos2refposindel = list(range(len(chunk)))
+                for pos, refpos in enumerate(pos2refposindel):
+                    refpos2pos[refpos] = pos
 
-        if ( len (seq) <= 0 ):
-            return True # True means the sequence died
+                for indel, global_indel in ext_indels:
 
-        SEQ_seq = SeqRecord(Seq(seq))
-        SEQ_seq.id = str(name)
-        SEQ_seq.description = ""
-        SeqIO.write(SEQ_seq, writer, "fasta")
-        return False
+                    if ( len (chunk) > 0 ):
+
+                        if (indel[0] == 'del'):
+
+                            if( indel[1] in refpos2pos.keys() ):
+                                true_indels.append(global_indel)
+                                mid    = refpos2pos[indel[1]] # pos is the midpoint of deleton
+                                length = indel[2]
+                                start  = max ( 0, mid - length//2 )
+                                end    = min ( len(chunk) - 1, start + length - 1) 
+                                chunk  = chunk[:start] + chunk[(end+1):]
+
+                                for pos in range(start, end+1):
+                                    if pos < len(pos2refposindel):
+                                        pos2refposindel[pos] = "del"
+                                    
+                                refpos2pos = {}
+                                for pos, refposindel in enumerate(pos2refposindel):
+                                    if(type(refposindel)==int):
+                                        refpos2pos[refposindel] = pos
+                        
+                        elif ( indel[0] == "in" ):
+
+                            if( indel[1] in refpos2pos.keys() ):
+                                true_indels.append(global_indel)
+
+                                start  = refpos2pos[indel[1]]
+                                length = indel[2]
+                                chunk    = chunk[:start] + indel[3] + chunk[start:]
+                                    
+                                pos2refposindel = pos2refposindel[:start] + ["in"]*length + pos2refposindel[start:]
+
+                                refpos2pos = {}
+                                for pos, refposindel in enumerate(pos2refposindel):
+                                    if(type(refposindel)==int):
+                                        refpos2pos[refposindel] = pos
+                        
+                    else:
+                        
+                        dropout = True
+                        break # True means the sequence died
+
+            dropout = (len (chunk) <= 0)
+            
+            if ( not dropout ):
+                
+                if(not indelseq):
+                    chunk = chunk_default
+                
+                SEQ_seq = SeqRecord(Seq(chunk))
+                SEQ_seq.id = str(name)
+                SEQ_seq.description = ""
+                SeqIO.write(SEQ_seq, writer, "fasta")
+                is_dead = False
+    
+    return true_indels, is_dead
 
 def survey_all_dead_lineages(Lineage):
     try:
         command = "cat intermediate/DOWN/*/PRESUMEout/all_SEQ_dead.out \
-            > intermediate/all_dead.out; \
-            rm intermediate/DOWN/*/PRESUMEout/all_SEQ_dead.out"
+            > intermediate/all_dead.out 2> /dev/null; \
+            rm intermediate/DOWN/*/PRESUMEout/all_SEQ_dead.out 2> /dev/null"
         subprocess.call(command, shell=True)
 
     except Exception as e:
@@ -663,7 +694,7 @@ def main(timelimit):
                 esu = SEQqueue.pop(k)
                 # save ancestoral sequences
                 if args.viewANC:
-                    fasta_writer(esu.id, esu.seq, esu.indels, "ancestral_sequences.fasta", True)
+                    true_indels, is_dead = fasta_writer(esu.id, esu.seq, esu.indels, "ancestral_sequences.fasta", True, Nchunks = args.chunks)
                 # duplication
                 if args.CV:
                     daughter = [SEQ(i, esu.id, esu.seq, esu.CV,
@@ -727,14 +758,16 @@ def main(timelimit):
                 print("Number of generated sequences reached "+str(C))
                 break
 
-    # output initial sequence
-    fasta_writer("root", initseq, None, "root.fa", False)
 
     # in case of "sequential computing"
     # or "downstream SEQ simulation of distributed computing"
     if(not args.qsub):
+        # output initial sequence
+        fasta_writer("root", initseq, None, "root.fa", False, Nchunks = args.chunks)
         # create fasta
         print("Generating a FASTA file...")
+
+        esuname2zerolength={}
         for esu in SEQqueue:
             if(args.idANC is None):
                 esu_name = str(esu.id)
@@ -744,8 +777,11 @@ def main(timelimit):
                 new_esu_name = "{}_{}".\
                     format(esu_name_prefix, esu_name_suffix)
                 esu_name = new_esu_name
-            #print(esu_name,esu.indels)
-            esu_zero_length = fasta_writer(esu_name, esu.seq, esu.indels, "PRESUMEout.fa", True) # fasta_writer() returns True if the seq. length <= 0
+            
+            true_indels, esu_zero_length = fasta_writer(esu_name, esu.seq, esu.indels, "PRESUMEout.fa", True, Nchunks=args.chunks) # fasta_writer() returns True if the seq. length <= 0
+            esu.indels = true_indels
+            esuname2zerolength[esu_name] = esu_zero_length
+
             if (esu_zero_length):
                 Lineage[esu.id] = ["dead"]
                 if(esu.id != 0):
@@ -754,11 +790,12 @@ def main(timelimit):
 
         if (c == 0):
             all_dead(args.idANC)
-            fa_count  = 0
+            fa_count = 0
             tip_count = 0
 
         else: 
-            fa_count = count_sequence("PRESUMEout.fa")
+            if (args.chunks == 1):
+                fa_count = count_sequence("PRESUMEout.fa")
 
             # record indels
             if(CRISPR):
@@ -774,20 +811,21 @@ def main(timelimit):
                                 format(esu_name_prefix, esu_name_suffix)
                             esu_name = new_esu_name
 
-                        handle.write(esu_name+"\t")
-                        
-                        for indel in esu.indels:
-                            if (indel[0] == "del") : 
-                                mid    = indel[1] # pos is the midpoint of deletion
-                                length = indel[2]
-                                handle.write("D_mid"+str(mid)+"_len"+str(length))
-                            elif (indel[0] == "in"): 
-                                pos    = indel[1] # pos is the midpoint of deletion
-                                seq    = indel[3]
-                                handle.write("I_pos"+str(pos+0.5)+"_"+seq)
-                            if (esu_idx < len(SEQqueue)-1):
-                                handle.write(";")
-                        handle.write("\n")
+                        if (not esuname2zerolength[esu_name]):
+                            handle.write(esu_name+"\t")
+                            
+                            for indel_idx, indel in enumerate(esu.indels):
+                                if (indel[0] == "del") : 
+                                    mid    = indel[1] # pos is the midpoint of deletion
+                                    length = indel[2]
+                                    handle.write("D_mid"+str(mid)+"_len"+str(length))
+                                elif (indel[0] == "in"): 
+                                    pos    = indel[1] # pos is the midpoint of deletion
+                                    seq    = indel[3]
+                                    handle.write("I_"+str(pos+0.5)+"_"+seq)
+                                if (indel_idx < len(esu.indels)-1):
+                                    handle.write(";")
+                            handle.write("\n")
 
             # create newick
             del(SEQqueue)
@@ -799,6 +837,8 @@ def main(timelimit):
 
     # in case of distributed computing
     else :
+        # Root sequence
+        fasta_writer("root", initseq, None, "root.fa", False, Nchunks = args.chunks)
         # preparation for qsub
         os.mkdir("intermediate")
         os.mkdir("intermediate/DOWN")
@@ -827,8 +867,9 @@ def main(timelimit):
             fasta_file_path = \
                 "intermediate/fasta/{}.fa".\
                 format(str(esu.id))
-            esu_zero_length = fasta_writer(esu.id, esu.seq, None, fasta_file_path, True)
-            
+            true_indels, esu_zero_length = fasta_writer(esu.id, esu.seq, esu.indels, fasta_file_path, True, Nchunks=1, indelseq=False)
+            esu.indels = true_indels
+
             if (esu_zero_length): # if the sequence length <= 0
                 Lineage[esu.id] = ["dead"]
                 if(esu.id != 0):
@@ -859,16 +900,17 @@ def main(timelimit):
                     # divide until time point of (2 * timelimit)
                     python_command = PYTHON3 + " " + PRESUME + "/PRESUME.py "\
                         "--monitor " + str(2*timelimit)\
-                        + " -L "+str(L)\
-                        + " -f "+"../../fasta/"+str(esu.id)+".fa"\
-                        + " -d "+str(esu.d)\
-                        + " -s "+str(sigma_origin)\
-                        + " -T "+str(T)\
-                        + " -e "+str(e)\
-                        + " -u "+str(UPPER_LIMIT)\
-                        + " --idANC "+str(esu.id)\
-                        + " --tMorigin "+str(esu.t-esu.d)\
-                        + " --seed " + str(np.random.randint(0, args.r))
+                        + " -L " + str(L)\
+                        + " -f " + "../../fasta/"+str(esu.id)+".fa"\
+                        + " -d " + str(esu.d)\
+                        + " -s " + str(sigma_origin)\
+                        + " -T " + str(T)\
+                        + " -e " + str(e)\
+                        + " -u " + str(UPPER_LIMIT)\
+                        + " --idANC "    + str(esu.id)\
+                        + " --tMorigin " + str(esu.t - esu.d)\
+                        + " --seed "     + str(np.random.randint(0, 10000))\
+                        + " --chunks "   + str(args.chunks)
                     if args.CV:
                         python_command += " --CV"
                     
@@ -889,7 +931,7 @@ def main(timelimit):
         del(SEQqueue)
         # submit job script to grid engine
         print("\ncreating bottom trees by qsub ...")
-        submit_command = "qsub -sync y -t 1-{0} \
+        submit_command = "qsub " + args.dop + " -sync y -t 1-{0} \
             {1}/exe_PRESUME.sh &> intermediate/qsub.out".\
             format(str(itr), PRESUME)
 
@@ -904,15 +946,21 @@ def main(timelimit):
         if args.debug:
             mut_rate_log_writer(mut_rate_log, list_of_dead)
 
-        command = "cat PRESUME.e*.* > intermediate/err; \
-                cat PRESUME.o*.* > intermediate/out; rm PRESUME.*"
+        command = "cat PRESUME.e*.* > intermediate/err 2> /dev/null; \
+                   cat PRESUME.o*.* > intermediate/out 2> /dev/null; \
+                   rm PRESUME.*"
         subprocess.call(command, shell=True)
         if args.f is None:
-            command = "cat intermediate/DOWN/*/PRESUMEout/PRESUMEout.fa \
-                    > PRESUMEout.fa; cat intermediate/DOWN/*/PRESUMEout/indel.txt > indel.txt"
+            command = "cat intermediate/DOWN/*/PRESUMEout/indel.txt > indel_combined.txt 2> /dev/null;"
+            if (args.chunks == 1):
+                command += "cat intermediate/DOWN/*/PRESUMEout/PRESUMEout.fa > PRESUMEout.fa;"
+            else:
+                for i in range(args.chunks):
+                    command += "cat intermediate/DOWN/*/PRESUMEout/PRESUMEout."+str(i)+".fa > PRESUMEout."+str(i)+".fa;"
             subprocess.call(command, shell=True)  # combine fasta
 
-        fa_count = count_sequence("PRESUMEout.fa")
+        if(args.chunks == 1):
+            fa_count = count_sequence("PRESUMEout.fa")
         tip_count = CombineTrees()  # Combine trees
         shutil.move("PRESUMEout.nwk", "intermediate")
         os.rename("PRESUMEout_combined.nwk", "PRESUMEout.nwk")
@@ -920,9 +968,10 @@ def main(timelimit):
             shutil.rmtree("intermediate")
 
     # error check
-    if(fa_count != tip_count):
-        raise OutputError(fa_count, tip_count)
-        return 0
+    if(args.chunks == 1):
+        if(fa_count != tip_count):
+            raise OutputError(fa_count, tip_count)
+            return 0
 
     # finish
     if args.save:
@@ -1200,6 +1249,20 @@ if __name__ == "__main__":
         default=None,
     )
 
+    parser.add_argument(
+        "--chunks",
+        help="number of chunks for each sequence unit",
+        type=int,
+        default=1,
+    )
+
+    parser.add_argument(
+        "--dop",
+        help="Option of qsub for downstream simulation (for distributed computing mode)",
+        type=str,
+        default="",
+    )
+
 
     args = parser.parse_args()
     
@@ -1346,20 +1409,20 @@ if __name__ == "__main__":
         shape = float(gamma_str[0])  # shape of gamma distribution
         gamma = np.random.gamma(shape, m / shape, L)  # mean is args.m
 
-        # set indel parameters from raw lab experiments
-        CRISPR      = False
-        if (args.inprob != None): 
-            args.inprob    = os.path.abspath(args.inprob)
-            args.inlength  = os.path.abspath(args.inlength)
-            args.delprob   = os.path.abspath(args.delprob)
-            args.dellength = os.path.abspath(args.dellength)
-            pos2inprob  =   make_list(args.inprob  , 'float', column = 0)
-            in_lengths  = [ make_list(args.inlength, 'int'  , column = 0)   ,
-                            make_list(args.inlength, 'float', column = 1)   ]
-            pos2delprob =   make_list(args.delprob , 'float', column = 0)
-            del_lengths = [ make_list(args.dellength,'int'  , column = 0)   ,
-                            make_list(args.inlength, 'float', column = 1)   ]
-            CRISPR      = True
+    # set indel parameters from raw lab experiments
+    CRISPR      = False
+    if (args.inprob != None): 
+        args.inprob    = os.path.abspath(args.inprob)
+        args.inlength  = os.path.abspath(args.inlength)
+        args.delprob   = os.path.abspath(args.delprob)
+        args.dellength = os.path.abspath(args.dellength)
+        pos2inprob  =   make_list(args.inprob  , 'float', column = 0)
+        in_lengths  = [ make_list(args.inlength, 'int'  , column = 0)   ,
+                        make_list(args.inlength, 'float', column = 1)   ]
+        pos2delprob =   make_list(args.delprob , 'float', column = 0)
+        del_lengths = [ make_list(args.dellength,'int'  , column = 0)   ,
+                        make_list(args.dellength,'float', column = 1)   ]
+        CRISPR      = True
 
     # initial sequence specification
     if (args.f is not None):
@@ -1381,8 +1444,8 @@ if __name__ == "__main__":
             with open(args.indels, 'r') as handle:
                 for line in handle:
                     chunks = line.split()
-                    if (chunks[0] == "del") : initindels.append((chunks[0], int(chunks[1]), int(chunks[2])))
-                    elif (chunks[1] == "in"): initindels.append((chunks[0], int(chunks[1]), int(chunks[2]), chunks[3]))
+                    if (chunks[0] == "del") : initindels.append([chunks[0], int(chunks[1]), int(chunks[2])])
+                    elif (chunks[1] == "in"): initindels.append([chunks[0], int(chunks[1]), int(chunks[2]), chunks[3]])
         else:
             initindels=[]
     else:
