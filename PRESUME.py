@@ -23,6 +23,7 @@ import shutil
 import re
 import csv
 import copy
+import gzip
 
 LOGO = '''
 ######     ######     #######     #####     #     #    #     #    #######
@@ -320,7 +321,9 @@ def all_dead(idANC):
 
 # count number & length of sequences in a specified fasta file
 def count_sequence(in_fname):
-    with open(in_fname) as origin:
+    origin = gzip.open(in_fname, "rt")
+    if(True):
+    #with open(in_fname) as origin:
         input_itr = SeqIO.parse(origin, "fasta")
         # Build a list sequences:
         number_of_sequences = 0
@@ -413,16 +416,11 @@ def fasta_writer(name, seq, indels, file_name, overwrite_mode, Nchunks, indelseq
 
     is_dead = True
     true_indels = [] # List of indels 
+    seq_list = []
     for chunkidx in range(Nchunks):
 
         chunk = seq[ Lchunk*chunkidx:Lchunk*(chunkidx+1) ]
         chunk_default = copy.deepcopy(chunk)
-
-        # set output FASTA name
-        if ( Nchunks > 1 ):
-            chunk_file_name = file_name.split(".fa")[0]+"."+str(chunkidx)+".fa"
-        else:
-            chunk_file_name = file_name
 
         # extract edits which occurred in the chunk
         ext_indels = []
@@ -434,7 +432,8 @@ def fasta_writer(name, seq, indels, file_name, overwrite_mode, Nchunks, indelseq
                     ext_indel[1] = pos % Lchunk
                     ext_indels.append((ext_indel,indel))
 
-        with open(chunk_file_name, writer_mode) as writer:
+        #with open(chunk_file_name, writer_mode) as writer:
+        if (True):
 
             if (indels != None):
                 
@@ -488,17 +487,40 @@ def fasta_writer(name, seq, indels, file_name, overwrite_mode, Nchunks, indelseq
                         break # True means the sequence died
 
             dropout = (len (chunk) <= 0)
+
+            if(not indelseq):
+                chunk = chunk_default
+
+            seq_list.append(chunk)
             
+            '''
             if ( not dropout ):
-                
-                if(not indelseq):
-                    chunk = chunk_default
                 
                 SEQ_seq = SeqRecord(Seq(chunk))
                 SEQ_seq.id = str(name)
                 SEQ_seq.description = ""
                 SeqIO.write(SEQ_seq, writer, "fasta")
                 is_dead = False
+            '''
+    if (not is_dead):
+    
+        for chunkidx in range(Nchunks):
+
+            # set output FASTA name
+            if ( Nchunks > 1 ):
+                chunk_file_name = file_name.split(".fa")[0]+"."+str(chunkidx)+".fa"
+            else:
+                chunk_file_name = file_name
+
+            writer = gzip.open(chunk_file_name + ".gz", "at")
+
+            SEQ_seq = SeqRecord(Seq(chunk))
+            SEQ_seq.id = str(name)
+            SEQ_seq.description = ""
+            SeqIO.write(SEQ_seq, writer, "fasta")
+            is_dead = False
+
+            writer.close()
     
     return true_indels, is_dead
 
@@ -795,11 +817,13 @@ def main(timelimit):
 
         else: 
             if (args.chunks == 1):
-                fa_count = count_sequence("PRESUMEout.fa")
+                fa_count = count_sequence("PRESUMEout.fa.gz")
 
             # record indels
             if(CRISPR):
-                with open("indel.txt", 'w') as handle:
+                handle = gzip.open("indel.txt.gz", "wt")
+                if (True):
+                #with open("indel.txt", 'w') as handle:
                     for esu_idx, esu in enumerate(SEQqueue):
 
                         if(args.idANC is None):
@@ -826,6 +850,7 @@ def main(timelimit):
                                 if (indel_idx < len(esu.indels)-1):
                                     handle.write(";")
                             handle.write("\n")
+                handle.close()
 
             # create newick
             del(SEQqueue)
@@ -951,16 +976,16 @@ def main(timelimit):
                    rm PRESUME.*"
         subprocess.call(command, shell=True)
         if args.f is None:
-            command = "cat intermediate/DOWN/*/PRESUMEout/indel.txt > indel_combined.txt 2> /dev/null;"
+            command = "cat intermediate/DOWN/*/PRESUMEout/indel.txt.gz > indel_combined.txt.gz 2> /dev/null;"
             if (args.chunks == 1):
-                command += "cat intermediate/DOWN/*/PRESUMEout/PRESUMEout.fa > PRESUMEout.fa;"
+                command += "cat intermediate/DOWN/*/PRESUMEout/PRESUMEout.fa.gz > PRESUMEout.fa.gz;"
             else:
                 for i in range(args.chunks):
-                    command += "cat intermediate/DOWN/*/PRESUMEout/PRESUMEout."+str(i)+".fa > PRESUMEout."+str(i)+".fa;"
+                    command += "cat intermediate/DOWN/*/PRESUMEout/PRESUMEout."+str(i)+".fa.gz > PRESUMEout."+str(i)+".fa.gz;"
             subprocess.call(command, shell=True)  # combine fasta
 
         if(args.chunks == 1):
-            fa_count = count_sequence("PRESUMEout.fa")
+            fa_count = count_sequence("PRESUMEout.fa.gz")
         tip_count = CombineTrees()  # Combine trees
         shutil.move("PRESUMEout.nwk", "intermediate")
         os.rename("PRESUMEout_combined.nwk", "PRESUMEout.nwk")
