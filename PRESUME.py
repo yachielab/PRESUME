@@ -1446,7 +1446,7 @@ if __name__ == "__main__":
     # initial sequence specification
     if (args.f is not None):
 
-        handle = gzip.open(args.f, 'r')
+        handle = gzip.open(args.f, 'rt')
         sequences = SeqIO.parse(handle, 'fasta')
         initseq = str(list(sequences)[0].seq)
         L = len(initseq)
