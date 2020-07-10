@@ -920,7 +920,7 @@ def main(timelimit):
                     python_command = PYTHON3 + " " + PRESUME + "/PRESUME.py "\
                         "--monitor " + str(2*timelimit)\
                         + " -L " + str(L)\
-                        + " -f " + "../../fasta/"+str(esu.id)+".fa"\
+                        + " -f " + "../../fasta/"+str(esu.id)+".fa.gz"\
                         + " -d " + str(esu.d)\
                         + " -s " + str(sigma_origin)\
                         + " -T " + str(T)\
