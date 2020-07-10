@@ -485,7 +485,7 @@ def fasta_writer(name, seq, indels, file_name, overwrite_mode, Nchunks, indelseq
                         
                         dropout = True
                         break # True means the sequence died
-
+            
             dropout = (len (chunk) <= 0)
 
             if(not indelseq):
@@ -495,7 +495,7 @@ def fasta_writer(name, seq, indels, file_name, overwrite_mode, Nchunks, indelseq
             
             if ( not dropout ):
                 is_dead = False
-    
+
     if (not is_dead):
     
         for chunkidx in range(Nchunks):
@@ -508,7 +508,7 @@ def fasta_writer(name, seq, indels, file_name, overwrite_mode, Nchunks, indelseq
 
             writer = gzip.open(chunk_file_name + ".gz", "at")
 
-            SEQ_seq = SeqRecord(Seq(chunk))
+            SEQ_seq = SeqRecord(Seq(seq_list[chunkidx]))
             SEQ_seq.id = str(name)
             SEQ_seq.description = ""
             SeqIO.write(SEQ_seq, writer, "fasta")
