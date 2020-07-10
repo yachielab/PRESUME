@@ -506,7 +506,7 @@ def fasta_writer(name, seq, indels, file_name, overwrite_mode, Nchunks, indelseq
             else:
                 chunk_file_name = file_name
 
-            writer = gzip.open(chunk_file_name + ".gz", "at")
+            writer = gzip.open(chunk_file_name + ".gz", writer_mode+"t")
 
             SEQ_seq = SeqRecord(Seq(seq_list[chunkidx]))
             SEQ_seq.id = str(name)
@@ -1117,7 +1117,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "-m",
         help="mean of relative  \
-        titution rate according to gamma distribution \
+        subtitution rate according to gamma distribution \
             (default=1)",
         type=float,
         default=1
@@ -1445,10 +1445,13 @@ if __name__ == "__main__":
 
     # initial sequence specification
     if (args.f is not None):
-        with open(args.f, 'r') as handle:
-            sequences = SeqIO.parse(handle, 'fasta')
-            initseq = str(list(sequences)[0].seq)
-            L = len(initseq)
+
+        handle = gzip.open(args.f, 'r')
+        sequences = SeqIO.parse(handle, 'fasta')
+        initseq = str(list(sequences)[0].seq)
+        L = len(initseq)
+        handle.close()
+
     elif (args.polyC):
         initseq = 'C' * L  # initial sequence
     else:
