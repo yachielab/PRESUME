@@ -493,15 +493,9 @@ def fasta_writer(name, seq, indels, file_name, overwrite_mode, Nchunks, indelseq
 
             seq_list.append(chunk)
             
-            '''
             if ( not dropout ):
-                
-                SEQ_seq = SeqRecord(Seq(chunk))
-                SEQ_seq.id = str(name)
-                SEQ_seq.description = ""
-                SeqIO.write(SEQ_seq, writer, "fasta")
                 is_dead = False
-            '''
+    
     if (not is_dead):
     
         for chunkidx in range(Nchunks):
