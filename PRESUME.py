@@ -417,6 +417,7 @@ def fasta_writer(name, seq, indels, file_name, overwrite_mode, Nchunks, indelseq
     is_dead = True
     true_indels = [] # List of indels 
     seq_list = []
+    aligned_seq_list = []
     for chunkidx in range(Nchunks):
 
         chunk = seq[ Lchunk*chunkidx:Lchunk*(chunkidx+1) ]
@@ -450,21 +451,21 @@ def fasta_writer(name, seq, indels, file_name, overwrite_mode, Nchunks, indelseq
 
                             if( indel[1] in refpos2pos.keys() ):
                                 true_indels.append(global_indel)
-                                mid    = refpos2pos[indel[1]] # pos is the midpoint of deleton
+                                mid    = refpos2pos[indel[1]] # pos is the midpoint of deletion
                                 length = indel[2]
                                 start  = max ( 0, mid - length//2 )
-                                end    = min ( len(chunk) - 1, start + length - 1) 
+                                end    = min ( len(chunk) - 1, mid - length//2 + length - 1) 
                                 chunk  = chunk[:start] + chunk[(end+1):]
-
-                                for pos in range(start, end+1):
-                                    if pos < len(pos2refposindel):
-                                        pos2refposindel[pos] = "del"
+                                pos2refposindel = pos2refposindel[:start] + pos2refposindel[(end+1):]
                                     
                                 refpos2pos = {}
+                                pos=0
                                 for pos, refposindel in enumerate(pos2refposindel):
                                     if(type(refposindel)==int):
                                         refpos2pos[refposindel] = pos
-                        
+                                    elif(refposindel=="in"):
+                                        None
+
                         elif ( indel[0] == "in" ):
 
                             if( indel[1] in refpos2pos.keys() ):
@@ -477,24 +478,36 @@ def fasta_writer(name, seq, indels, file_name, overwrite_mode, Nchunks, indelseq
                                 pos2refposindel = pos2refposindel[:start] + ["in"]*length + pos2refposindel[start:]
 
                                 refpos2pos = {}
+                                pos=0
                                 for pos, refposindel in enumerate(pos2refposindel):
                                     if(type(refposindel)==int):
                                         refpos2pos[refposindel] = pos
+                                    elif(refposindel=="in"):
+                                        None
                         
                     else:
                         
                         dropout = True
                         break # True means the sequence died
+                
             
             dropout = (len (chunk) <= 0)
 
             if(not indelseq):
                 chunk = chunk_default
 
-            seq_list.append(chunk)
-            
-            if ( not dropout ):
+            elif ( not dropout ):
                 is_dead = False
+
+                if (indels != None):
+                    aligned_chunk = "-"*Lchunk
+                    for refpos in refpos2pos.keys():
+                        aligned_chunk = aligned_chunk[:refpos] + chunk[refpos2pos[refpos]] + aligned_chunk[(refpos+1):]
+            
+            seq_list.append(chunk)
+            if (indels != None):
+                aligned_seq_list.append(aligned_chunk)
+
 
     if (not is_dead):
     
@@ -506,15 +519,33 @@ def fasta_writer(name, seq, indels, file_name, overwrite_mode, Nchunks, indelseq
             else:
                 chunk_file_name = file_name
 
-            writer = gzip.open(chunk_file_name + ".gz", writer_mode+"t")
-
+            writer         = gzip.open(chunk_file_name + ".gz", writer_mode+"t")
+            
+            # write unaligned seq.
             SEQ_seq = SeqRecord(Seq(seq_list[chunkidx]))
             SEQ_seq.id = str(name)
             SEQ_seq.description = ""
             SeqIO.write(SEQ_seq, writer, "fasta")
+            writer.close()
+            # write aligned seq.
+            if (indels != None):
+                if ( Nchunks > 1 ):
+                    aligned_chunk_file_name = file_name.split(".fa")[0]+"."+str(chunkidx)+".aligned.fa"
+                else:
+                    aligned_chunk_file_name = file_name.split(".fa")[0]+".aligned.fa"
+                aligned_writer = gzip.open(aligned_chunk_file_name + ".gz", writer_mode+"t")
+                SEQ_seq = SeqRecord(Seq(aligned_seq_list[chunkidx]))
+                SEQ_seq.id = str(name)
+                SEQ_seq.description = ""
+                SeqIO.write(SEQ_seq, aligned_writer, "fasta")
+                aligned_writer.close()
+            
             is_dead = False
 
-            writer.close()
+            
+            
+        
+
     
     return true_indels, is_dead
 
