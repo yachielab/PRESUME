@@ -495,12 +495,11 @@ def fasta_writer(name, seq, indels, file_name, overwrite_mode, Nchunks, indelseq
 
             if(not indelseq):
                 chunk = chunk_default
+
+            if ( not dropout ):
                 is_dead = False
 
-            elif ( not dropout ):
-                is_dead = False
-
-                if (indels != None):
+                if (indelseq and indels != None):
                     aligned_chunk = "-"*Lchunk
                     for refpos in refpos2pos.keys():
                         aligned_chunk = aligned_chunk[:refpos] + chunk[refpos2pos[refpos]] + aligned_chunk[(refpos+1):]
