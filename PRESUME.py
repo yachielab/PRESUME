@@ -496,7 +496,9 @@ def fasta_writer(name, seq, indels, file_name, overwrite_mode, Nchunks, indelseq
             if(not indelseq):
                 chunk = chunk_default
 
-            if ( not dropout ):
+            if ( dropout ):
+                aligned_chunk = "-"*Lchunk
+            else:
                 is_dead = False
 
                 if (indelseq and indels != None):
