@@ -495,6 +495,7 @@ def fasta_writer(name, seq, indels, file_name, overwrite_mode, Nchunks, indelseq
 
             if(not indelseq):
                 chunk = chunk_default
+                print(chunk)
 
             elif ( not dropout ):
                 is_dead = False
@@ -507,7 +508,6 @@ def fasta_writer(name, seq, indels, file_name, overwrite_mode, Nchunks, indelseq
             seq_list.append(chunk)
             if (indels != None and indelseq):
                 aligned_seq_list.append(aligned_chunk)
-
 
     if (not is_dead):
     
@@ -541,11 +541,6 @@ def fasta_writer(name, seq, indels, file_name, overwrite_mode, Nchunks, indelseq
                 aligned_writer.close()
             
             is_dead = False
-
-            
-            
-        
-
     
     return true_indels, is_dead
 
