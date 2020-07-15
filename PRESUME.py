@@ -495,6 +495,7 @@ def fasta_writer(name, seq, indels, file_name, overwrite_mode, Nchunks, indelseq
 
             if(not indelseq):
                 chunk = chunk_default
+                is_dead = False
 
             elif ( not dropout ):
                 is_dead = False
@@ -521,7 +522,6 @@ def fasta_writer(name, seq, indels, file_name, overwrite_mode, Nchunks, indelseq
             writer         = gzip.open(chunk_file_name + ".gz", writer_mode+"t")
             
             # write unaligned seq.
-            print(seq_list)
             SEQ_seq = SeqRecord(Seq(seq_list[chunkidx]))
             SEQ_seq.id = str(name)
             SEQ_seq.description = ""
