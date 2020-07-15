@@ -505,7 +505,7 @@ def fasta_writer(name, seq, indels, file_name, overwrite_mode, Nchunks, indelseq
                         aligned_chunk = aligned_chunk[:refpos] + chunk[refpos2pos[refpos]] + aligned_chunk[(refpos+1):]
             
             seq_list.append(chunk)
-            if (indels != None):
+            if (indels != None and indelseq):
                 aligned_seq_list.append(aligned_chunk)
 
 
@@ -528,7 +528,7 @@ def fasta_writer(name, seq, indels, file_name, overwrite_mode, Nchunks, indelseq
             SeqIO.write(SEQ_seq, writer, "fasta")
             writer.close()
             # write aligned seq.
-            if (indels != None):
+            if (indels != None and indelseq):
                 if ( Nchunks > 1 ):
                     aligned_chunk_file_name = file_name.split(".fa")[0]+"."+str(chunkidx)+".aligned.fa"
                 else:
