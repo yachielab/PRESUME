@@ -9,10 +9,12 @@ __author__ = "\
 
 __date__ = "2020/6/14"
 
+import os
+os.environ["OMP_NUM_THREADS"] = "1"
+
 import random
 import numpy as np
 import sys
-import os
 from Bio import Phylo
 from Bio import SeqIO
 from Bio.Seq import Seq
