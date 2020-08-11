@@ -1043,10 +1043,9 @@ def main(timelimit):
 
     # error check
     if(args.chunks == 1):
-        if(fa_count != tip_count):
-            fa_count = count_sequence("PRESUMEout.fa.gz")
-            raise OutputError(fa_count, tip_count)
-            return 0
+        fa_count = count_sequence("PRESUMEout.fa.gz")
+        raise OutputError(fa_count, tip_count)
+        return 0
 
     # finish
     if args.save:
