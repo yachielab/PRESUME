@@ -525,11 +525,14 @@ def fasta_writer(name, seq, indels, file_name, overwrite_mode, Nchunks, indelseq
             writer         = gzip.open(chunk_file_name + ".gz", writer_mode+"b")
             
             # write unaligned seq.
-            SEQ_seq = SeqRecord(Seq(seq_list[chunkidx]))
-            SEQ_seq.id = str(name)
-            SEQ_seq.description = ""
-            SeqIO.write(SEQ_seq, writer, "fasta")
+            #SEQ_seq = SeqRecord(Seq(seq_list[chunkidx]))
+            #SEQ_seq.id = str(name)
+            #SEQ_seq.description = ""
+            #SeqIO.write(SEQ_seq, writer, "fasta")
+            writer.write((str(name)+"\n").encode())
+            writer.write((seq_list[chunkidx]+"\n").encode())
             writer.close()
+
             # write aligned seq.
             if (indels != None and indelseq):
                 if ( Nchunks > 1 ):
