@@ -407,7 +407,7 @@ def create_newick(Lineage):
         raise CreateNewickError(e)
 
 
-def fasta_writer(name, seq, indels, file_name, overwrite_mode, Nchunks, indelseq=True):
+def fasta_writer(name, seq, indels, file_name, overwrite_mode, Nchunks, filepath2writer=None, indelseq=True):
 
     if overwrite_mode:
         writer_mode = "a"
@@ -522,7 +522,10 @@ def fasta_writer(name, seq, indels, file_name, overwrite_mode, Nchunks, indelseq
             else:
                 chunk_file_name = file_name
 
-            writer         = gzip.open(chunk_file_name + ".gz", writer_mode+"b")
+            if filepath2writer == None:
+                writer         = gzip.open(chunk_file_name + ".gz", writer_mode+"b")
+            else:
+                writer         = filepath2writer[chunk_file_name + ".gz"]
             
             # write unaligned seq.
             #SEQ_seq = SeqRecord(Seq(seq_list[chunkidx]))
@@ -531,7 +534,8 @@ def fasta_writer(name, seq, indels, file_name, overwrite_mode, Nchunks, indelseq
             #SeqIO.write(SEQ_seq, writer, "fasta")
             writer.write((">"+str(name)+"\n").encode())
             writer.write((seq_list[chunkidx]+"\n").encode())
-            writer.close()
+            if filepath2writer == None:
+                writer.close()
 
             # write aligned seq.
             if (indels != None and indelseq):
@@ -539,14 +543,18 @@ def fasta_writer(name, seq, indels, file_name, overwrite_mode, Nchunks, indelseq
                     aligned_chunk_file_name = file_name.split(".fa")[0]+"."+str(chunkidx)+".aligned.fa"
                 else:
                     aligned_chunk_file_name = file_name.split(".fa")[0]+".aligned.fa"
-                aligned_writer = gzip.open(aligned_chunk_file_name + ".gz", writer_mode+"b")
+                if filepath2writer == None:
+                    aligned_writer = gzip.open(aligned_chunk_file_name + ".gz", writer_mode+"b")
+                else:
+                    aligned_writer = filepath2writer[aligned_chunk_file_name + ".gz"]
                 #SEQ_seq = SeqRecord(Seq(aligned_seq_list[chunkidx]))
                 #SEQ_seq.id = str(name)
                 #SEQ_seq.description = ""
                 #SeqIO.write(SEQ_seq, aligned_writer, "fasta")
                 aligned_writer.write((">"+str(name)+"\n").encode())
                 aligned_writer.write((aligned_seq_list[chunkidx]+"\n").encode())
-                aligned_writer.close()
+                if filepath2writer == None:
+                    aligned_writer.close()
             
             is_dead = False
     
@@ -808,6 +816,16 @@ def main(timelimit):
                 print("Number of generated sequences reached "+str(C))
                 break
 
+    # open .gz file to write
+    filepath2writer={}
+    if (args.chunks == 1):
+        filepath2writer["PRESUMEout.fa.gz"]                = gzip.open("PRESUMEout.fa.gz"           , 'wb')
+        filepath2writer["PRESUMEout.aligned.fa.gz"]        = gzip.open("PRESUMEout.aligned.fa.gz"   , 'wb')
+    else:
+        for i in range(args.chunks):
+            filepath2writer["PRESUMEout."+str(i)+".fa.gz"]         = gzip.open("PRESUMEout."+str(i)+".fa.gz", 'wb')
+            filepath2writer["PRESUMEout."+str(i)+".aligned.fa.gz"] = gzip.open("PRESUMEout."+str(i)+".aligned.fa.gz", 'wb')
+
 
     # in case of "sequential computing"
     # or "downstream SEQ simulation of distributed computing"
@@ -828,7 +846,7 @@ def main(timelimit):
                     format(esu_name_prefix, esu_name_suffix)
                 esu_name = new_esu_name
             
-            true_indels, esu_zero_length = fasta_writer(esu_name, esu.seq, esu.indels, "PRESUMEout.fa", True, Nchunks=args.chunks) # fasta_writer() returns True if the seq. length <= 0
+            true_indels, esu_zero_length = fasta_writer(esu_name, esu.seq, esu.indels, "PRESUMEout.fa", True, filepath2writer=filepath2writer, Nchunks=args.chunks) # fasta_writer() returns True if the seq. length <= 0
             esu.indels = true_indels
             esuname2zerolength[esu_name] = esu_zero_length
 
@@ -920,7 +938,7 @@ def main(timelimit):
             fasta_file_path = \
                 "intermediate/fasta/{}.fa".\
                 format(str(esu.id))
-            true_indels, esu_zero_length = fasta_writer(esu.id, esu.seq, esu.indels, fasta_file_path, True, Nchunks=1, indelseq=False)
+            true_indels, esu_zero_length = fasta_writer(esu.id, esu.seq, esu.indels, fasta_file_path, True, filepath2writer=filepath2writer, Nchunks=1, indelseq=False)
             esu.indels = true_indels
 
             if (esu_zero_length): # if the sequence length <= 0
@@ -1021,6 +1039,10 @@ def main(timelimit):
         os.rename("PRESUMEout_combined.nwk", "PRESUMEout.nwk")
         if (not args.debug):
             shutil.rmtree("intermediate")
+
+    # close FASTA
+    for writer in list(filepath2writer.values()):
+        writer.close()
 
     # error check
     if(args.chunks == 1):
