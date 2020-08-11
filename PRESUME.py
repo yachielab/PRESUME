@@ -298,7 +298,7 @@ def argument_saver(args):
                 csv_L2.append(args.__dict__[arg])
         arg_pair = [csv_L1, csv_L2]
 
-        with open("args.csv", "wt") as fout:
+        with gzip.open("args.csv.gz", "wb") as fout:
             csvout = csv.writer(fout)
             csvout.writerows(arg_pair)
 
@@ -522,7 +522,7 @@ def fasta_writer(name, seq, indels, file_name, overwrite_mode, Nchunks, indelseq
             else:
                 chunk_file_name = file_name
 
-            writer         = gzip.open(chunk_file_name + ".gz", writer_mode+"t")
+            writer         = gzip.open(chunk_file_name + ".gz", writer_mode+"b")
             
             # write unaligned seq.
             SEQ_seq = SeqRecord(Seq(seq_list[chunkidx]))
@@ -536,7 +536,7 @@ def fasta_writer(name, seq, indels, file_name, overwrite_mode, Nchunks, indelseq
                     aligned_chunk_file_name = file_name.split(".fa")[0]+"."+str(chunkidx)+".aligned.fa"
                 else:
                     aligned_chunk_file_name = file_name.split(".fa")[0]+".aligned.fa"
-                aligned_writer = gzip.open(aligned_chunk_file_name + ".gz", writer_mode+"t")
+                aligned_writer = gzip.open(aligned_chunk_file_name + ".gz", writer_mode+"b")
                 SEQ_seq = SeqRecord(Seq(aligned_seq_list[chunkidx]))
                 SEQ_seq.id = str(name)
                 SEQ_seq.description = ""
@@ -844,7 +844,7 @@ def main(timelimit):
 
             # record indels
             if(CRISPR):
-                handle = gzip.open("indel.txt.gz", "wt")
+                handle = gzip.open("indel.txt.gz", "wb")
                 if (True):
                 #with open("indel.txt", 'w') as handle:
                     for esu_idx, esu in enumerate(SEQqueue):
