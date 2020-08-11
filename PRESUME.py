@@ -816,16 +816,6 @@ def main(timelimit):
                 print("Number of generated sequences reached "+str(C))
                 break
 
-    # open .gz file to write
-    filepath2writer={}
-    if (args.chunks == 1):
-        filepath2writer["PRESUMEout.fa.gz"]                = gzip.open("PRESUMEout.fa.gz"           , 'wb')
-        filepath2writer["PRESUMEout.aligned.fa.gz"]        = gzip.open("PRESUMEout.aligned.fa.gz"   , 'wb')
-    else:
-        for i in range(args.chunks):
-            filepath2writer["PRESUMEout."+str(i)+".fa.gz"]         = gzip.open("PRESUMEout."+str(i)+".fa.gz", 'wb')
-            filepath2writer["PRESUMEout."+str(i)+".aligned.fa.gz"] = gzip.open("PRESUMEout."+str(i)+".aligned.fa.gz", 'wb')
-
 
     # in case of "sequential computing"
     # or "downstream SEQ simulation of distributed computing"
@@ -834,6 +824,16 @@ def main(timelimit):
         fasta_writer("root", initseq, None, "root.fa", False, Nchunks = args.chunks)
         # create fasta
         print("Generating a FASTA file...")
+
+        # open .gz file to write
+        filepath2writer={}
+        if (args.chunks == 1):
+            filepath2writer["PRESUMEout.fa.gz"]                = gzip.open("PRESUMEout.fa.gz"           , 'wb')
+            filepath2writer["PRESUMEout.aligned.fa.gz"]        = gzip.open("PRESUMEout.aligned.fa.gz"   , 'wb')
+        else:
+            for i in range(args.chunks):
+                filepath2writer["PRESUMEout."+str(i)+".fa.gz"]         = gzip.open("PRESUMEout."+str(i)+".fa.gz", 'wb')
+                filepath2writer["PRESUMEout."+str(i)+".aligned.fa.gz"] = gzip.open("PRESUMEout."+str(i)+".aligned.fa.gz", 'wb')
 
         esuname2zerolength={}
         for esu in SEQqueue:
