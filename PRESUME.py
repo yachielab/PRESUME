@@ -298,7 +298,7 @@ def argument_saver(args):
                 csv_L2.append(args.__dict__[arg])
         arg_pair = [csv_L1, csv_L2]
 
-        with gzip.open("args.csv.gz", "wb") as fout:
+        with open("args.csv", "w") as fout:
             csvout = csv.writer(fout)
             csvout.writerows(arg_pair)
 
