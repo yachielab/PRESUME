@@ -936,7 +936,7 @@ def main(timelimit):
             fasta_file_path = \
                 "intermediate/fasta/{}.fa".\
                 format(str(esu.id))
-            true_indels, esu_zero_length = fasta_writer(esu.id, esu.seq, esu.indels, fasta_file_path, True, filepath2writer=filepath2writer, Nchunks=1, indelseq=False)
+            true_indels, esu_zero_length = fasta_writer(esu.id, esu.seq, esu.indels, fasta_file_path, True,  Nchunks=1, indelseq=False)
             esu.indels = true_indels
 
             if (esu_zero_length): # if the sequence length <= 0
