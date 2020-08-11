@@ -537,10 +537,12 @@ def fasta_writer(name, seq, indels, file_name, overwrite_mode, Nchunks, indelseq
                 else:
                     aligned_chunk_file_name = file_name.split(".fa")[0]+".aligned.fa"
                 aligned_writer = gzip.open(aligned_chunk_file_name + ".gz", writer_mode+"b")
-                SEQ_seq = SeqRecord(Seq(aligned_seq_list[chunkidx]))
-                SEQ_seq.id = str(name)
-                SEQ_seq.description = ""
-                SeqIO.write(SEQ_seq, aligned_writer, "fasta")
+                #SEQ_seq = SeqRecord(Seq(aligned_seq_list[chunkidx]))
+                #SEQ_seq.id = str(name)
+                #SEQ_seq.description = ""
+                #SeqIO.write(SEQ_seq, aligned_writer, "fasta")
+                aligned_writer.write((str(name)+"\n").encode())
+                aligned_writer.write((aligned_seq_list[chunkidx]+"\n").encode())
                 aligned_writer.close()
             
             is_dead = False
