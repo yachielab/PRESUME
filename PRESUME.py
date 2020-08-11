@@ -529,7 +529,7 @@ def fasta_writer(name, seq, indels, file_name, overwrite_mode, Nchunks, indelseq
             #SEQ_seq.id = str(name)
             #SEQ_seq.description = ""
             #SeqIO.write(SEQ_seq, writer, "fasta")
-            writer.write((str(name)+"\n").encode())
+            writer.write((">"+str(name)+"\n").encode())
             writer.write((seq_list[chunkidx]+"\n").encode())
             writer.close()
 
