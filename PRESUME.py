@@ -544,7 +544,7 @@ def fasta_writer(name, seq, indels, file_name, overwrite_mode, Nchunks, indelseq
                 #SEQ_seq.id = str(name)
                 #SEQ_seq.description = ""
                 #SeqIO.write(SEQ_seq, aligned_writer, "fasta")
-                aligned_writer.write((str(name)+"\n").encode())
+                aligned_writer.write((">"+str(name)+"\n").encode())
                 aligned_writer.write((aligned_seq_list[chunkidx]+"\n").encode())
                 aligned_writer.close()
             
@@ -864,20 +864,20 @@ def main(timelimit):
                             esu_name = new_esu_name
 
                         if (not esuname2zerolength[esu_name]):
-                            handle.write(esu_name+"\t")
+                            handle.write((esu_name+"\t").encode())
                             
                             for indel_idx, indel in enumerate(esu.indels):
                                 if (indel[0] == "del") : 
                                     mid    = indel[1] # pos is the midpoint of deletion
                                     length = indel[2]
-                                    handle.write("D_mid"+str(mid)+"_len"+str(length))
+                                    handle.write(("D_mid"+str(mid)+"_len"+str(length)).encode())
                                 elif (indel[0] == "in"): 
                                     pos    = indel[1] # pos is the midpoint of deletion
                                     seq    = indel[3]
-                                    handle.write("I_"+str(pos+0.5)+"_"+seq)
+                                    handle.write(("I_"+str(pos+0.5)+"_"+seq).encode())
                                 if (indel_idx < len(esu.indels)-1):
-                                    handle.write(";")
-                            handle.write("\n")
+                                    handle.write(";".encode())
+                            handle.write("\n".encode())
                 handle.close()
 
             # create newick
