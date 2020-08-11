@@ -862,8 +862,6 @@ def main(timelimit):
             tip_count = 0
 
         else: 
-            if (args.chunks == 1):
-                fa_count = count_sequence("PRESUMEout.fa.gz")
 
             # record indels
             if(CRISPR):
@@ -1032,8 +1030,7 @@ def main(timelimit):
                     command += "cat intermediate/DOWN/*/PRESUMEout/PRESUMEout."+str(i)+".aligned.fa.gz > PRESUMEout."+str(i)+".aligned.fa.gz 2> /dev/null;"
             subprocess.call(command, shell=True)  # combine fasta
 
-        if(args.chunks == 1):
-            fa_count = count_sequence("PRESUMEout.fa.gz")
+            
         tip_count = CombineTrees()  # Combine trees
         shutil.move("PRESUMEout.nwk", "intermediate")
         os.rename("PRESUMEout_combined.nwk", "PRESUMEout.nwk")
@@ -1047,6 +1044,7 @@ def main(timelimit):
     # error check
     if(args.chunks == 1):
         if(fa_count != tip_count):
+            fa_count = count_sequence("PRESUMEout.fa.gz")
             raise OutputError(fa_count, tip_count)
             return 0
 
