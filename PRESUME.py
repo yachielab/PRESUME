@@ -1024,7 +1024,8 @@ def main(timelimit):
                    rm PRESUME.*"
         subprocess.call(command, shell=True)
         if args.f is None:
-            command = "cat intermediate/DOWN/*/PRESUMEout/indel.txt.gz > indel_combined.txt.gz 2> /dev/null;"
+            if(CRISPR):
+                command = "cat intermediate/DOWN/*/PRESUMEout/indel.txt.gz > indel_combined.txt.gz 2> /dev/null;"
             if (args.chunks == 1):
                 command += "cat intermediate/DOWN/*/PRESUMEout/PRESUMEout.fa.gz > PRESUMEout.fa.gz;"
                 if(CRISPR):
