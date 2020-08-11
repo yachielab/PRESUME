@@ -904,6 +904,10 @@ def main(timelimit):
             if args.debug:
                 mut_rate_log_writer(mut_rate_log, list_of_dead)
 
+            # close FASTA
+            for writer in list(filepath2writer.values()):
+                writer.close()
+
     # in case of distributed computing
     else :
         # Root sequence
@@ -1036,10 +1040,6 @@ def main(timelimit):
         os.rename("PRESUMEout_combined.nwk", "PRESUMEout.nwk")
         if (not args.debug):
             shutil.rmtree("intermediate")
-
-    # close FASTA
-    for writer in list(filepath2writer.values()):
-        writer.close()
 
     # error check
     if(args.chunks == 1):
