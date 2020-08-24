@@ -9,10 +9,12 @@ __author__ = "\
 
 __date__ = "2020/6/14"
 
+import os
+os.environ["OMP_NUM_THREADS"] = "1"
+
 import random
 import numpy as np
 import sys
-import os
 from Bio import Phylo
 from Bio import SeqIO
 from Bio.Seq import Seq
@@ -296,7 +298,7 @@ def argument_saver(args):
                 csv_L2.append(args.__dict__[arg])
         arg_pair = [csv_L1, csv_L2]
 
-        with open("args.csv", "wt") as fout:
+        with open("args.csv", "w") as fout:
             csvout = csv.writer(fout)
             csvout.writerows(arg_pair)
 
@@ -405,7 +407,7 @@ def create_newick(Lineage):
         raise CreateNewickError(e)
 
 
-def fasta_writer(name, seq, indels, file_name, overwrite_mode, Nchunks, indelseq=True):
+def fasta_writer(name, seq, indels, file_name, overwrite_mode, Nchunks, filepath2writer=None, indelseq=True):
 
     if overwrite_mode:
         writer_mode = "a"
@@ -520,26 +522,39 @@ def fasta_writer(name, seq, indels, file_name, overwrite_mode, Nchunks, indelseq
             else:
                 chunk_file_name = file_name
 
-            writer         = gzip.open(chunk_file_name + ".gz", writer_mode+"t")
+            if filepath2writer == None:
+                writer         = gzip.open(chunk_file_name + ".gz", writer_mode+"b")
+            else:
+                writer         = filepath2writer[chunk_file_name + ".gz"]
             
             # write unaligned seq.
-            SEQ_seq = SeqRecord(Seq(seq_list[chunkidx]))
-            SEQ_seq.id = str(name)
-            SEQ_seq.description = ""
-            SeqIO.write(SEQ_seq, writer, "fasta")
-            writer.close()
+            #SEQ_seq = SeqRecord(Seq(seq_list[chunkidx]))
+            #SEQ_seq.id = str(name)
+            #SEQ_seq.description = ""
+            #SeqIO.write(SEQ_seq, writer, "fasta")
+            writer.write((">"+str(name)+"\n").encode())
+            writer.write((seq_list[chunkidx]+"\n").encode())
+            if filepath2writer == None:
+                writer.close()
+
             # write aligned seq.
             if (indels != None and indelseq):
                 if ( Nchunks > 1 ):
                     aligned_chunk_file_name = file_name.split(".fa")[0]+"."+str(chunkidx)+".aligned.fa"
                 else:
                     aligned_chunk_file_name = file_name.split(".fa")[0]+".aligned.fa"
-                aligned_writer = gzip.open(aligned_chunk_file_name + ".gz", writer_mode+"t")
-                SEQ_seq = SeqRecord(Seq(aligned_seq_list[chunkidx]))
-                SEQ_seq.id = str(name)
-                SEQ_seq.description = ""
-                SeqIO.write(SEQ_seq, aligned_writer, "fasta")
-                aligned_writer.close()
+                if filepath2writer == None:
+                    aligned_writer = gzip.open(aligned_chunk_file_name + ".gz", writer_mode+"b")
+                else:
+                    aligned_writer = filepath2writer[aligned_chunk_file_name + ".gz"]
+                #SEQ_seq = SeqRecord(Seq(aligned_seq_list[chunkidx]))
+                #SEQ_seq.id = str(name)
+                #SEQ_seq.description = ""
+                #SeqIO.write(SEQ_seq, aligned_writer, "fasta")
+                aligned_writer.write((">"+str(name)+"\n").encode())
+                aligned_writer.write((aligned_seq_list[chunkidx]+"\n").encode())
+                if filepath2writer == None:
+                    aligned_writer.close()
             
             is_dead = False
     
@@ -810,6 +825,16 @@ def main(timelimit):
         # create fasta
         print("Generating a FASTA file...")
 
+        # open .gz file to write
+        filepath2writer={}
+        if (args.chunks == 1):
+            filepath2writer["PRESUMEout.fa.gz"]                = gzip.open("PRESUMEout.fa.gz"           , 'wb')
+            filepath2writer["PRESUMEout.aligned.fa.gz"]        = gzip.open("PRESUMEout.aligned.fa.gz"   , 'wb')
+        else:
+            for i in range(args.chunks):
+                filepath2writer["PRESUMEout."+str(i)+".fa.gz"]         = gzip.open("PRESUMEout."+str(i)+".fa.gz", 'wb')
+                filepath2writer["PRESUMEout."+str(i)+".aligned.fa.gz"] = gzip.open("PRESUMEout."+str(i)+".aligned.fa.gz", 'wb')
+
         esuname2zerolength={}
         for esu in SEQqueue:
             if(args.idANC is None):
@@ -821,7 +846,7 @@ def main(timelimit):
                     format(esu_name_prefix, esu_name_suffix)
                 esu_name = new_esu_name
             
-            true_indels, esu_zero_length = fasta_writer(esu_name, esu.seq, esu.indels, "PRESUMEout.fa", True, Nchunks=args.chunks) # fasta_writer() returns True if the seq. length <= 0
+            true_indels, esu_zero_length = fasta_writer(esu_name, esu.seq, esu.indels, "PRESUMEout.fa", True, filepath2writer=filepath2writer, Nchunks=args.chunks) # fasta_writer() returns True if the seq. length <= 0
             esu.indels = true_indels
             esuname2zerolength[esu_name] = esu_zero_length
 
@@ -837,12 +862,10 @@ def main(timelimit):
             tip_count = 0
 
         else: 
-            if (args.chunks == 1):
-                fa_count = count_sequence("PRESUMEout.fa.gz")
 
             # record indels
             if(CRISPR):
-                handle = gzip.open("indel.txt.gz", "wt")
+                handle = gzip.open("indel.txt.gz", "wb")
                 if (True):
                 #with open("indel.txt", 'w') as handle:
                     for esu_idx, esu in enumerate(SEQqueue):
@@ -857,20 +880,20 @@ def main(timelimit):
                             esu_name = new_esu_name
 
                         if (not esuname2zerolength[esu_name]):
-                            handle.write(esu_name+"\t")
+                            handle.write((esu_name+"\t").encode())
                             
                             for indel_idx, indel in enumerate(esu.indels):
                                 if (indel[0] == "del") : 
                                     mid    = indel[1] # pos is the midpoint of deletion
                                     length = indel[2]
-                                    handle.write("D_mid"+str(mid)+"_len"+str(length))
+                                    handle.write(("D_mid"+str(mid)+"_len"+str(length)).encode())
                                 elif (indel[0] == "in"): 
                                     pos    = indel[1] # pos is the midpoint of deletion
                                     seq    = indel[3]
-                                    handle.write("I_"+str(pos+0.5)+"_"+seq)
+                                    handle.write(("I_"+str(pos+0.5)+"_"+seq).encode())
                                 if (indel_idx < len(esu.indels)-1):
-                                    handle.write(";")
-                            handle.write("\n")
+                                    handle.write(";".encode())
+                            handle.write("\n".encode())
                 handle.close()
 
             # create newick
@@ -880,6 +903,10 @@ def main(timelimit):
 
             if args.debug:
                 mut_rate_log_writer(mut_rate_log, list_of_dead)
+
+            # close FASTA
+            for writer in list(filepath2writer.values()):
+                writer.close()
 
     # in case of distributed computing
     else :
@@ -913,7 +940,7 @@ def main(timelimit):
             fasta_file_path = \
                 "intermediate/fasta/{}.fa".\
                 format(str(esu.id))
-            true_indels, esu_zero_length = fasta_writer(esu.id, esu.seq, esu.indels, fasta_file_path, True, Nchunks=1, indelseq=False)
+            true_indels, esu_zero_length = fasta_writer(esu.id, esu.seq, esu.indels, fasta_file_path, True,  Nchunks=1, indelseq=False)
             esu.indels = true_indels
 
             if (esu_zero_length): # if the sequence length <= 0
@@ -997,18 +1024,20 @@ def main(timelimit):
                    rm PRESUME.*"
         subprocess.call(command, shell=True)
         if args.f is None:
-            command = "cat intermediate/DOWN/*/PRESUMEout/indel.txt.gz > indel_combined.txt.gz 2> /dev/null;"
+            if(CRISPR):
+                command = "cat intermediate/DOWN/*/PRESUMEout/indel.txt.gz > indel_combined.txt.gz 2> /dev/null;"
             if (args.chunks == 1):
                 command += "cat intermediate/DOWN/*/PRESUMEout/PRESUMEout.fa.gz > PRESUMEout.fa.gz;"
-                command += "cat intermediate/DOWN/*/PRESUMEout/PRESUMEout.aligned.fa.gz > PRESUMEout.aligned.fa.gz 2> /dev/null;"
+                if(CRISPR):
+                    command += "cat intermediate/DOWN/*/PRESUMEout/PRESUMEout.aligned.fa.gz > PRESUMEout.aligned.fa.gz 2> /dev/null;"
             else:
                 for i in range(args.chunks):
                     command += "cat intermediate/DOWN/*/PRESUMEout/PRESUMEout."+str(i)+".fa.gz > PRESUMEout."+str(i)+".fa.gz;"
-                    command += "cat intermediate/DOWN/*/PRESUMEout/PRESUMEout."+str(i)+".aligned.fa.gz > PRESUMEout."+str(i)+".aligned.fa.gz 2> /dev/null;"
+                    if(CRISPR):
+                        command += "cat intermediate/DOWN/*/PRESUMEout/PRESUMEout."+str(i)+".aligned.fa.gz > PRESUMEout."+str(i)+".aligned.fa.gz 2> /dev/null;"
             subprocess.call(command, shell=True)  # combine fasta
 
-        if(args.chunks == 1):
-            fa_count = count_sequence("PRESUMEout.fa.gz")
+            
         tip_count = CombineTrees()  # Combine trees
         shutil.move("PRESUMEout.nwk", "intermediate")
         os.rename("PRESUMEout_combined.nwk", "PRESUMEout.nwk")
@@ -1017,7 +1046,8 @@ def main(timelimit):
 
     # error check
     if(args.chunks == 1):
-        if(fa_count != tip_count):
+        fa_count = count_sequence("PRESUMEout.fa.gz")
+        if (fa_count!=tip_count):
             raise OutputError(fa_count, tip_count)
             return 0
 
