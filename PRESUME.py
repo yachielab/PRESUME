@@ -334,77 +334,103 @@ def count_sequence(in_fname):
     return number_of_sequences
 
 
-def create_newick(Lineage):
-    try:
-        init_clade = Phylo.BaseTree.Clade(name="0")
-        tree = Phylo.BaseTree.Tree(init_clade)
-        stack = [init_clade]
-        list_of_dead = []
-        while(stack != []):
-            clade = stack.pop()
-            SEQid = int(clade.name)
-            if(len(Lineage[SEQid]) == 3):  # if the SEQ has children
-                # by this, every internal node will have 2 children
-                while(True):
-                    both_children_are_alive = (
-                        Lineage[Lineage[SEQid][1]] != ["dead"]
-                        and Lineage[Lineage[SEQid][2]] != ["dead"])
-                    both_children_are_dead = (
-                        Lineage[Lineage[SEQid][1]] == ["dead"]
-                        and Lineage[Lineage[SEQid][2]] == ["dead"])
-                    if(both_children_are_alive):
-                        children = [
-                            Phylo.BaseTree.Clade(
-                                name=str(Lineage[SEQid][i]),
-                                ) for i in [1, 2]
-                            ]
-                        clade.clades.extend(children)
-                        stack.extend(children)
-                        break
-                    elif(both_children_are_dead):
-                        raise NoChildError(SEQid)
-                        return
-                    # if either of the children is dead, renew SEQid
-                    # to be the id of alive child
-                    elif(Lineage[Lineage[SEQid][1]] != ["dead"]):   
-                        list_of_dead.append(Lineage[SEQid][2])
-                        SEQid = Lineage[SEQid][1]
-                    elif(Lineage[Lineage[SEQid][2]] != ["dead"]):
-                        list_of_dead.append(Lineage[SEQid][1])
-                        SEQid = Lineage[SEQid][2]
-                    # if the clade of renewed SEQid is a terminal,
-                    # rename the clade
-                    if(len(Lineage[SEQid]) == 1):
-                        clade.name = str(SEQid)
-                        break
+def create_newick(Lineage, Timepoint, timelimit):
+    def find_downstream_bifurcation(query, Lineage):
+        if Lineage[query] != ['dead'] and len(Lineage[query]) == 1:
+            return query
+        both_children_are_alive = Lineage[Lineage[query][1]] != ['dead'] and Lineage[Lineage[query][2]] != ['dead']
+        if both_children_are_alive:
+            return query
+        child = query
+        while(not both_children_are_alive):
+            if Lineage[Lineage[child][1]] != ['dead']:
+                child = Lineage[child][1]
+            else:
+                child = Lineage[child][2]
+            if len(Lineage[child])==1:
+                break
+            both_children_are_alive = Lineage[Lineage[child][1]] != ['dead'] and Lineage[Lineage[child][2]] != ['dead']
+        return child
 
-        # only in downstream tree of distributed computing,
-        # the name of terminals is <upstream id>_<downstream id>
-        if (args.idANC is not None):
-            for clade in tree.get_terminals():
-                clade_name_prefix = str(hex(args.idANC)).split("x")[1]
-                clade_name_suffix = str(hex(int(clade.name))).split("x")[1]
-                new_clade_name = "{0}_{1}". \
-                    format(clade_name_prefix, clade_name_suffix)
-                clade.name = new_clade_name
+    for key in Timepoint.keys():
+        if Timepoint[key] is None:
+            pass
+        elif Timepoint[key] > timelimit:
+            Timepoint[key] = timelimit
+    init_clade = Phylo.BaseTree.Clade(name="0")
+    tree = Phylo.BaseTree.Tree(init_clade)
+    list_of_dead = []
+    stack = [init_clade]
+    while(stack != []):
+        clade = stack.pop()
+        SEQid = int(clade.name)
+        if(len(Lineage[SEQid]) == 3):  # if the SEQ has children
+            # by this, every internal node will have 2 children
+            while(True):
+                both_children_are_alive = (
+                    Lineage[Lineage[SEQid][1]] != ["dead"]
+                    and Lineage[Lineage[SEQid][2]] != ["dead"])
+                both_children_are_dead = (
+                    Lineage[Lineage[SEQid][1]] == ["dead"]
+                    and Lineage[Lineage[SEQid][2]] == ["dead"])
+                if(both_children_are_alive):
+                    child_L = find_downstream_bifurcation(Lineage[SEQid][1], Lineage)
+                    child_R = find_downstream_bifurcation(Lineage[SEQid][2], Lineage)
+                    children = [
+                        Phylo.BaseTree.Clade(
+                            name=str(child_L),
+                            branch_length= Timepoint[child_L] - Timepoint[int(clade.name)]
+                            ),
+                        Phylo.BaseTree.Clade(
+                            name=str(child_R),
+                            branch_length= Timepoint[child_R] - Timepoint[int(clade.name)]
+                            )
+                        ]
+                    clade.clades.extend(children)
+                    stack.extend(children)
+                    break
+                elif(both_children_are_dead):
+                    raise NoChildError(SEQid)
+                    return
+                # if either of the children is dead, renew SEQid
+                # to be the id of alive child
+                elif(Lineage[Lineage[SEQid][1]] != ["dead"]):
+                    SEQid = Lineage[SEQid][1]
+                elif(Lineage[Lineage[SEQid][2]] != ["dead"]):
+                    SEQid = Lineage[SEQid][2]
+                # if the clade of renewed SEQid is a terminal,
+                # rename the clade
+                if(len(Lineage[SEQid]) == 1):
+                    clade.name = str(SEQid)
+                    break
 
-        # for error check
-        if (len(tree.get_nonterminals()) + 1 != len(tree.get_terminals())):
-            raise TopologyError(tree)
-            return
+    # only in downstream tree of distributed computing,
+    # the name of terminals is <upstream id>_<downstream id>
+    if (args.idANC is not None):
+        for clade in tree.get_terminals():
+            clade_name_prefix = str(hex(args.idANC)).split("x")[1]
+            clade_name_suffix = str(hex(int(clade.name))).split("x")[1]
+            new_clade_name = "{0}_{1}". \
+                format(clade_name_prefix, clade_name_suffix)
+            clade.name = new_clade_name
 
-        # file write in default
-        if (args.idANC is None):
-            Phylo.write(tree, "PRESUMEout.nwk", 'newick')
+    # for error check
+    if (len(tree.get_nonterminals()) + 1 != len(tree.get_terminals())):
+        raise TopologyError(tree)
+        return
 
-        else:
-            # file write in case of downstream lineage
-            Phylo.write(tree, "SEQ_"+str(args.idANC)+".nwk", 'newick')
-        
-        return len(tree.get_terminals()), tree, list_of_dead
+    # file write in default
+    if (args.idANC is None):
+        Phylo.write(tree, "PRESUMEout.nwk", 'newick')
 
-    except Exception as e:
-        raise CreateNewickError(e)
+    else:
+        # file write in case of downstream lineage
+        Phylo.write(tree, "SEQ_"+str(args.idANC)+".nwk", 'newick')
+    
+    return len(tree.get_terminals()), tree, list_of_dead
+
+    # except Exception as e:
+    #     raise CreateNewickError(e)
 
 
 def fasta_writer(name, seq, indels, file_name, overwrite_mode, Nchunks, filepath2writer=None, indelseq=True):
@@ -700,6 +726,7 @@ def main(timelimit):
     # Lineage[j]=[k,l,m] means an SEQ whose id is j is a daughter of Lineage[k]
     # and is a mother of Lineage[l], Lineage[m]
     Lineage = [[]] * UPPER_LIMIT
+    Timepoint = {0:0}
 
     # DEBUG: for gathering mutation rate of each site
     if args.debug:
@@ -716,6 +743,7 @@ def main(timelimit):
                 dorigin, args.tMorigin, initindels, True))
     SEQqueue[0].seq = initseq
     SEQqueue[0].indels = initindels
+    Timepoint[0] = SEQqueue[0].t if SEQqueue[0].is_alive else None
     i += 1
     c  = 1  # current number of SEQs
 
@@ -774,6 +802,11 @@ def main(timelimit):
 
                 # [<mother>, <daughter1>, <daughter2> ]
                 Lineage[esu.id] = [esu.idM, i, i+1]
+                if daughter[0].is_alive:
+                    Timepoint[daughter[0].id] = daughter[0].t
+                if daughter[1].is_alive:
+                    Timepoint[daughter[1].id] = daughter[1].t
+
                 try:
                     Lineage[i] = [esu.id]
                     Lineage[i+1] = [esu.id]  # Terminal ESUs
@@ -899,7 +932,7 @@ def main(timelimit):
             # create newick
             del(SEQqueue)
             print("Generating a Newick file......")
-            tip_count, returned_tree, list_of_dead = create_newick(Lineage)
+            tip_count, returned_tree, list_of_dead = create_newick(Lineage, Timepoint, timelimit)
 
             if args.debug:
                 mut_rate_log_writer(mut_rate_log, list_of_dead)
@@ -1015,7 +1048,7 @@ def main(timelimit):
         # remove extinct downstream lineages
         survey_all_dead_lineages(Lineage)
 
-        tip_count, returned_tree, list_of_dead = create_newick(Lineage)
+        tip_count, returned_tree, list_of_dead = create_newick(Lineage, Timepoint, timelimit)
         if args.debug:
             mut_rate_log_writer(mut_rate_log, list_of_dead)
 
@@ -1056,7 +1089,7 @@ def main(timelimit):
         argument_saver(args)
 
     print("=====================================================")
-    print("Simulation end time point:         "+str(2*timelimit))
+    print("Simulation end time point:         "+str(timelimit))
     print("Number of generated sequences:     "+str(tip_count))
     print("Seed for random number generation: "+str(seed))
     print("=====================================================\n")
