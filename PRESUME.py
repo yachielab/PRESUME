@@ -1064,8 +1064,8 @@ def main(timelimit):
 
         command = "cat PRESUME.e*.* > intermediate/err 2> /dev/null; \
                    cat PRESUME.o*.* > intermediate/out 2> /dev/null; \
-                   rm PRESUME.*"
-        subprocess.call(command, shell=True)
+                   rm PRESUME.*;"
+        #subprocess.call(command, shell=True)
         if args.f is None:
             if(CRISPR):
                 command = "cat intermediate/DOWN/*/PRESUMEout/indel.txt.gz > indel_combined.txt.gz 2> /dev/null;"
@@ -1095,12 +1095,16 @@ def main(timelimit):
             raise OutputError(fa_count, tip_count)
             return 0
 
+    # remove PRESUME.aligned.fa.gz when indel mode is not active
+    if (not CRISPR):
+        os.remove("PRESUMEout.aligned.fa.gz")
+
     # finish
     if args.save:
         argument_saver(args)
 
-    print("=====================================================")
-    print("Simulation end time point:         "+str(timelimit))
+    print("\n=====================================================")
+    print("Simulation end time point:         "+str(2*timelimit))
     print("Number of generated sequences:     "+str(tip_count))
     print("Seed for random number generation: "+str(seed))
     print("=====================================================\n")
