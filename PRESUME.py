@@ -1021,7 +1021,7 @@ def main(timelimit):
 
         command = "cat PRESUME.e*.* > intermediate/err 2> /dev/null; \
                    cat PRESUME.o*.* > intermediate/out 2> /dev/null; \
-                   rm PRESUME.*"
+                   rm PRESUME.*\ns"
         subprocess.call(command, shell=True)
         if args.f is None:
             if(CRISPR):
