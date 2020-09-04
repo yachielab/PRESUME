@@ -1051,6 +1051,10 @@ def main(timelimit):
             raise OutputError(fa_count, tip_count)
             return 0
 
+    # remove PRESUME.aligned.fa.gz when indel mode is not active
+    if (not CRISPR):
+        os.remove("PRESUMEout.aligned.fa.gz")
+
     # finish
     if args.save:
         argument_saver(args)
