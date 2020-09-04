@@ -562,7 +562,7 @@ def fasta_writer(name, seq, indels, file_name, overwrite_mode, Nchunks, filepath
 
 def survey_all_dead_lineages(Lineage):
     try:
-        command = "cat intermediate/DOWN/*/PRESUMEout/all_SEQ_dead.out \
+        command = "pwd; cat intermediate/DOWN/*/PRESUMEout/all_SEQ_dead.out \
             > intermediate/all_dead.out 2> /dev/null; \
             rm intermediate/DOWN/*/PRESUMEout/all_SEQ_dead.out 2> /dev/null"
         subprocess.call(command, shell=True)
