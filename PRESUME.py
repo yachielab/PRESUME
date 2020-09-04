@@ -1097,7 +1097,8 @@ def main(timelimit):
 
     # remove PRESUME.aligned.fa.gz when indel mode is not active
     if (not CRISPR):
-        os.remove("PRESUMEout.aligned.fa.gz")
+        if (os.path.isfile("PRESUMEout.aligned.fa.gz")):
+            os.remove("PRESUMEout.aligned.fa.gz")
 
     # finish
     if args.save:
