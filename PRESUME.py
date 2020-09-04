@@ -846,7 +846,7 @@ def main(timelimit):
                     format(esu_name_prefix, esu_name_suffix)
                 esu_name = new_esu_name
             
-            true_indels, esu_zero_length = fasta_writer(esu_name, esu.seq, esu.indels, "PRESUMEout.fa", True, filepath2writer=filepath2writer, Nchunks=args.chunks) # fasta_writer() returns True if the seq. length <= 0
+            true_indels, esu_zero_length = fasta_writer(esu_name, esu.seq, esu.indels, "PRESUMEout.fa.gz", True, filepath2writer=filepath2writer, Nchunks=args.chunks) # fasta_writer() returns True if the seq. length <= 0
             esu.indels = true_indels
             esuname2zerolength[esu_name] = esu_zero_length
 
