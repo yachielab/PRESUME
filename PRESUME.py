@@ -562,7 +562,7 @@ def fasta_writer(name, seq, indels, file_name, overwrite_mode, Nchunks, filepath
 
 def survey_all_dead_lineages(Lineage):
     try:
-        command = "pwd; cat intermediate/DOWN/*/PRESUMEout/all_SEQ_dead.out \
+        command = "cat intermediate/DOWN/*/PRESUMEout/all_SEQ_dead.out \
             > intermediate/all_dead.out 2> /dev/null; \
             rm intermediate/DOWN/*/PRESUMEout/all_SEQ_dead.out 2> /dev/null"
         subprocess.call(command, shell=True)
@@ -846,7 +846,7 @@ def main(timelimit):
                     format(esu_name_prefix, esu_name_suffix)
                 esu_name = new_esu_name
             
-            true_indels, esu_zero_length = fasta_writer(esu_name, esu.seq, esu.indels, "PRESUMEout.fa.gz", True, filepath2writer=filepath2writer, Nchunks=args.chunks) # fasta_writer() returns True if the seq. length <= 0
+            true_indels, esu_zero_length = fasta_writer(esu_name, esu.seq, esu.indels, "PRESUMEout.fa", True, filepath2writer=filepath2writer, Nchunks=args.chunks) # fasta_writer() returns True if the seq. length <= 0
             esu.indels = true_indels
             esuname2zerolength[esu_name] = esu_zero_length
 
