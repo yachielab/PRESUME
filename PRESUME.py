@@ -1055,7 +1055,7 @@ def main(timelimit):
     if args.save:
         argument_saver(args)
 
-    print("=====================================================")
+    print("\n=====================================================")
     print("Simulation end time point:         "+str(2*timelimit))
     print("Number of generated sequences:     "+str(tip_count))
     print("Seed for random number generation: "+str(seed))
