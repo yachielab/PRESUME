@@ -334,7 +334,7 @@ def count_sequence(in_fname):
     return number_of_sequences
 
 
-def create_newick(Lineage, Timepoint, timelimit):
+def create_newick(Lineage, Timepoint, timelimit, upper_tree=False):
     def find_downstream_bifurcation(query, Lineage):
         if Lineage[query] != ['dead'] and len(Lineage[query]) == 1:
             return query
@@ -352,11 +352,18 @@ def create_newick(Lineage, Timepoint, timelimit):
             both_children_are_alive = Lineage[Lineage[child][1]] != ['dead'] and Lineage[Lineage[child][2]] != ['dead']
         return child
 
-    for key in Timepoint.keys():
-        if Timepoint[key] is None:
-            pass
-        elif Timepoint[key] > timelimit:
-            Timepoint[key] = timelimit
+    if not upper_tree:
+        for key in Timepoint.keys():
+            if Timepoint[key] is None:
+                pass
+            elif Timepoint[key] > timelimit:
+                Timepoint[key] = timelimit
+    else:
+        for key in Timepoint.keys():
+            if Timepoint[key] is None:
+                pass
+            elif Timepoint[key] >= 2 * timelimit:
+                Timepoint[key] = 3 * timelimit
     init_clade = Phylo.BaseTree.Clade(name="0")
     tree = Phylo.BaseTree.Tree(init_clade)
     list_of_dead = []
@@ -406,7 +413,7 @@ def create_newick(Lineage, Timepoint, timelimit):
 
     # only in downstream tree of distributed computing,
     # the name of terminals is <upstream id>_<downstream id>
-    if (args.idANC is not None):
+    if args.idANC != 0:
         for clade in tree.get_terminals():
             clade_name_prefix = str(hex(args.idANC)).split("x")[1]
             clade_name_suffix = str(hex(int(clade.name))).split("x")[1]
@@ -420,7 +427,7 @@ def create_newick(Lineage, Timepoint, timelimit):
         return
 
     # file write in default
-    if (args.idANC is None):
+    if args.idANC == 0:
         Phylo.write(tree, "PRESUMEout.nwk", 'newick')
 
     else:
@@ -726,7 +733,7 @@ def main(timelimit):
     # Lineage[j]=[k,l,m] means an SEQ whose id is j is a daughter of Lineage[k]
     # and is a mother of Lineage[l], Lineage[m]
     Lineage = [[]] * UPPER_LIMIT
-    Timepoint = {0:0}
+    Timepoint = {}
 
     # DEBUG: for gathering mutation rate of each site
     if args.debug:
@@ -743,7 +750,10 @@ def main(timelimit):
                 dorigin, args.tMorigin, initindels, True))
     SEQqueue[0].seq = initseq
     SEQqueue[0].indels = initindels
-    Timepoint[0] = SEQqueue[0].t if SEQqueue[0].is_alive else None
+    if args.idANC == 0:
+        Timepoint[0] = SEQqueue[0].t if SEQqueue[0].is_alive else None
+    else:
+        Timepoint[0] = args.tMorigin + dorigin - (timelimit / 2)
     i += 1
     c  = 1  # current number of SEQs
 
@@ -1048,7 +1058,7 @@ def main(timelimit):
         # remove extinct downstream lineages
         survey_all_dead_lineages(Lineage)
 
-        tip_count, returned_tree, list_of_dead = create_newick(Lineage, Timepoint, timelimit)
+        tip_count, returned_tree, list_of_dead = create_newick(Lineage, Timepoint, timelimit, True)
         if args.debug:
             mut_rate_log_writer(mut_rate_log, list_of_dead)
 
@@ -1059,6 +1069,7 @@ def main(timelimit):
         if args.f is None:
             if(CRISPR):
                 command = "cat intermediate/DOWN/*/PRESUMEout/indel.txt.gz > indel_combined.txt.gz 2> /dev/null;"
+                
             if (args.chunks == 1):
                 command += "cat intermediate/DOWN/*/PRESUMEout/PRESUMEout.fa.gz > PRESUMEout.fa.gz;"
                 if(CRISPR):
@@ -1072,8 +1083,8 @@ def main(timelimit):
 
             
         tip_count = CombineTrees()  # Combine trees
-        shutil.move("PRESUMEout.nwk", "intermediate")
-        os.rename("PRESUMEout_combined.nwk", "PRESUMEout.nwk")
+        # shutil.move("PRESUMEout.nwk", "intermediate")
+        # os.rename("PRESUMEout_combined.nwk", "PRESUMEout.nwk")
         if (not args.debug):
             shutil.rmtree("intermediate")
 
@@ -1241,7 +1252,8 @@ if __name__ == "__main__":
         "--idANC",
         help="corresponging ancestral sequence (in upstream tree), \
             in case of distributed computing (default=None)",
-        type=int
+        type=int,
+        default=0
         )
 
     # for distributed computing

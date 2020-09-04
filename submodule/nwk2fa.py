@@ -107,8 +107,9 @@ def topology_shaper(tree):
 
     return topology, branch_length_dict
 
-def translate_tree(topology_dict, branch_length_dict):
-    initseq=''.join([np.random.choice(['A', 'G', 'C', 'T']) for i in range(1000)])
+def translate_tree(topology_dict, branch_length_dict, initseq = None):
+    if initseq is None:
+        initseq=''.join([np.random.choice(['A', 'G', 'C', 'T']) for i in range(1000)])
     init_clade = Lineage(branch_length=branch_length_dict["root"], name="0", seq= initseq, ROOT=True)
     newtree = Phylo.BaseTree.Tree(init_clade)
     stack=[init_clade]
