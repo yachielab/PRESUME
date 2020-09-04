@@ -1022,7 +1022,7 @@ def main(timelimit):
         command = "cat PRESUME.e*.* > intermediate/err 2> /dev/null; \
                    cat PRESUME.o*.* > intermediate/out 2> /dev/null; \
                    rm PRESUME.*;"
-        subprocess.call(command, shell=True)
+        #subprocess.call(command, shell=True)
         if args.f is None:
             if(CRISPR):
                 command = "cat intermediate/DOWN/*/PRESUMEout/indel.txt.gz > indel_combined.txt.gz 2> /dev/null;"
