@@ -1410,9 +1410,15 @@ if __name__ == "__main__":
         print(LOGO)
         exit()
 
-    if args.tree:
+    if args.tree and args.qsub:
         import submodule.nwk2fa as n2f
-        n2f.PRESUME_nwk2fa(args)
+        print("tree mode!")
+        n2f.nwk2fa_qsub(args)
+        exit()
+    elif args.tree:
+        import submodule.nwk2fa as n2f
+        print("tree mode!")
+        n2f.nwk2fa_single(args)
         exit()
     
     # read argument from input CSV
