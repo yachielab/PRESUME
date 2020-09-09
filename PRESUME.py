@@ -202,17 +202,20 @@ class SEQ():
     def daughterseq(self, seq, dM):
         dseq = ""
         for i in range(L):
-            if(args.constant is not None):
+            if(args.homoplasy is not None):
+                dseq = dseq + self.homoplastic_mutation(seq, i, True)
+            elif(args.constant is not None):
                 dseq = dseq + self.time_independent_mutation(seq[i], mu[i])
-            if(args.gtrgamma is not None):
+            elif(args.gtrgamma is not None):
                 dseq = dseq+self.time_dependent_mutation(seq[i], gamma[i], dM)
         return dseq
 
     # mutation of a site (NOT Jukes Cantor model.
     # directly define mutation matrix, not the mutation rate matrix
     # it's enough for calculate mutation of each duplication
-    def time_independent_mutation(self, c, mu):
+    def homoplastic_mutation(self, c, mu):
         base = {'A': 0, 'C': 1, 'G': 2, 'T': 3}
+    
         matrix = [
             [1-mu, mu/3, mu/3, mu/3],
             [mu/3, 1-mu, mu/3, mu/3],
@@ -222,7 +225,20 @@ class SEQ():
         return random.choices(
             ['A', 'C', 'G', 'T'], k=1, weights=matrix[base[c]]
             )[0]
-
+    
+    def time_independent_mutation(self, c, mu):
+        base = {'A': 0, 'C': 1, 'G': 2, 'T': 3}
+    
+        matrix = [
+            [1-mu, mu/3, mu/3, mu/3],
+            [mu/3, 1-mu, mu/3, mu/3],
+            [mu/3, mu/3, 1-mu, mu/3],
+            [mu/3, mu/3, mu/3, 1-mu]
+            ]
+        return random.choices(
+            ['A', 'C', 'G', 'T'], k=1, weights=matrix[base[c]]
+            )[0]
+    
     # mutation of a site (GTR-Gamma model)
     def time_dependent_mutation(self, c, gamma, dM):
         base = {'A': 0, 'C': 1, 'G': 2, 'T': 3}
@@ -1391,6 +1407,12 @@ if __name__ == "__main__":
         default="",
     )
 
+    parser.add_argument(
+        "--homoplasy",
+        help="Option of enable homoplasy model",
+        action="store_true",
+        default=False
+    )
 
     args = parser.parse_args()
     
@@ -1485,7 +1507,9 @@ if __name__ == "__main__":
 
     # In case expected number of mutation is independent
     # on the doubling time of the SEQ
-    if(args.constant is not None):
+    if args.homoplasy is not None:
+        
+    elif(args.constant is not None):
         mu = [args.constant] * L
 
     # substitution rate matrix (GTR-Gamma model)
