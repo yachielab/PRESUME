@@ -90,6 +90,9 @@ class PARSED_ARGS():
         self.T = args.T
         self.e = args.e
         self.m = args.m
+        self.homoplasy = args.homoplasy
+        self.constant = args.constant
+        self.gtrgamma = args.gtrgamma
 
         # In case expected number of mutation is independent
         # on the doubling time of the SEQ
