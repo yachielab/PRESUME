@@ -1412,7 +1412,7 @@ if __name__ == "__main__":
         "--homoplasy",
         help="Option of enable homoplasy model",
         action="store_true",
-        default=False
+        default=None
     )
 
     args = parser.parse_args()
