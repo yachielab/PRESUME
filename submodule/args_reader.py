@@ -190,7 +190,7 @@ class PARSED_ARGS():
             self.initseq = 'C' * L  # initial sequence
         else:
             self.initseq = ''.join([
-                np.random.choice(['A', 'G', 'C', 'T']) for i in range(L)
+                np.random.choice(['A', 'G', 'C', 'T']) for i in range(args.L)
                 ])
 
         # initial indel specification (for distributed computing mode)
