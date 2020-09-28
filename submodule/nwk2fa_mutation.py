@@ -30,9 +30,9 @@ class Lineage(Phylo.BaseTree.Clade):
                 dseq=dseq + seq[i]
         '''
         for i in range(parsed_args.L):
-            if(parsed_args.homoplasy is not None):
-                dseq = dseq + self.homoplastic_mutation(seq, i, True)
-            elif(parsed_args.constant is not None):
+            #if(parsed_args.homoplasy is not None):
+            #    dseq = dseq + self.homoplastic_mutation(seq, i, True)
+            if(parsed_args.constant is not None):
                 dseq = dseq + self.time_independent_mutation(seq[i], parsed_args.mu[i])
             elif(parsed_args.gtrgamma is not None):
                 dseq = dseq + self.time_dependent_mutation(seq[i], parsed_args.gamma[i], parsed_args.dM)
