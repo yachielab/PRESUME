@@ -131,11 +131,11 @@ class PARSED_ARGS():
                 [a2*piA, a4*piC, -(a2*piA+a4*piC+a6*piT), a6*piT],
                 [a3*piA, a5*piC, a6*piG, -(a3*piA+a5*piC+a6*piG)]])
             print("Substitution rate matrix:")
-            print(R)
+            print(self.R)
             # Al: eigen values (np.array),
             # U: eigen vectors matrix :
             # R = U * diag(Al) * U^(-1)
-            Al, U = np.linalg.eig(R)
+            Al, U = np.linalg.eig(self.R)
 
             # return transition matrix
             def P(t, gamma):
