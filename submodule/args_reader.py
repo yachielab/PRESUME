@@ -73,8 +73,8 @@ class PARSED_ARGS():
             self.seed = 0
         else:
             self.seed = int(args.seed)
-        np.random.seed(int(args.seed))
-        random.seed(int(args.seed))
+        np.random.seed(self.seed)
+        random.seed(self.seed)
 
 
         # parameters###### (corresponding to the Figure.2a)
