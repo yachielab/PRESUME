@@ -67,6 +67,7 @@ def topology_shaper(tree):
     branch_length_dict[root.name] = root.branch_length if root.branch_length is not None else 1.0
     for clade in internal_nodes:
         if len(clade.clades) == 2:
+            print(clade,'clades')
             mother_name = clade.name
             daughter_L_name = clade.clades[0].name
             daughter_R_name = clade.clades[1].name
@@ -77,8 +78,8 @@ def topology_shaper(tree):
             #topology[daughter_R_name] = []
             # define branch_length
             branch_length_dict[mother_name] = clade.branch_length
-
         else:
+            print(clade)
             raise ValueError('wrong clades! \n # of clades {}'.format(len(clade.clades)))
             pass
 
