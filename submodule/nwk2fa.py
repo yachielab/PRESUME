@@ -72,9 +72,9 @@ def topology_shaper(tree):
             daughter_R_name = clade.clades[1].name
             mother_branch_length = clade.branch_length if clade.branch_length is not None else 1.0
             # define topology
-            topology[mother_name] = [daughter_L_name, daughter_R_name]
-            topology[daughter_L_name] = []
-            topology[daughter_R_name] = []
+            topology[mother_name]     = [daughter_L_name, daughter_R_name]
+            #topology[daughter_L_name] = []
+            #topology[daughter_R_name] = []
             # define branch_length
             branch_length_dict[mother_name] = clade.branch_length
 
