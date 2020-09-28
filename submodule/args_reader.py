@@ -154,7 +154,7 @@ class PARSED_ARGS():
             self.gamma = np.random.gamma(shape, args.m / shape, args.L)  # mean is args.m
 
         # set indel parameters from raw lab experiments
-        CRISPR      = False
+        self.CRISPR      = False
         if (args.inprob != None): 
             def make_list(txtfile, datatype, column):
                 List=[]
@@ -194,7 +194,7 @@ class PARSED_ARGS():
                 ])
 
         # initial indel specification (for distributed computing mode)
-        if(CRISPR):
+        if(self.CRISPR):
             if (args.indels is not None):
                 self.initindels = []
                 with open(args.indels, 'r') as handle:
