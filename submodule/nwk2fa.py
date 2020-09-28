@@ -18,6 +18,9 @@ import random
 import argparse
 import gzip
 
+import nwk2fa_mutation
+import args_reader
+
 LOGO='''
 ######     ######     #######     #####     #     #    #     #    #######
 #     #    #     #    #          #     #    #     #    ##   ##    #
@@ -47,30 +50,6 @@ DEBUG MODE of PRESUME
 from newick to fasta
 github: https://github.com/yachielab/PRESUME
 '''
-
-# nwk2fa light
-class Lineage(Phylo.BaseTree.Clade):
-    def __init__(self, branch_length=1.0, name=None, clades=None, confidence=None, color=None, width=None, 
-    seq=None, mother_name=None, ROOT=False):
-        super(Lineage, self).__init__(branch_length, name, clades, confidence, color, width)
-
-        self.mother_name =mother_name
-        self.branch_length = branch_length
-        self.seq = seq if ROOT else self.replication(seq)
-        self.indel_list = [] # TODO: indel listです
-        self.substitution_list = [] 
-
-    def replication(self, seq):
-        '''
-        TODO: 厳密な変異モデルを実装すること。
-        '''
-        dseq=""
-        for i in range(len(seq)):
-            if random.randint(0, 100) < 10:
-                dseq=dseq+random.choice(['A','C','G','T'])
-            else:
-                dseq=dseq + seq[i]
-        return dseq
 
 def tabulate_names(tree):
     ### from https://biopython.org/wiki/Phylo_cookbook
@@ -109,10 +88,11 @@ def topology_shaper(tree):
             branch_length_dict[clade.name] = clade.branch_length if clade.branch_length is not None else 1.0
     return topology, branch_length_dict, root.name
 
+# Conduct a simulation
 def translate_tree(topology_dict, branch_length_dict,name_of_root, initseq):
     if not initseq:
         initseq=''.join([np.random.choice(['A', 'G', 'C', 'T']) for i in range(1000)])
-    init_clade = Lineage(branch_length=branch_length_dict[name_of_root], name=name_of_root, seq= initseq, ROOT=True)
+    init_clade = nwk2fa_mutation.Lineage(branch_length=branch_length_dict[name_of_root], name=name_of_root, seq= initseq, ROOT=True)
     newtree = Phylo.BaseTree.Tree(init_clade)
     stack=[init_clade]
     cnt = 0
@@ -122,15 +102,15 @@ def translate_tree(topology_dict, branch_length_dict,name_of_root, initseq):
         mother_seq=clade.seq
         if len(topology_dict[node_name]) ==2:
             children = [
-                Lineage(branch_length = branch_length_dict[topology_dict[node_name][0]], name=str(topology_dict[node_name][0]), seq=mother_seq),
-                Lineage(branch_length = branch_length_dict[topology_dict[node_name][1]], name=str(topology_dict[node_name][1]), seq=mother_seq)
+                nwk2fa_mutation.Lineage(branch_length = branch_length_dict[topology_dict[node_name][0]], name=str(topology_dict[node_name][0]), seq=mother_seq),
+                nwk2fa_mutation.Lineage(branch_length = branch_length_dict[topology_dict[node_name][1]], name=str(topology_dict[node_name][1]), seq=mother_seq)
             ]
             clade.clades.extend(children)
             stack.extend(children)
             cnt += 1
     return newtree
 
-def nwk2fa_light(tree, initseq=False):   
+def nwk2fa_light(tree, initseq=False):
     # translate Phylo.BaseTree.Tree into Lineage
     topology_dict, branch_length_dict, name_of_root= topology_shaper(tree)
     lineage_tree = translate_tree(topology_dict, branch_length_dict, name_of_root, initseq)
@@ -255,7 +235,7 @@ def shell_generator(shell_outfp, treefile_list, fastafile_list, tree_outfp, fast
         )
     return submit_command
 
-def nwk2fa_qsub(args):
+def nwk2fa_qsub(args, processed_args):
     INFILE, OUTDIR =args.tree, args.output
     initseq = False
     # initial sequence specification
@@ -338,7 +318,7 @@ def nwk2fa_qsub(args):
     print("Done!")
     return
 
-def nwk2fa_single(args):
+def nwk2fa_single(args, processed_args):
     initseq = False
     # initial sequence specification
     if (args.f is not None):

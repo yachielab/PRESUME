@@ -26,6 +26,7 @@ import re
 import csv
 import copy
 import gzip
+from submodule import args_reader
 
 LOGO = '''
 ######     ######     #######     #####     #     #    #     #    #######
@@ -1434,14 +1435,20 @@ if __name__ == "__main__":
         exit()
 
     if args.tree and args.qsub:
+
+        processed_args = args_reader.process_args(args)
+
         import submodule.nwk2fa as n2f
         print("tree mode!")
-        n2f.nwk2fa_qsub(args)
+        n2f.nwk2fa_qsub(args, processed_args)
         exit()
     elif args.tree:
+
+        processed_args = args_reader.process_args(args)
+
         import submodule.nwk2fa as n2f
         print("tree mode!")
-        n2f.nwk2fa_single(args)
+        n2f.nwk2fa_single(args, processed_args)
         exit()
     
     # read argument from input CSV
@@ -1508,7 +1515,7 @@ if __name__ == "__main__":
     # In case expected number of mutation is independent
     # on the doubling time of the SEQ
     if args.homoplasy is not None:
-        
+        None
     elif(args.constant is not None):
         mu = [args.constant] * L
 
