@@ -89,10 +89,10 @@ def topology_shaper(tree):
     return topology, branch_length_dict, root.name
 
 # Conduct a simulation
-def translate_tree(topology_dict, branch_length_dict,name_of_root, initseq):
+def translate_tree(topology_dict, branch_length_dict,name_of_root, initseq, parsed_args):
     if not initseq:
         initseq=''.join([np.random.choice(['A', 'G', 'C', 'T']) for i in range(1000)])
-    init_clade = nwk2fa_mutation.Lineage(branch_length=branch_length_dict[name_of_root], name=name_of_root, seq= initseq, ROOT=True)
+    init_clade = nwk2fa_mutation.Lineage(branch_length=branch_length_dict[name_of_root], name=name_of_root, seq= initseq, ROOT=True, parsed_args=parsed_args)
     newtree = Phylo.BaseTree.Tree(init_clade)
     stack=[init_clade]
     cnt = 0
@@ -110,10 +110,10 @@ def translate_tree(topology_dict, branch_length_dict,name_of_root, initseq):
             cnt += 1
     return newtree
 
-def nwk2fa_light(tree, initseq=False):
+def nwk2fa_light(tree, initseq=False,parsed_args=None):
     # translate Phylo.BaseTree.Tree into Lineage
     topology_dict, branch_length_dict, name_of_root= topology_shaper(tree)
-    lineage_tree = translate_tree(topology_dict, branch_length_dict, name_of_root, initseq)
+    lineage_tree = translate_tree(topology_dict, branch_length_dict, name_of_root, initseq,parsed_args=parsed_args)
     if len(tree.get_terminals()) != len(lineage_tree.get_terminals()):
         raise ValueError('something went wrong!!!')
     fasta_data = {item.name:item.seq for item in lineage_tree.get_terminals()}
@@ -235,7 +235,7 @@ def shell_generator(shell_outfp, treefile_list, fastafile_list, tree_outfp, fast
         )
     return submit_command
 
-def nwk2fa_qsub(args, processed_args):
+def nwk2fa_qsub(args, parsed_args):
     INFILE, OUTDIR =args.tree, args.output
     initseq = False
     # initial sequence specification
@@ -318,7 +318,7 @@ def nwk2fa_qsub(args, processed_args):
     print("Done!")
     return
 
-def nwk2fa_single(args, processed_args):
+def nwk2fa_single(args, parsed_args):
     initseq = False
     # initial sequence specification
     if (args.f is not None):
@@ -330,7 +330,7 @@ def nwk2fa_single(args, processed_args):
     tree = Phylo.read(args.tree, "newick")
 
     # translate tree
-    newtree_fasta, newtree = nwk2fa_light(tree, initseq)
+    newtree_fasta, newtree = nwk2fa_light(tree, initseq, parsed_args=parsed_args)
     fasta_writer_multiple(newtree_fasta, args.outdir_fasta, "{}.fasta".format(args.filename))
     Phylo.write(newtree, "{}/{}.nwk".format(args.outdir_nwk, args.filename), "newick")
 
