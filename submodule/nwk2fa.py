@@ -108,7 +108,7 @@ def translate_tree(topology_dict, branch_length_dict,name_of_root, initseq, pars
 
 
 
-            print(children)
+            #print(children)
             
             
             
