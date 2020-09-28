@@ -138,19 +138,8 @@ class PARSED_ARGS():
             # Al: eigen values (np.array),
             # U: eigen vectors matrix :
             # R = U * diag(Al) * U^(-1)
-            Al, U = np.linalg.eig(self.R)
+            self.Al, self.U = np.linalg.eig(self.R)
 
-            # return transition matrix
-            def P(t, gamma):
-                exp_rambda = np.diag(
-                        np.array([
-                            np.exp(Al[0] * t * gamma),
-                            np.exp(Al[1] * t * gamma),
-                            np.exp(Al[2] * t * gamma),
-                            np.exp(Al[3] * t * gamma)]
-                        )
-                    )
-                return np.dot(np.dot(U, exp_rambda), np.linalg.inv(U))
             # model of site heterogeneity:
             # calculate relative substitution rate gamma for each site
             shape = float(gamma_str[0])  # shape of gamma distribution
@@ -209,6 +198,18 @@ class PARSED_ARGS():
                 self.initindels=[]
         else:
             self.initindels=None
+    # return transition matrix
+    def P(self, t):
+        gamma = self.gamma
+        exp_rambda = np.diag(
+                np.array([
+                    np.exp(self.Al[0] * t * gamma),
+                    np.exp(self.Al[1] * t * gamma),
+                    np.exp(self.Al[2] * t * gamma),
+                    np.exp(self.Al[3] * t * gamma)]
+                )
+            )
+        return np.dot(np.dot(self.U, exp_rambda), np.linalg.inv(self.U))
     
     
     '''
