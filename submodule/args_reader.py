@@ -199,8 +199,7 @@ class PARSED_ARGS():
         else:
             self.initindels=None
     # return transition matrix
-    def P(self, t):
-        gamma = self.gamma
+    def P(self, gamma, t):
         exp_rambda = np.diag(
                 np.array([
                     np.exp(self.Al[0] * t * gamma),
