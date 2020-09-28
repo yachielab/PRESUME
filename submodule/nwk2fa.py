@@ -18,8 +18,8 @@ import random
 import argparse
 import gzip
 
-import nwk2fa_mutation
-import args_reader
+from submodule import nwk2fa_mutation
+from submodule import args_reader
 
 LOGO='''
 ######     ######     #######     #####     #     #    #     #    #######
