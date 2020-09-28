@@ -70,7 +70,7 @@ class Lineage(Phylo.BaseTree.Clade):
     # mutation of a site (GTR-Gamma model)
     def time_dependent_mutation(self, c, gamma, dM, parsed_args):
         base = {'A': 0, 'C': 1, 'G': 2, 'T': 3}
-        matrix = parsed_args.P(dM, gamma)
+        matrix = parsed_args.P(dM)
 
         # np.matrix[x] returns matrix, then the matrix is converted to array()
         return random.choices(
