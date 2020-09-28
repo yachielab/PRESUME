@@ -1,5 +1,6 @@
 import random
 import numpy as np
+from Bio import Phylo, SeqIO
 
 # nwk2fa light
 class Lineage(Phylo.BaseTree.Clade):
