@@ -102,8 +102,8 @@ def translate_tree(topology_dict, branch_length_dict,name_of_root, initseq, pars
         mother_seq=clade.seq
         if len(topology_dict[node_name]) ==2:
             children = [
-                nwk2fa_mutation.Lineage(branch_length = branch_length_dict[topology_dict[node_name][0]], name=str(topology_dict[node_name][0]), seq=mother_seq),
-                nwk2fa_mutation.Lineage(branch_length = branch_length_dict[topology_dict[node_name][1]], name=str(topology_dict[node_name][1]), seq=mother_seq)
+                nwk2fa_mutation.Lineage(branch_length = branch_length_dict[topology_dict[node_name][0]], name=str(topology_dict[node_name][0]), seq=mother_seq, parsed_args=parsed_args),
+                nwk2fa_mutation.Lineage(branch_length = branch_length_dict[topology_dict[node_name][1]], name=str(topology_dict[node_name][1]), seq=mother_seq, parsed_args=parsed_args)
             ]
             clade.clades.extend(children)
             stack.extend(children)
