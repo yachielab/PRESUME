@@ -151,7 +151,7 @@ class PARSED_ARGS():
             # model of site heterogeneity:
             # calculate relative substitution rate gamma for each site
             shape = float(gamma_str[0])  # shape of gamma distribution
-            self.gamma = np.random.gamma(shape, m / shape, L)  # mean is args.m
+            self.gamma = np.random.gamma(shape, args.m / shape, args.L)  # mean is args.m
 
         # set indel parameters from raw lab experiments
         CRISPR      = False
