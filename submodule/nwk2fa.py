@@ -99,12 +99,11 @@ def translate_tree(topology_dict, branch_length_dict,name_of_root, initseq, pars
         clade=stack.pop()
         node_name=clade.name
         mother_seq=clade.seq
-        if len(topology_dict[node_name]) ==2:
+        if len(topology_dict[node_name]) == 2:
             children = [
                 nwk2fa_mutation.Lineage(branch_length = branch_length_dict[topology_dict[node_name][0]], name=str(topology_dict[node_name][0]), seq=mother_seq, parsed_args=parsed_args),
                 nwk2fa_mutation.Lineage(branch_length = branch_length_dict[topology_dict[node_name][1]], name=str(topology_dict[node_name][1]), seq=mother_seq, parsed_args=parsed_args)
             ]
-            
             clade.clades.extend(children)
             stack.extend(children)
             cnt += 1
@@ -331,9 +330,8 @@ def nwk2fa_single(args, parsed_args):
 
     # translate tree
     newtree_fasta, newtree = nwk2fa_light(tree, initseq, parsed_args=parsed_args)
-    print(newtree_fasta)
-    fasta_writer_multiple(newtree_fasta, args.output, "PRESUMEout")
-    Phylo.write(newtree, "{}/{}.nwk".format(args.output, "PRESUMEout"), "newick")
+    fasta_writer_multiple(newtree_fasta, args.output+"/PRESUMEout", "PRESUMEout")
+    Phylo.write(newtree, "{}/{}.nwk".format(args.output+"/PRESUMEout", "PRESUMEout"), "newick")
 
 if __name__ == "__main__":
     # INFILE = "/Users/keitowatano/Desktop/tmp_PRESUME/in/test_10k_tips.nwk"

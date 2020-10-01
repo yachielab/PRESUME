@@ -1448,6 +1448,9 @@ if __name__ == "__main__":
 
         import submodule.nwk2fa as n2f
         print("tree mode!")
+        os.chdir(OUTDIR)
+        os.makedirs("PRESUMEout", exist_ok=True)
+        os.chdir("PRESUMEout")
         n2f.nwk2fa_single(args, processed_args)
         exit()
     

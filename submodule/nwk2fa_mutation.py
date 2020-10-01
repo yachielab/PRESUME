@@ -10,14 +10,15 @@ class Lineage(Phylo.BaseTree.Clade):
 
         self.mother_name =mother_name
         self.branch_length = branch_length
-        self.seq = seq if ROOT else self.replication(seq, parsed_args)
+        self.seq = seq if ROOT else self.mutation(seq, parsed_args)
+        print(self.name, self.seq == seq)
         self.substitution_list = [] 
 
         if (parsed_args.CRISPR): self.indels = indelsM + self.gen_indels() # CRISPR == True if an inprob file path is specified 
         else                   : self.indels = None
 
     # receive mother SEQ sequence, introduce mutations,
-    def replication(self, seq, parsed_args):
+    def mutation(self, seq, parsed_args):
         '''
         TODO: 厳密な変異モデルを実装すること。
         '''
