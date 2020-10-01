@@ -333,8 +333,8 @@ def nwk2fa_single(args, parsed_args):
     # translate tree
     newtree_fasta, newtree = nwk2fa_light(tree, initseq, parsed_args=parsed_args)
     print(newtree_fasta)
-    fasta_writer_multiple(newtree_fasta, args.output, "{}.fasta".format(args.filename))
-    Phylo.write(newtree, "{}/{}.nwk".format(args.output, args.filename), "newick")
+    fasta_writer_multiple(newtree_fasta, args.output, "PRESUMEout.fa")
+    Phylo.write(newtree, "{}/{}.nwk".format(args.output, "PRESUMEout.nwk"), "newick")
 
 if __name__ == "__main__":
     # INFILE = "/Users/keitowatano/Desktop/tmp_PRESUME/in/test_10k_tips.nwk"
