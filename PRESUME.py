@@ -1434,6 +1434,8 @@ if __name__ == "__main__":
         print(LOGO)
         exit()
 
+    OUTDIR = args.output
+
     if args.tree and args.qsub:
 
         processed_args = args_reader.process_args(args)
@@ -1623,7 +1625,6 @@ if __name__ == "__main__":
         initindels=None
 
     # setup directory
-    OUTDIR = args.output
     if not os.path.exists(OUTDIR):
         os.makedirs(OUTDIR)
     os.chdir(OUTDIR)
