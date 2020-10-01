@@ -108,7 +108,7 @@ def translate_tree(topology_dict, branch_length_dict,name_of_root, initseq, pars
 
 
 
-            #print(children)
+            print(children)
             
             
             
@@ -120,7 +120,6 @@ def translate_tree(topology_dict, branch_length_dict,name_of_root, initseq, pars
 def nwk2fa_light(tree, initseq=False,parsed_args=None):
     # translate Phylo.BaseTree.Tree into Lineage
     topology_dict, branch_length_dict, name_of_root= topology_shaper(tree)
-    print(topology_dict)
     lineage_tree = translate_tree(topology_dict, branch_length_dict, name_of_root, initseq,parsed_args=parsed_args)
     if len(tree.get_terminals()) != len(lineage_tree.get_terminals()):
         raise ValueError('something went wrong!!!')
