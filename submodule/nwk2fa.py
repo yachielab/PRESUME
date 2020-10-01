@@ -105,12 +105,6 @@ def translate_tree(topology_dict, branch_length_dict,name_of_root, initseq, pars
                 nwk2fa_mutation.Lineage(branch_length = branch_length_dict[topology_dict[node_name][0]], name=str(topology_dict[node_name][0]), seq=mother_seq, parsed_args=parsed_args),
                 nwk2fa_mutation.Lineage(branch_length = branch_length_dict[topology_dict[node_name][1]], name=str(topology_dict[node_name][1]), seq=mother_seq, parsed_args=parsed_args)
             ]
-
-
-
-            print(children)
-            
-            
             
             clade.clades.extend(children)
             stack.extend(children)
@@ -338,8 +332,9 @@ def nwk2fa_single(args, parsed_args):
 
     # translate tree
     newtree_fasta, newtree = nwk2fa_light(tree, initseq, parsed_args=parsed_args)
-    fasta_writer_multiple(newtree_fasta, args.outdir_fasta, "{}.fasta".format(args.filename))
-    Phylo.write(newtree, "{}/{}.nwk".format(args.outdir_nwk, args.filename), "newick")
+    print(newtree_fasta)
+    fasta_writer_multiple(newtree_fasta, args.output, "{}.fasta".format(args.filename))
+    Phylo.write(newtree, "{}/{}.nwk".format(args.output, args.filename), "newick")
 
 if __name__ == "__main__":
     # INFILE = "/Users/keitowatano/Desktop/tmp_PRESUME/in/test_10k_tips.nwk"
