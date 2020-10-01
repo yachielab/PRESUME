@@ -67,7 +67,6 @@ def topology_shaper(tree):
     branch_length_dict[root.name] = root.branch_length if root.branch_length is not None else 1.0
     for clade in internal_nodes:
         if len(clade.clades) == 2:
-            print(clade.name)
             mother_name     = clade.name
             daughter_L_name = clade.clades[0].name
             daughter_R_name = clade.clades[1].name
@@ -128,7 +127,7 @@ def fasta_writer_single(name_seq_dict, outfp):
     return
 
 def fasta_writer_multiple(name_seq_dict, outfp, filename):
-    filename = "{0}/{1}.gz".format(outfp, filename)
+    filename = "{0}/{1}.fa.gz".format(outfp, filename)
     with gzip.open(filename, "wt") as writer:
         for name in name_seq_dict.keys():
             writer.write(">{0}\n{1}\n".format(name, name_seq_dict[name]))
@@ -333,8 +332,8 @@ def nwk2fa_single(args, parsed_args):
     # translate tree
     newtree_fasta, newtree = nwk2fa_light(tree, initseq, parsed_args=parsed_args)
     print(newtree_fasta)
-    fasta_writer_multiple(newtree_fasta, args.output, "PRESUMEout.fa")
-    Phylo.write(newtree, "{}/{}.nwk".format(args.output, "PRESUMEout.nwk"), "newick")
+    fasta_writer_multiple(newtree_fasta, args.output, "PRESUMEout")
+    Phylo.write(newtree, "{}/{}.nwk".format(args.output, "PRESUMEout"), "newick")
 
 if __name__ == "__main__":
     # INFILE = "/Users/keitowatano/Desktop/tmp_PRESUME/in/test_10k_tips.nwk"
