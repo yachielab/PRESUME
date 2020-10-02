@@ -8,8 +8,8 @@ class Lineage(Phylo.BaseTree.Clade):
     seq=None, mother_name=None, ROOT=False, parsed_args=None, indelsM=None, mother_clade=None):
         super(Lineage, self).__init__(branch_length, name, clades, confidence, color, width)
 
-        self.mother_clade = mother_clade
-        self.mother_name =mother_name
+        self.mother_clade  = mother_clade
+        self.mother_name   = mother_name
         self.branch_length = branch_length
         self.seq = seq if ROOT else self.mutation(seq, parsed_args)
         print(self.name, self.seq == seq)
@@ -37,8 +37,7 @@ class Lineage(Phylo.BaseTree.Clade):
             if(parsed_args.constant is not None):
                 dseq = dseq + self.time_independent_mutation(seq[i], parsed_args.mu[i])
             elif(parsed_args.gtrgamma is not None):
-                if (self.mother_clade == None): branch_length = parsed_args.dorigin # dorigin
-                else                          : branch_length = self.mother_clade.branch_length
+                sbranch_length = self.mother_clade.branch_length
                 dseq = dseq + self.time_dependent_mutation(seq[i], parsed_args.gamma[i], branch_length, parsed_args) ### Important: different from original PRESUME
         print(self.mother_clade, branch_length)
         return dseq
