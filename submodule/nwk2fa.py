@@ -91,7 +91,11 @@ def topology_shaper(tree):
 def translate_tree(topology_dict, branch_length_dict,name_of_root, initseq, parsed_args):
     if not initseq:
         initseq=''.join([np.random.choice(['A', 'G', 'C', 'T']) for i in range(1000)])
-    init_clade = nwk2fa_mutation.Lineage(branch_length=branch_length_dict[name_of_root], name=name_of_root, seq= initseq, ROOT=True, parsed_args=parsed_args)
+    
+    init_branch_length = parsed_args.dorigin
+    #init_branch_length = branch_length_dict[name_of_root]
+    
+    init_clade = nwk2fa_mutation.Lineage(branch_length=init_branch_length, name=name_of_root, seq= initseq, ROOT=True, parsed_args=parsed_args)
     newtree = Phylo.BaseTree.Tree(init_clade)
     stack=[init_clade]
     cnt = 0
