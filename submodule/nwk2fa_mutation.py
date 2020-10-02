@@ -38,7 +38,6 @@ class Lineage(Phylo.BaseTree.Clade):
                 dseq = dseq + self.time_independent_mutation(seq[i], parsed_args.mu[i])
             elif(parsed_args.gtrgamma is not None):
                 dseq = dseq + self.time_dependent_mutation(seq[i], parsed_args.gamma[i], self.mother_clade.branch_length, parsed_args) ### Important: different from original PRESUME
-        print(self.mother_clade, branch_length)
         return dseq
     
     # mutation of a site (NOT Jukes Cantor model.
