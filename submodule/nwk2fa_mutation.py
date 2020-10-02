@@ -39,8 +39,8 @@ class Lineage(Phylo.BaseTree.Clade):
             elif(parsed_args.gtrgamma is not None):
                 if (self.mother_clade == None): branch_length = parsed_args.dorigin # dorigin
                 else                          : branch_length = self.mother_clade.branch_length
-                print(self.mother_clade, branch_length)
                 dseq = dseq + self.time_dependent_mutation(seq[i], parsed_args.gamma[i], branch_length, parsed_args) ### Important: different from original PRESUME
+        print(self.mother_clade, branch_length)
         return dseq
     
     # mutation of a site (NOT Jukes Cantor model.
