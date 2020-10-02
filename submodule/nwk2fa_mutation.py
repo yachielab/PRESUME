@@ -5,9 +5,10 @@ from Bio import Phylo, SeqIO
 # nwk2fa light
 class Lineage(Phylo.BaseTree.Clade):
     def __init__(self, branch_length=1.0, name=None, clades=None, confidence=None, color=None, width=None, 
-    seq=None, mother_name=None, ROOT=False, parsed_args=None, indelsM=None):
+    seq=None, mother_name=None, ROOT=False, parsed_args=None, indelsM=None, mother_clade=None):
         super(Lineage, self).__init__(branch_length, name, clades, confidence, color, width)
 
+        self.mother_clade = mother_clade
         self.mother_name =mother_name
         self.branch_length = branch_length
         self.seq = seq if ROOT else self.mutation(seq, parsed_args)
@@ -36,7 +37,9 @@ class Lineage(Phylo.BaseTree.Clade):
             if(parsed_args.constant is not None):
                 dseq = dseq + self.time_independent_mutation(seq[i], parsed_args.mu[i])
             elif(parsed_args.gtrgamma is not None):
-                dseq = dseq + self.time_dependent_mutation(seq[i], parsed_args.gamma[i], self.branch_length, parsed_args) ### Important: different from original PRESUME
+                if (self.mother_clade == None): branch_length = parsed_args.dorigin # dorigin
+                else                          : branch_length = self.mother_clade.branch_length
+                dseq = dseq + self.time_dependent_mutation(seq[i], parsed_args.gamma[i], branch_length, parsed_args) ### Important: different from original PRESUME
         return dseq
     
     # mutation of a site (NOT Jukes Cantor model.
