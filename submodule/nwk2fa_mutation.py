@@ -37,7 +37,9 @@ class Lineage(Phylo.BaseTree.Clade):
             if(parsed_args.constant is not None):
                 dseq = dseq + self.time_independent_mutation(seq[i], parsed_args.mu[i])
             elif(parsed_args.gtrgamma is not None):
-                if (self.mother_clade == None): branch_length = parsed_args.dorigin # dorigin
+                if (self.mother_clade == None): 
+                    branch_length = parsed_args.dorigin # dorigin
+                    print(branch_length)
                 else                          : branch_length = self.mother_clade.branch_length
                 dseq = dseq + self.time_dependent_mutation(seq[i], parsed_args.gamma[i], branch_length, parsed_args) ### Important: different from original PRESUME
         return dseq
