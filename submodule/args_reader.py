@@ -161,10 +161,10 @@ class PARSED_ARGS():
             args.dellength = os.path.abspath(args.dellength)
             self.pos2inprob  =   make_list(args.inprob  , 'float', column = 0)
             self.in_lengths  = [ make_list(args.inlength, 'int'  , column = 0)   ,
-                            make_list(args.inlength, 'float', column = 1)   ]
+                                 make_list(args.inlength, 'float', column = 1)   ]
             self.pos2delprob =   make_list(args.delprob , 'float', column = 0)
             self.del_lengths = [ make_list(args.dellength,'int'  , column = 0)   ,
-                            make_list(args.dellength,'float', column = 1)   ]
+                                 make_list(args.dellength,'float', column = 1)   ]
             self.CRISPR      = True
 
         # initial sequence specification

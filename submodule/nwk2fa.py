@@ -368,7 +368,7 @@ def nwk2fa_single(args, parsed_args):
     fasta_writer_multiple(name2seq, args.output+"/PRESUMEout", "PRESUMEout")
     if parsed_args.CRISPR:
         fasta_writer_multiple(name2alignedseq, args.output+"/PRESUMEout", "PRESUMEout.aligned")
-        indel_writer_multiple(name2indellist , args.output+"/PRESUMEout", "PRESUMEout.indel")
+        indel_writer_multiple(name2indellist , args.output+"/PRESUMEout", "PRESUMEout")
     Phylo.write(newtree, "{}/{}.nwk".format(args.output+"/PRESUMEout", "PRESUMEout"), "newick")
 
 if __name__ == "__main__":
