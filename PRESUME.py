@@ -1435,16 +1435,8 @@ if __name__ == "__main__":
         exit()
 
     OUTDIR = args.output
-
-    if args.tree and args.qsub:
-
-        processed_args = args_reader.PARSED_ARGS(args)
-
-        import submodule.nwk2fa as n2f
-        print("tree mode!")
-        n2f.nwk2fa_qsub(args, processed_args)
-        exit()
-    elif args.tree:
+    
+    if args.tree:
         if (os.path.exists(args.tree)):
             args.tree      = os.getcwd() + "/" + args.tree
         else:
@@ -1456,7 +1448,11 @@ if __name__ == "__main__":
         os.chdir(OUTDIR)
         os.makedirs("PRESUMEout", exist_ok=True)
         os.chdir("PRESUMEout")
-        n2f.nwk2fa_single(args, processed_args)
+
+        if (not args.qsub):
+            n2f.nwk2fa_single(args, processed_args)
+        else:
+            n2f.nwk2fa_qsub(args, processed_args)
         exit()
     
     # read argument from input CSV
