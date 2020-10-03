@@ -157,11 +157,11 @@ def indel_writer_multiple(name_indellist_dict, outfp, filename):
                 if (indel[0] == "del") : 
                     mid    = indel[1] # pos is the midpoint of deletion
                     length = indel[2]
-                    writer.write(("D_mid"+str(mid)+"_len"+str(length)).encode())
+                    writer.write(("D_mid"+str(mid)+"_len"+str(length)))
                 elif (indel[0] == "in"): 
                     pos    = indel[1] # pos is the midpoint of deletion
                     seq    = indel[3]
-                    writer.write(("I_"+str(pos+0.5)+"_"+seq).encode())
+                    writer.write(("I_"+str(pos+0.5)+"_"+seq))
                 if (indel_idx < len(name_indellist_dict[name])-1):
                     writer.write(";".encode())
             writer.write("\n".encode())
