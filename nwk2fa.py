@@ -331,6 +331,7 @@ def nwk2fa_qsub(args, parsed_args):
     intermediate_fasta_path = "{}/fastas".format(intermediate_path)
     intermediate_indel_path = "{}/indels".format(intermediate_path)
     os.makedirs(intermediate_fasta_path, exist_ok = True)
+    os.makedirs(intermediate_indel_path, exist_ok = True)
 
     upper_name2seq, upper_name2alignedseq, tree, upper_name2indellist = \
         nwk2fa_light(upper_tree, initseq, parsed_args)
