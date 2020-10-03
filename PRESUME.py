@@ -1443,7 +1443,7 @@ if __name__ == "__main__":
             args.tree      = os.getcwd() + "/" + args.tree.split("/")[-1]
         processed_args = args_reader.PARSED_ARGS(args)
 
-        import submodule.nwk2fa as n2f
+        import nwk2fa as n2f
         print("tree mode!")
         os.chdir(OUTDIR)
         os.makedirs("PRESUMEout", exist_ok=True)

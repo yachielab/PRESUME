@@ -348,7 +348,7 @@ def nwk2fa_qsub(args, parsed_args):
     subprocess.call(submit_command, shell=True)
     print("bottom tree created!")
 
-    command = "cat {}/* > {}/PRESUMEout.fasta.gz".format(downstream_fasta_path, OUTDIR)
+    command = "cat {}/* > {}/PRESUMEout/PRESUMEout.fasta.gz".format(downstream_fasta_path, OUTDIR)
     subprocess.call(command, shell=True)
     print("Done!")
     return
