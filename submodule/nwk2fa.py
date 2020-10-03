@@ -122,14 +122,16 @@ def nwk2fa_light(tree, initseq=False,parsed_args=None):
     if (parsed_args.CRISPR):
         name2seq        = {}
         name2alignedseq = {}
+        name2indellist  = {}
         for terminal in lineage_tree.get_terminals():
             seq, alignedseq, indel_list    = terminal.get_seq_with_indel()
             name2seq[terminal.name]        = seq
             name2alignedseq[terminal.name] = alignedseq
-        return name2seq, name2alignedseq, tree
+            name2indellist[terminal.name]  = indel_list
+        return name2seq, name2alignedseq, tree, name2indellist
     else:
         name2seq                           = {terminal.name:terminal.seq for terminal in lineage_tree.get_terminals()}
-        return name2seq, name2seq, tree
+        return name2seq, name2seq, tree, None
 
 def fasta_writer_single(name_seq_dict, outfp):
     for name in name_seq_dict.keys():
@@ -143,6 +145,26 @@ def fasta_writer_multiple(name_seq_dict, outfp, filename):
     with gzip.open(filename, "wt") as writer:
         for name in name_seq_dict.keys():
             writer.write(">{0}\n{1}\n".format(name, name_seq_dict[name]))
+    return
+
+def indel_writer_multiple(name_indellist_dict, outfp, filename):
+    filename = "{0}/{1}.indel.gz".format(outfp, filename)
+    with gzip.open(filename, "wt") as writer:
+        for name in name_indellist_dict.keys():
+            writer.write("{0}\t".format(name))
+            
+            for indel_idx, indel in enumerate(name_indellist_dict[name]):
+                if (indel[0] == "del") : 
+                    mid    = indel[1] # pos is the midpoint of deletion
+                    length = indel[2]
+                    writer.write(("D_mid"+str(mid)+"_len"+str(length)).encode())
+                elif (indel[0] == "in"): 
+                    pos    = indel[1] # pos is the midpoint of deletion
+                    seq    = indel[3]
+                    writer.write(("I_"+str(pos+0.5)+"_"+seq).encode())
+                if (indel_idx < len(name_indellist_dict[name])-1):
+                    writer.write(";".encode())
+            writer.write("\n".encode())
     return
 
 # decomp tree
@@ -342,10 +364,11 @@ def nwk2fa_single(args, parsed_args):
     tree = Phylo.read(args.tree, "newick")
 
     # translate tree
-    name2seq, name2alignedseq, newtree = nwk2fa_light(tree, initseq, parsed_args=parsed_args)
+    name2seq, name2alignedseq, newtree, name2indellist = nwk2fa_light(tree, initseq, parsed_args=parsed_args)
     fasta_writer_multiple(name2seq, args.output+"/PRESUMEout", "PRESUMEout")
     if parsed_args.CRISPR:
         fasta_writer_multiple(name2alignedseq, args.output+"/PRESUMEout", "PRESUMEout.aligned")
+        indel_writer_multiple(name2indellist , args.output+"/PRESUMEout", "PRESUMEout.indel")
     Phylo.write(newtree, "{}/{}.nwk".format(args.output+"/PRESUMEout", "PRESUMEout"), "newick")
 
 if __name__ == "__main__":
