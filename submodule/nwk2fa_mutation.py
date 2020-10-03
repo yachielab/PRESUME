@@ -15,8 +15,10 @@ class Lineage(Phylo.BaseTree.Clade):
         print(self.name, self.seq == seq)
         self.substitution_list = [] 
 
-        if (parsed_args.CRISPR): self.indels = indelsM + self.gen_indels() # CRISPR == True if an inprob file path is specified 
+        if (parsed_args.CRISPR): self.indels = indelsM + self.gen_indels(parsed_args) # CRISPR == True if an inprob file path is specified 
         else                   : self.indels = None
+
+        print(self.name, self.indels)
 
     # receive mother SEQ sequence, introduce mutations,
     def mutation(self, seq, parsed_args):
