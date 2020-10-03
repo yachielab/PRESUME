@@ -1445,7 +1445,8 @@ if __name__ == "__main__":
         n2f.nwk2fa_qsub(args, processed_args)
         exit()
     elif args.tree:
-        args.tree      = os.getcwd() + "/" + args.tree.split("/")[-1]
+        if (not os.path.exists(args.tree)):
+            args.tree      = os.getcwd() + "/" + args.tree.split("/")[-1]
         processed_args = args_reader.PARSED_ARGS(args)
 
         import submodule.nwk2fa as n2f
