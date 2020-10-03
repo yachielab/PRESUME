@@ -113,7 +113,7 @@ def translate_tree(topology_dict, branch_length_dict,name_of_root, initseq, pars
             cnt += 1
     return newtree
 
-def nwk2fa_light(tree, initseq=False,parsed_args=None):
+def nwk2fa_light(tree, initseq,parsed_args):
     # translate Phylo.BaseTree.Tree into Lineage
     topology_dict, branch_length_dict, name_of_root= topology_shaper(tree)
     lineage_tree = translate_tree(topology_dict, branch_length_dict, name_of_root, initseq,parsed_args=parsed_args)
@@ -309,7 +309,7 @@ def nwk2fa_qsub(args, parsed_args):
     os.makedirs(intermediate_fasta_path, exist_ok = True)
 
     upper_fasta, tree = nwk2fa_light(upper_tree, initseq)
-    fasta_writer_single(upper_fasta, intermediate_fasta_path)
+    fasta_writer_single(upper_fasta, intermediate_fasta_path,parsed_args)
 
     fasta_filelist = os.listdir(intermediate_fasta_path)
     nwk_filelist = os.listdir(decomp_nwk_path)
