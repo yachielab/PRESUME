@@ -95,7 +95,7 @@ def translate_tree(topology_dict, branch_length_dict,name_of_root, initseq, pars
     init_branch_length = parsed_args.dorigin                  ### Important! 
     #init_branch_length = branch_length_dict[name_of_root]
     
-    init_clade = nwk2fa_mutation.Lineage(branch_length=init_branch_length, name=name_of_root, seq= initseq, ROOT=True, parsed_args=parsed_args)
+    init_clade = nwk2fa_mutation.Lineage(branch_length=init_branch_length, name=name_of_root, seq= initseq, ROOT=True, parsed_args=parsed_args,indelsM=[])
     newtree = Phylo.BaseTree.Tree(init_clade)
     stack=[init_clade]
     cnt = 0
@@ -105,8 +105,8 @@ def translate_tree(topology_dict, branch_length_dict,name_of_root, initseq, pars
         mother_seq=clade.seq
         if len(topology_dict[node_name]) == 2:
             children = [
-                nwk2fa_mutation.Lineage(branch_length = branch_length_dict[topology_dict[node_name][0]], name=str(topology_dict[node_name][0]), seq=mother_seq, parsed_args=parsed_args, mother_clade = clade),
-                nwk2fa_mutation.Lineage(branch_length = branch_length_dict[topology_dict[node_name][1]], name=str(topology_dict[node_name][1]), seq=mother_seq, parsed_args=parsed_args, mother_clade = clade)
+                nwk2fa_mutation.Lineage(branch_length = branch_length_dict[topology_dict[node_name][0]], name=str(topology_dict[node_name][0]), seq=mother_seq, parsed_args=parsed_args, mother_clade = clade, indelsM=clade.indels),
+                nwk2fa_mutation.Lineage(branch_length = branch_length_dict[topology_dict[node_name][1]], name=str(topology_dict[node_name][1]), seq=mother_seq, parsed_args=parsed_args, mother_clade = clade, indelsM=clade.indels)
             ]
             clade.clades.extend(children)
             stack.extend(children)
