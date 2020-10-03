@@ -1438,7 +1438,7 @@ if __name__ == "__main__":
 
     if args.tree and args.qsub:
 
-        processed_args = args_reader.process_args(args)
+        processed_args = args_reader.PARSED_ARGS(args)
 
         import submodule.nwk2fa as n2f
         print("tree mode!")
