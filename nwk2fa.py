@@ -260,7 +260,7 @@ def shell_generator(shell_outfp, treefile_list, fastafile_list, tree_outfp, fast
         terminal_idx = idx
     
     #submit_command = "qsub -e {3} -o {3} -sync y -t 1-{0} {1}/nwk2fa_launcher.sh {2} &> /dev/null".format(
-    submit_command = "qsub -e {3} -o {3} -sync y -t 1-{0} {1}/nwk2fa_launcher.sh {2}".format(
+    submit_command = "qsub -e {3} -o {3} -sync y -t 1-{0} {1}/submodule/nwk2fa_launcher.sh {2}".format(
         terminal_idx + 1,
         NWK2FA,
         shell_outfp,
