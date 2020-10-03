@@ -279,7 +279,7 @@ def nwk2fa_qsub(args, parsed_args):
             initseq = str(list(sequences)[0].seq)
 
     # prepare intermediates
-    intermediate_path = "{}/intermediate".format(OUTDIR)
+    intermediate_path = "{}/PRESUMEout/intermediate".format(OUTDIR)
     os.makedirs(intermediate_path, exist_ok = True)
 
     decomp_nwk_path = "{}/decomp_tree".format(intermediate_path)
