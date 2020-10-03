@@ -250,18 +250,17 @@ def shell_generator(shell_outfp, treefile_list, fastafile_list, tree_outfp, fast
             qf.write("PATH={}\n".format(PATH))
             qf.write("LD_LIBRARY_PATH={}\n".format(LD_LIBRARY_PATH))
             qf.write("pwd\n")
-
             python_command = PYTHON3 + " " + NWK2FA + "/nwk2fa.py "\
                 + " --tree " + treefile\
                 + " --fasta " + fastafile\
                 + " --outdir_nwk " + tree_outfp\
                 + " --outdir_fasta " + fasta_outfp\
                 + " --filename " + "Down_{}".format(idx + 1)
-
             qf.write(python_command)
         terminal_idx = idx
     
-    submit_command = "qsub -e {3} -o {3} -sync y -t 1-{0} {1}/nwk2fa_launcher.sh {2} &> /dev/null".format(
+    #submit_command = "qsub -e {3} -o {3} -sync y -t 1-{0} {1}/nwk2fa_launcher.sh {2} &> /dev/null".format(
+    submit_command = "qsub -e {3} -o {3} -sync y -t 1-{0} {1}/nwk2fa_launcher.sh {2}".format(
         terminal_idx + 1,
         NWK2FA,
         shell_outfp,
