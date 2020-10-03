@@ -119,8 +119,17 @@ def nwk2fa_light(tree, initseq=False,parsed_args=None):
     lineage_tree = translate_tree(topology_dict, branch_length_dict, name_of_root, initseq,parsed_args=parsed_args)
     if len(tree.get_terminals()) != len(lineage_tree.get_terminals()):
         raise ValueError('something went wrong!!!')
-    fasta_data = {item.name:item.seq for item in lineage_tree.get_terminals()}
-    return fasta_data, tree
+    if (parsed_args.CRISPR):
+        name2seq        = {}
+        name2alignedseq = {}
+        for terminal in lineage_tree.get_terminals():
+            seq, alignedseq, indel_list    = terminal.get_seq_with_indel()
+            name2seq[terminal.name]        = seq
+            name2alignedseq[terminal.name] = alignedseq
+        return name2seq, name2alignedseq, tree
+    else:
+        name2seq                           = {terminal.name:terminal.seq for terminal in lineage_tree.get_terminals()}
+        return name2seq, name2seq, tree
 
 def fasta_writer_single(name_seq_dict, outfp):
     for name in name_seq_dict.keys():
@@ -333,8 +342,10 @@ def nwk2fa_single(args, parsed_args):
     tree = Phylo.read(args.tree, "newick")
 
     # translate tree
-    newtree_fasta, newtree = nwk2fa_light(tree, initseq, parsed_args=parsed_args)
-    fasta_writer_multiple(newtree_fasta, args.output+"/PRESUMEout", "PRESUMEout")
+    name2seq, name2alignedseq, newtree = nwk2fa_light(tree, initseq, parsed_args=parsed_args)
+    fasta_writer_multiple(name2seq, args.output+"/PRESUMEout", "PRESUMEout")
+    if parsed_args.CRISPR:
+        fasta_writer_multiple(name2alignedseq, args.output+"/PRESUMEout", "PRESUMEout.aligned")
     Phylo.write(newtree, "{}/{}.nwk".format(args.output+"/PRESUMEout", "PRESUMEout"), "newick")
 
 if __name__ == "__main__":
@@ -376,7 +387,7 @@ if __name__ == "__main__":
     tree = Phylo.read(args.tree, "newick")
 
     # translate tree
-    newtree_fasta, newtree = nwk2fa_light(tree, initseq)
-    fasta_writer_multiple(newtree_fasta, args.outdir_fasta, "{}.fasta".format(args.filename))
+    name2seq, newtree = nwk2fa_light(tree, initseq)
+    fasta_writer_multiple(name2seq, args.outdir_fasta, "{}.fasta".format(args.filename))
     Phylo.write(newtree, "{}/{}.nwk".format(args.outdir_nwk, args.filename), "newick")
 

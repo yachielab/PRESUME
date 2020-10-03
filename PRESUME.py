@@ -527,7 +527,7 @@ def fasta_writer(name, seq, indels, file_name, overwrite_mode, Nchunks, filepath
                                 length = indel[2]
                                 chunk    = chunk[:start+1] + indel[3] + chunk[start+1:]
                                     
-                                pos2refposindel = pos2refposindel[:start] + ["in"]*length + pos2refposindel[start:]
+                                pos2refposindel = pos2refposindel[:start+1] + ["in"]*length + pos2refposindel[start+1:]
 
                                 refpos2pos = {}
                                 pos=0

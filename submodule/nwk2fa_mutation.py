@@ -12,10 +12,9 @@ class Lineage(Phylo.BaseTree.Clade):
         self.mother_name   = mother_name
         self.branch_length = branch_length
         self.seq = seq if ROOT else self.mutation(seq, parsed_args)
-        print(self.name, self.seq == seq)
         self.substitution_list = [] 
 
-        if (parsed_args.CRISPR): self.indels = indelsM + self.gen_indels(parsed_args) # CRISPR == True if an inprob file path is specified 
+        if (parsed_args.CRISPR): self.indels = indelsM + self.generate_indels(parsed_args) # CRISPR == True if an inprob file path is specified 
         else                   : self.indels = None
 
         print(self.name, self.indels)
@@ -81,7 +80,7 @@ class Lineage(Phylo.BaseTree.Clade):
             ['A', 'C', 'G', 'T'], k=1, weights=np.array(matrix[base[c]])[0]
             )[0]
 
-    def gen_indels(self,parsed_args): # pos2inprob, in_lengths, pos2delprob, del_lengths were defined from argument files
+    def generate_indels(self,parsed_args): # pos2inprob, in_lengths, pos2delprob, del_lengths were defined from argument files
 
         def randomstr(alphabet, length):
             seq=""
@@ -120,3 +119,61 @@ class Lineage(Phylo.BaseTree.Clade):
                         generated_indels.append( [ 'del', pos, length ] )
             
         return generated_indels
+    
+    # return a sequence with indel
+    def get_seq_with_indel(self): # seqstr: str
+        seqstr          = self.seq
+        indel_list      = self.indels
+        refpos2pos      = {i:i for i in range(len(seqstr))}
+        initL           = len(seqstr)
+        true_indel_list = []
+        pos2refpos      = list(range(len(seqstr)))
+        dropout         = False
+        for indel in indel_list:
+            if (len(seqstr)==0):
+                dropout=True
+                break
+            if (indel[0] == 'del'):
+
+                if( indel[1] in refpos2pos.keys() ):
+                    true_indel_list.append(indel)
+                    mid    = refpos2pos[indel[1]] # pos is the midpoint of deletion
+                    length = indel[2]
+                    start  = max ( 0, mid - length//2 )
+                    end    = min ( len(seqstr) - 1, mid - length//2 + length - 1) 
+                    seqstr     = seqstr[:start]     + seqstr[(end+1):]
+                    pos2refpos = pos2refpos[:start] + pos2refpos[(end+1):]
+
+                    if (len(seqstr) != len(pos2refpos)):
+                        print("len(seqstr) != len(pos2refpos)!")
+                        return
+                        
+                    refpos2pos = {}
+                    for pos, refposindel in enumerate(pos2refpos):
+                        if(type(refposindel)==int):
+                            refpos2pos[refposindel] = pos
+                        elif(refposindel=="in"):
+                            None
+            elif ( indel[0] == "in" ):
+                if( indel[1] in refpos2pos.keys() ):
+                    true_indel_list.append(indel)
+                    start      = refpos2pos[indel[1]]
+                    length     = indel[2]
+                    seqstr     = seqstr[:start+1]     + indel[3]      + seqstr[start+1:]         
+                    pos2refpos = pos2refpos[:start+1] + ["in"]*length + pos2refpos[start+1:]
+                    refpos2pos = {}
+                    for pos, refposindel in enumerate(pos2refpos):
+                        if(type(refposindel)==int):
+                            refpos2pos[refposindel] = pos
+                        elif(refposindel=="in"):
+                            None
+        
+        if ( dropout ):
+            aligned_seqstr = "-"*initL
+        else:
+            aligned_seqstr = "-"*initL
+            for refpos in refpos2pos.keys():
+                aligned_seqstr = aligned_seqstr[:refpos] + seqstr[refpos2pos[refpos]] + aligned_seqstr[(refpos+1):]
+        
+        print(seqstr, true_indel_list)
+        return seqstr, aligned_seqstr, true_indel_list 
