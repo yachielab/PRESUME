@@ -175,5 +175,5 @@ class Lineage(Phylo.BaseTree.Clade):
             for refpos in refpos2pos.keys():
                 aligned_seqstr = aligned_seqstr[:refpos] + seqstr[refpos2pos[refpos]] + aligned_seqstr[(refpos+1):]
         
-        print(seqstr, true_indel_list)
+        #print(seqstr, true_indel_list)
         return seqstr, aligned_seqstr, true_indel_list 
