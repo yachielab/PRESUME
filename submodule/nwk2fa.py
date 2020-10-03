@@ -308,8 +308,9 @@ def nwk2fa_qsub(args, parsed_args):
     intermediate_fasta_path = "{}/fastas".format(intermediate_path)
     os.makedirs(intermediate_fasta_path, exist_ok = True)
 
-    upper_name2seq, upper_name2alignedseq, tree, upper_name2indellist = nwk2fa_light(upper_tree, initseq, parsed_args)
-    fasta_writer_single(upper_name2seq, intermediate_fasta_path,parsed_args)
+    upper_name2seq, upper_name2alignedseq, tree, upper_name2indellist = \
+        nwk2fa_light(upper_tree, initseq, parsed_args)
+    fasta_writer_single(upper_name2seq, intermediate_fasta_path)
 
     fasta_filelist = os.listdir(intermediate_fasta_path)
     nwk_filelist = os.listdir(decomp_nwk_path)
