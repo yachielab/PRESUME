@@ -1445,7 +1445,9 @@ if __name__ == "__main__":
         n2f.nwk2fa_qsub(args, processed_args)
         exit()
     elif args.tree:
-        if (not os.path.exists(args.tree)):
+        if (os.path.exists(args.tree)):
+            args.tree      = os.getcwd() + "/" + args.tree
+        else:
             args.tree      = os.getcwd() + "/" + args.tree.split("/")[-1]
         processed_args = args_reader.PARSED_ARGS(args)
 
