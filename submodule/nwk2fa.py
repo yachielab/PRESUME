@@ -163,8 +163,8 @@ def indel_writer_multiple(name_indellist_dict, outfp, filename):
                     seq    = indel[3]
                     writer.write(("I_"+str(pos+0.5)+"_"+seq))
                 if (indel_idx < len(name_indellist_dict[name])-1):
-                    writer.write(";".encode())
-            writer.write("\n".encode())
+                    writer.write(";")
+            writer.write("\n")
     return
 
 # decomp tree
