@@ -120,6 +120,10 @@ def nwk2fa_light(tree, initseq,parsed_args):
     lineage_tree = translate_tree(topology_dict, branch_length_dict, name_of_root, initseq,parsed_args=parsed_args)
     if len(tree.get_terminals()) != len(lineage_tree.get_terminals()):
         raise ValueError('something went wrong!!!')
+    
+    for clade in lineage_tree.get_nonterminals()+lineage_tree.get_terminals():
+        print(clade.name, clade.indels)
+    
     if (parsed_args.CRISPR):
         name2seq        = {}
         name2alignedseq = {}

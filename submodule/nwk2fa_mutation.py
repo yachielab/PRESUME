@@ -124,8 +124,6 @@ class Lineage(Phylo.BaseTree.Clade):
     def get_seq_with_indel(self): # seqstr: str
         seqstr          = self.seq
 
-        print(self.name, self.indels)
-
         indel_list      = self.indels
         refpos2pos      = {i:i for i in range(len(seqstr))}
         initL           = len(seqstr)
