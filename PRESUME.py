@@ -897,6 +897,7 @@ def main(timelimit):
 
         esuname2zerolength={}
         for esu in SEQqueue:
+            print(args.idANC)
             if(args.idANC is None):
                 esu_name = str(esu.id)
             else:
@@ -1616,6 +1617,8 @@ if __name__ == "__main__":
                     chunks = line.split()
                     if (chunks[0] == "del") : initindels.append([chunks[0], int(chunks[1]), int(chunks[2])])
                     elif (chunks[0] == "in"): initindels.append([chunks[0], int(chunks[1]), int(chunks[2]), chunks[3]])
+                    else:
+                        print("Error: Invalid input for --indels option")
         else:
             initindels=[]
     else:
