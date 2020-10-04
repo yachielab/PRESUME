@@ -123,6 +123,9 @@ class Lineage(Phylo.BaseTree.Clade):
     # return a sequence with indel
     def get_seq_with_indel(self): # seqstr: str
         seqstr          = self.seq
+
+        print(self.name, self.indels)
+
         indel_list      = self.indels
         refpos2pos      = {i:i for i in range(len(seqstr))}
         initL           = len(seqstr)
@@ -131,7 +134,6 @@ class Lineage(Phylo.BaseTree.Clade):
         dropout         = False
 
         print(refpos2pos)
-        print(self.name,indel_list)
         for indel in indel_list:
             if (len(seqstr)==0):
                 dropout=True
