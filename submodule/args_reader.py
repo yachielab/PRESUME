@@ -169,9 +169,9 @@ class PARSED_ARGS():
 
         # initial sequence specification
         if (args.f is not None):
-            try:
+            if args.f.split(".")[-1]=='gz':
                 handle = gzip.open(args.f, 'rt')
-            except:
+            else:
                 handle = open(args.f, 'r')
             sequences = SeqIO.parse(handle, 'fasta')
             self.initseq = str(list(sequences)[0].seq)
