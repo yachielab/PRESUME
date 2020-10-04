@@ -258,7 +258,7 @@ def shell_generator(shell_outfp, treefile_list, fastafile_list, indelfile_list, 
         print (parent_name)
         OUTPUT_DIR = fasta_outfp+"/Down_{}".format(parent_name)
 
-        with open("{}/downstream_{}.sh".format(shell_outfp, parent_name), 'w') as qf:
+        with open("{}/downstream_{}.sh".format(shell_outfp, idx+1), 'w') as qf:
             qf.write("#!/bin/bash\n")
             qf.write("#$ -S /bin/bash\n")
             qf.write("#$ -cwd\n")
@@ -413,9 +413,9 @@ def nwk2fa_qsub(args, parsed_args):
     subprocess.call(submit_command, shell=True)
     print("bottom tree created!")
 
-    command  = "cat {}/*/PRESUMEout/PRESUMEout.fa.gz > {}/PRESUMEout.fa.gz; ".format(downstream_fasta_path, OUTDIR)
-    command += "cat {}/*/PRESUMEout/PRESUMEout.aligned.fa.gz > {}/PRESUMEout.aligned.fa.gz; ".format(downstream_fasta_path, OUTDIR)
-    command += "cat {}/*/PRESUMEout/PRESUMEout.indel.gz > {}/PRESUMEout.indel.gz; ".format(downstream_fasta_path, OUTDIR)
+    command  = "cat {}/*/PRESUMEout/PRESUMEout.fa.gz > {}/PRESUMEout.fa.gz; ".format(downstream_fasta_path, OUTDIR+"/PRESUMEout")
+    command += "cat {}/*/PRESUMEout/PRESUMEout.aligned.fa.gz > {}/PRESUMEout.aligned.fa.gz; ".format(downstream_fasta_path, OUTDIR+"/PRESUMEout")
+    command += "cat {}/*/PRESUMEout/PRESUMEout.indel.gz > {}/PRESUMEout.indel.gz; ".format(downstream_fasta_path, OUTDIR+"/PRESUMEout")
     subprocess.call(command, shell=True)
     print("Done!")
     return
@@ -435,6 +435,7 @@ def nwk2fa_single(args, parsed_args):
         indel_writer_multiple(name2indellist , args.output+"/PRESUMEout", "PRESUMEout")
     Phylo.write(newtree, "{}/{}.nwk".format(args.output+"/PRESUMEout", "PRESUMEout"), "newick")
 
+'''
 if __name__ == "__main__":
     # INFILE = "/Users/keitowatano/Desktop/tmp_PRESUME/in/test_10k_tips.nwk"
     # OUTDIR = "/Users/keitowatano/Desktop/tmp_PRESUME/out/prototype_nwk2fa"
@@ -478,3 +479,4 @@ if __name__ == "__main__":
     fasta_writer_multiple(name2seq, args.outdir_fasta, "{}.fasta".format(args.filename))
     Phylo.write(newtree, "{}/{}.nwk".format(args.outdir_nwk, args.filename), "newick")
 
+'''
