@@ -17,18 +17,9 @@ class Lineage(Phylo.BaseTree.Clade):
         if (parsed_args.CRISPR): self.indels = indelsM + self.generate_indels(parsed_args) # CRISPR == True if an inprob file path is specified 
         else                   : self.indels = None
 
-        print(self.name, self.indels)
-
     # receive mother SEQ sequence, introduce mutations,
     def mutation(self, seq, parsed_args):
         dseq=""
-        '''
-        for i in range(len(seq)):
-            if random.randint(0, 100) < 10:
-                dseq=dseq+random.choice(['A','C','G','T'])
-            else:
-                dseq=dseq + seq[i]
-        '''
         print(parsed_args.L)
         for i in range(parsed_args.L):
             #if(parsed_args.homoplasy is not None):
@@ -36,7 +27,8 @@ class Lineage(Phylo.BaseTree.Clade):
             if(parsed_args.constant is not None):
                 dseq = dseq + self.time_independent_mutation(seq[i], parsed_args.mu[i])
             elif(parsed_args.gtrgamma is not None):
-                dseq = dseq + self.time_dependent_mutation(seq[i], parsed_args.gamma[i], self.mother_clade.branch_length, parsed_args) ### Important: different from original PRESUME
+                dseq = dseq + self.time_dependent_mutation(seq[i], parsed_args.gamma[i], self.mother_clade.branch_length, parsed_args) ### Important: equal to original PRESUME
+                #dseq = dseq + self.time_dependent_mutation(seq[i], parsed_args.gamma[i], self.branch_length, parsed_args) ### Important: different from original PRESUME
         return dseq
     
     # mutation of a site (NOT Jukes Cantor model.
