@@ -898,7 +898,7 @@ def main(timelimit):
         esuname2zerolength={}
         for esu in SEQqueue:
             print(args.idANC)
-            if(args.idANC is None):
+            if(args.idANC != 0):
                 esu_name = str(esu.id)
             else:
                 esu_name_prefix = str(hex(args.idANC)).split("x")[1]
@@ -931,7 +931,7 @@ def main(timelimit):
                 #with open("indel.txt", 'w') as handle:
                     for esu_idx, esu in enumerate(SEQqueue):
 
-                        if(args.idANC is None):
+                        if(args.idANC != 0):
                             esu_name = str(esu.id)
                         else:
                             esu_name_prefix = str(hex(args.idANC)).split("x")[1]
@@ -1276,7 +1276,7 @@ if __name__ == "__main__":
         help="corresponging ancestral sequence (in upstream tree), \
             in case of distributed computing (default=None)",
         type=int,
-        default=None
+        default=0
         )
 
     # for distributed computing
