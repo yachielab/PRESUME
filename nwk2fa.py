@@ -92,8 +92,6 @@ def translate_tree(topology_dict, branch_length_dict,name_of_root, initseq, pars
     
     init_branch_length = parsed_args.dorigin                  ### Important! 
     #init_branch_length = branch_length_dict[name_of_root]
-    
-    print("Initial sequence:", initseq)
 
     init_clade = nwk2fa_mutation.Lineage(branch_length=init_branch_length, name=name_of_root, seq= initseq, ROOT=True, parsed_args=parsed_args,indelsM=[])
     init_clade.indels=parsed_args.initindels
@@ -147,7 +145,6 @@ def fasta_writer_single(name_seq_dict, outfp):
     return
 
 def indel_writer_single(name_indellist_dict, outfp):
-    print(name_indellist_dict)
     for name in name_indellist_dict.keys():
         filename = "{0}/{1}.indel".format(outfp, name)
         with open(filename, "w") as writer:
