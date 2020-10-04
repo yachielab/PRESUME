@@ -119,6 +119,7 @@ def translate_tree(topology_dict, branch_length_dict,name_of_root, initseq, pars
 def nwk2fa_light(tree, initseq,parsed_args):
     # translate Phylo.BaseTree.Tree into Lineage
     topology_dict, branch_length_dict, name_of_root= topology_shaper(tree)
+    print(topology_dict)
     lineage_tree = translate_tree(topology_dict, branch_length_dict, name_of_root, initseq,parsed_args=parsed_args)
     if len(tree.get_terminals()) != len(lineage_tree.get_terminals()):
         raise ValueError('something went wrong!!!')
@@ -441,8 +442,6 @@ def nwk2fa_single(args, parsed_args):
     tree = rename_internals(tree)
 
     # translate tree
-    if parsed_args.CRISPR: add_indel=True
-    else: add_indel=False
     upper_name2seq_without_indel, name2seq, name2alignedseq, newtree, name2indellist = nwk2fa_light(tree, initseq, parsed_args=parsed_args)
     fasta_writer_multiple(name2seq, args.output+"/PRESUMEout", "PRESUMEout")
     if parsed_args.CRISPR:
