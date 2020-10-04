@@ -1437,9 +1437,7 @@ if __name__ == "__main__":
     OUTDIR = args.output
     
     if args.tree:
-        if (os.path.exists(args.tree)):
-            args.tree      = os.getcwd() + "/" + args.tree
-        else:
+        if (os.path.exists(os.getcwd() + "/" + args.tree.split("/")[-1])):
             args.tree      = os.getcwd() + "/" + args.tree.split("/")[-1]
         processed_args = args_reader.PARSED_ARGS(args)
 

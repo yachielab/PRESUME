@@ -390,6 +390,7 @@ def nwk2fa_qsub(args, parsed_args):
                 indelfile_list.append(path_of_indel_in)
             else:
                 indelfile_list.append(None)
+    print(treefile_list)
 
     shell_path = "{}/shell".format(intermediate_path)
     os.makedirs(shell_path, exist_ok = True)
