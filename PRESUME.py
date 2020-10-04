@@ -1049,7 +1049,7 @@ def main(timelimit):
                     
                     if CRISPR:
                         python_command += \
-                            " --inprob "     + args.inprob   +\
+                            " --inprob "     + args.inlsprob   +\
                             " --inlength "   + args.inlength +\
                             " --delprob "    + args.delprob  +\
                             " --dellength "  + args.dellength+\

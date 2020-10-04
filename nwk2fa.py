@@ -114,14 +114,14 @@ def translate_tree(topology_dict, branch_length_dict,name_of_root, initseq, pars
             cnt += 1
     return newtree
 
-def nwk2fa_light(tree, initseq,parsed_args):
+def nwk2fa_light(tree, initseq,parsed_args, add_indel=False):
     # translate Phylo.BaseTree.Tree into Lineage
     topology_dict, branch_length_dict, name_of_root= topology_shaper(tree)
     lineage_tree = translate_tree(topology_dict, branch_length_dict, name_of_root, initseq,parsed_args=parsed_args)
     if len(tree.get_terminals()) != len(lineage_tree.get_terminals()):
         raise ValueError('something went wrong!!!')
     
-    if (parsed_args.CRISPR):
+    if (add_indel):
         name2seq        = {}
         name2alignedseq = {}
         name2indellist  = {}
@@ -354,7 +354,7 @@ def nwk2fa_qsub(args, parsed_args):
     os.makedirs(intermediate_indel_path, exist_ok = True)
 
     upper_name2seq, upper_name2alignedseq, tree, upper_name2indellist = \
-        nwk2fa_light(upper_tree, initseq, parsed_args)
+        nwk2fa_light(upper_tree, initseq, parsed_args, add_indel=False)   # Seems tricky but add_indel should be False here
     fasta_writer_single(upper_name2seq, intermediate_fasta_path)
     indel_writer_single(upper_name2indellist, intermediate_indel_path)
 
@@ -427,7 +427,9 @@ def nwk2fa_single(args, parsed_args):
     tree = Phylo.read(args.tree, "newick")
 
     # translate tree
-    name2seq, name2alignedseq, newtree, name2indellist = nwk2fa_light(tree, initseq, parsed_args=parsed_args)
+    if parsed_args.CRISPR: add_indel=True
+    else: add_indel=False
+    name2seq, name2alignedseq, newtree, name2indellist = nwk2fa_light(tree, initseq, parsed_args=parsed_args, add_indel=add_indel)
     fasta_writer_multiple(name2seq, args.output+"/PRESUMEout", "PRESUMEout")
     if parsed_args.CRISPR:
         fasta_writer_multiple(name2alignedseq, args.output+"/PRESUMEout", "PRESUMEout.aligned")

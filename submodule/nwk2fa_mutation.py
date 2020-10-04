@@ -20,7 +20,6 @@ class Lineage(Phylo.BaseTree.Clade):
     # receive mother SEQ sequence, introduce mutations,
     def mutation(self, seq, parsed_args):
         dseq=""
-        print(parsed_args.L)
         for i in range(parsed_args.L):
             #if(parsed_args.homoplasy is not None):
             #    dseq = dseq + self.homoplastic_mutation(seq, i, True)
