@@ -1332,7 +1332,7 @@ if __name__ == "__main__":
         "--seed",
         help="random seed used to initialize \
             the pseudo-random number generator",
-        type=str,
+        type=int,
         default=None
         )
     '''
