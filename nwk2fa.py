@@ -17,6 +17,7 @@ import numpy as np
 import random
 import argparse
 import gzip
+import shutil
 
 from submodule import nwk2fa_mutation
 from submodule import args_reader
@@ -418,9 +419,11 @@ def nwk2fa_qsub(args, parsed_args):
     print("bottom tree created!")
 
     command  = "cat {}/*/PRESUMEout/PRESUMEout.fa.gz > {}/PRESUMEout.fa.gz; ".format(downstream_fasta_path, OUTDIR+"/PRESUMEout")
-    command += "cat {}/*/PRESUMEout/PRESUMEout.aligned.fa.gz > {}/PRESUMEout.aligned.fa.gz; ".format(downstream_fasta_path, OUTDIR+"/PRESUMEout")
-    command += "cat {}/*/PRESUMEout/PRESUMEout.indel.gz > {}/PRESUMEout.indel.gz; ".format(downstream_fasta_path, OUTDIR+"/PRESUMEout")
+    if(parsed_args.CRISPR):
+        command += "cat {}/*/PRESUMEout/PRESUMEout.aligned.fa.gz > {}/PRESUMEout.aligned.fa.gz; ".format(downstream_fasta_path, OUTDIR+"/PRESUMEout")
+        command += "cat {}/*/PRESUMEout/PRESUMEout.indel.gz > {}/PRESUMEout.indel.gz; ".format(downstream_fasta_path, OUTDIR+"/PRESUMEout")
     subprocess.call(command, shell=True)
+    if (not args.debug) : shutil.rmtree(intermediate_path)
     print("Done!")
     return
 
