@@ -358,8 +358,8 @@ def nwk2fa_qsub(args, parsed_args):
     os.makedirs(intermediate_indel_path, exist_ok = True)
 
     upper_name2seq_without_indel, upper_name2seq, upper_name2alignedseq, tree, upper_name2indellist = \
-        nwk2fa_light(upper_tree, initseq, parsed_args, )   # Seems tricky but add_indel should be False here
-    fasta_writer_single(upper_name2seq_without_indel, intermediate_fasta_path)
+        nwk2fa_light(upper_tree, initseq, parsed_args, )   
+    fasta_writer_single(upper_name2seq_without_indel, intermediate_fasta_path) # Seems tricky but "upper_name2seq_without_indel" shoule be appropriate here
     indel_writer_single(upper_name2indellist, intermediate_indel_path)
 
     fasta_filelist = os.listdir(intermediate_fasta_path)
