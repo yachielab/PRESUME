@@ -93,7 +93,7 @@ def translate_tree(topology_dict, branch_length_dict,name_of_root, initseq, pars
     init_branch_length = parsed_args.dorigin                  ### Important! 
     #init_branch_length = branch_length_dict[name_of_root]
     
-    print(initseq)
+    print("Initial sequence:", initseq)
 
     init_clade = nwk2fa_mutation.Lineage(branch_length=init_branch_length, name=name_of_root, seq= initseq, ROOT=True, parsed_args=parsed_args,indelsM=[])
     newtree = Phylo.BaseTree.Tree(init_clade)
@@ -319,6 +319,8 @@ def nwk2fa_qsub(args, parsed_args):
     os.makedirs(intermediate_path, exist_ok = True)
 
     decomp_nwk_path = "{}/decomp_tree".format(intermediate_path)
+
+    print("decomp_nwk_path",decomp_nwk_path)
     os.makedirs(decomp_nwk_path, exist_ok = True)
 
     # decompose tree
@@ -376,6 +378,8 @@ def nwk2fa_qsub(args, parsed_args):
 
             path_of_fasta_in = "{}/{}".format(intermediate_fasta_path, file_fasta)
             path_of_newick_in = "{}/{}".format(decomp_nwk_path, file_nwk)
+
+            print(path_of_newick_in)
 
             fastafile_list.append(path_of_fasta_in)
             treefile_list.append(path_of_newick_in)
