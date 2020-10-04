@@ -253,12 +253,17 @@ def shell_generator(shell_outfp, treefile_list, fastafile_list, indelfile_list, 
 
     terminal_idx = 0
     for idx, (treefile, fastafile, indelfile) in enumerate(zip(treefile_list, fastafile_list, indelfile_list)):
+        
+        OUTPUT_DIR = fasta_outfp+"/Down_{}".format(idx + 1)
+
         with open("{}/downstream_{}.sh".format(shell_outfp, idx + 1), 'w') as qf:
             qf.write("#!/bin/bash\n")
             qf.write("#$ -S /bin/bash\n")
             qf.write("#$ -cwd\n")
             qf.write("PATH={}\n".format(PATH))
             qf.write("LD_LIBRARY_PATH={}\n".format(LD_LIBRARY_PATH))
+            qf.write("mkdir "+OUTPUT_DIR+"\n")
+            qf.write("cd "+OUTPUT_DIR+"\n")
             qf.write("pwd\n")
             #python_command = PYTHON3 + " " + NWK2FA + "/nwk2fa.py "\
             #    + " --tree " + treefile\
@@ -320,7 +325,6 @@ def nwk2fa_qsub(args, parsed_args):
 
     decomp_nwk_path = "{}/decomp_tree".format(intermediate_path)
 
-    print("decomp_nwk_path",decomp_nwk_path)
     os.makedirs(decomp_nwk_path, exist_ok = True)
 
     # decompose tree
@@ -379,8 +383,6 @@ def nwk2fa_qsub(args, parsed_args):
             path_of_fasta_in = "{}/{}".format(intermediate_fasta_path, file_fasta)
             path_of_newick_in = "{}/{}".format(decomp_nwk_path, file_nwk)
 
-            print(path_of_newick_in)
-
             fastafile_list.append(path_of_fasta_in)
             treefile_list.append(path_of_newick_in)
             
@@ -390,7 +392,6 @@ def nwk2fa_qsub(args, parsed_args):
                 indelfile_list.append(path_of_indel_in)
             else:
                 indelfile_list.append(None)
-    print(treefile_list)
 
     shell_path = "{}/shell".format(intermediate_path)
     os.makedirs(shell_path, exist_ok = True)
