@@ -99,7 +99,7 @@ class PARSED_ARGS():
         if args.homoplasy is not None:
             None
         elif(args.constant is not None):
-            self.mu = [args.constant] * L
+            self.mu = [args.constant] * self.L
 
         # substitution rate matrix (GTR-Gamma model)
         # -> define substitution matrix function

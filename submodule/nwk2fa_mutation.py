@@ -21,9 +21,6 @@ class Lineage(Phylo.BaseTree.Clade):
 
     # receive mother SEQ sequence, introduce mutations,
     def mutation(self, seq, parsed_args):
-        '''
-        TODO: 厳密な変異モデルを実装すること。
-        '''
         dseq=""
         '''
         for i in range(len(seq)):
