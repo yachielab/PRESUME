@@ -77,18 +77,18 @@ def topology_shaper(tree):
             #topology[daughter_L_name] = []
             #topology[daughter_R_name] = []
             # define branch_length
-            #branch_length_dict[mother_name] = clade.branch_length
+            branch_length_dict[mother_name] = clade.branch_length
             if clade.branch_length==None: clade.branch_length=10^(-10)             # if branch_length is not defined, PRESUME ignore mutations ccuring at the branch 
         else:
             raise ValueError('wrong clades! \n # of clades {}'.format(len(clade.clades)))
             pass
 
-    '''
+    
     for clade in terminal_nodes:
         topology[clade.name] = []
         if clade.name != root.name:
             branch_length_dict[clade.name] = clade.branch_length if clade.branch_length is not None else 1.0 
-    '''
+    
     return topology, branch_length_dict, root.name
 
 # Conduct a simulation
@@ -119,7 +119,6 @@ def translate_tree(topology_dict, branch_length_dict,name_of_root, initseq, pars
 def nwk2fa_light(tree, initseq,parsed_args):
     # translate Phylo.BaseTree.Tree into Lineage
     topology_dict, branch_length_dict, name_of_root= topology_shaper(tree)
-    print(topology_dict)
     lineage_tree = translate_tree(topology_dict, branch_length_dict, name_of_root, initseq,parsed_args=parsed_args)
     if len(tree.get_terminals()) != len(lineage_tree.get_terminals()):
         raise ValueError('something went wrong!!!')
