@@ -160,7 +160,6 @@ class Lineage(Phylo.BaseTree.Clade):
                         elif(refposindel=="in"):
                             None
             
-        print(self.name, indel_list, true_indel_list)
         
         if ( dropout ):
             aligned_seqstr = "-"*initL
