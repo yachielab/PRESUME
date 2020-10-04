@@ -89,8 +89,6 @@ def topology_shaper(tree):
 
 # Conduct a simulation
 def translate_tree(topology_dict, branch_length_dict,name_of_root, initseq, parsed_args):
-    if not initseq:
-        initseq=''.join([np.random.choice(['A', 'G', 'C', 'T']) for i in range(1000)])
     
     init_branch_length = parsed_args.dorigin                  ### Important! 
     #init_branch_length = branch_length_dict[name_of_root]
@@ -404,12 +402,8 @@ def nwk2fa_qsub(args, parsed_args):
     return
 
 def nwk2fa_single(args, parsed_args):
-    initseq = False
     # initial sequence specification
-    if (args.f is not None):
-        with gzip.open(args.f, 'rt') as f:
-            sequences = SeqIO.parse(f, 'fasta')
-            initseq = str(list(sequences)[0].seq)
+    initseq = parsed_args.init_seq
     
     # read tree
     tree = Phylo.read(args.tree, "newick")
