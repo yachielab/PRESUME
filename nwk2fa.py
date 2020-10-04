@@ -277,7 +277,6 @@ def shell_generator(shell_outfp, treefile_list, fastafile_list, indelfile_list, 
             #    + " --filename " + "Down_{}".format(idx + 1)
 
             python_command = PYTHON3 + " " + NWK2FA + "/PRESUME.py "\
-                + " -L " + str(parsed_args.L)\
                 + " -f " + fastafile\
                 + " --seed " + str(np.random.randint(0, 10000))\
                 + " --tree " + treefile
