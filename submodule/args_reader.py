@@ -194,7 +194,7 @@ class PARSED_ARGS():
                     for line in handle:
                         chunks = line.split()
                         if (chunks[0] == "del") : self.initindels.append([chunks[0], int(chunks[1]), int(chunks[2])])
-                        elif (chunks[1] == "in"): self.initindels.append([chunks[0], int(chunks[1]), int(chunks[2]), chunks[3]])
+                        elif (chunks[0] == "in"): self.initindels.append([chunks[0], int(chunks[1]), int(chunks[2]), chunks[3]])
             else:
                 self.initindels=[]
         else:
