@@ -897,7 +897,6 @@ def main(timelimit):
 
         esuname2zerolength={}
         for esu in SEQqueue:
-            print(args.idANC)
             if(args.idANC == 0):
                 esu_name = str(esu.id)
             else:
