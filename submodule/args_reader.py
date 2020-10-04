@@ -84,6 +84,17 @@ class PARSED_ARGS():
             print("fatal error: doubling time of initial SEQ is 0!")
             sys.exit(1)
 
+        # initial sequence specification
+        if (args.f is not None):
+            if args.f.split(".")[-1]=='gz':
+                handle = gzip.open(args.f, 'rt')
+            else:
+                handle = open(args.f, 'r')
+            sequences = SeqIO.parse(handle, 'fasta')
+            self.initseq = str(list(sequences)[0].seq)
+            self.L = len(self.initseq)
+            handle.close()
+
         self.growing_rate_origin = 1 / args.d
         self.sigma_origin = args.s
         self.alpha = args.a
@@ -166,17 +177,6 @@ class PARSED_ARGS():
             self.del_lengths = [ make_list(args.dellength,'int'  , column = 0)   ,
                                  make_list(args.dellength,'float', column = 1)   ]
             self.CRISPR      = True
-
-        # initial sequence specification
-        if (args.f is not None):
-            if args.f.split(".")[-1]=='gz':
-                handle = gzip.open(args.f, 'rt')
-            else:
-                handle = open(args.f, 'r')
-            sequences = SeqIO.parse(handle, 'fasta')
-            self.initseq = str(list(sequences)[0].seq)
-            self.L = len(self.initseq)
-            handle.close()
 
         elif (args.polyC):
             self.initseq = 'C' * L  # initial sequence
