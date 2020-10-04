@@ -132,7 +132,6 @@ class Lineage(Phylo.BaseTree.Clade):
         dropout         = False
 
         for indel in indel_list:
-            print(self.name, indel_list, true_indel_list)
             if (len(seqstr)==0):
                 dropout=True
                 break
@@ -171,6 +170,8 @@ class Lineage(Phylo.BaseTree.Clade):
                             refpos2pos[refposindel] = pos
                         elif(refposindel=="in"):
                             None
+            
+        print(self.name, indel_list, true_indel_list)
         
         if ( dropout ):
             aligned_seqstr = "-"*initL
