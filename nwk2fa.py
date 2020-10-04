@@ -114,14 +114,17 @@ def translate_tree(topology_dict, branch_length_dict,name_of_root, initseq, pars
             cnt += 1
     return newtree
 
-def nwk2fa_light(tree, initseq,parsed_args, add_indel=False):
+def nwk2fa_light(tree, initseq,parsed_args):
     # translate Phylo.BaseTree.Tree into Lineage
     topology_dict, branch_length_dict, name_of_root= topology_shaper(tree)
     lineage_tree = translate_tree(topology_dict, branch_length_dict, name_of_root, initseq,parsed_args=parsed_args)
     if len(tree.get_terminals()) != len(lineage_tree.get_terminals()):
         raise ValueError('something went wrong!!!')
     
-    if (add_indel):
+
+    name2seq_without_indel  = {terminal.name:terminal.seq for terminal in lineage_tree.get_terminals()}
+
+    if (parsed_args.CRISPR):
         name2seq        = {}
         name2alignedseq = {}
         name2indellist  = {}
@@ -130,10 +133,11 @@ def nwk2fa_light(tree, initseq,parsed_args, add_indel=False):
             name2seq[terminal.name]        = seq
             name2alignedseq[terminal.name] = alignedseq
             name2indellist[terminal.name]  = indel_list
-        return name2seq, name2alignedseq, tree, name2indellist
     else:
-        name2seq                           = {terminal.name:terminal.seq for terminal in lineage_tree.get_terminals()}
-        return name2seq, name2seq, tree, None
+        name2seq, name2alignedseq = name2seq_without_indel, name2seq_without_indel
+        name2indellist            = None
+
+    return name2seq_without_indel, name2seq, name2alignedseq, tree, name2indellist
 
 def fasta_writer_single(name_seq_dict, outfp):
     for name in name_seq_dict.keys():
@@ -353,11 +357,9 @@ def nwk2fa_qsub(args, parsed_args):
     os.makedirs(intermediate_fasta_path, exist_ok = True)
     os.makedirs(intermediate_indel_path, exist_ok = True)
 
-    upper_name2seq, upper_name2alignedseq, tree, upper_name2indellist = \
-        nwk2fa_light(upper_tree, initseq, parsed_args, add_indel=False)   # Seems tricky but add_indel should be False here
-    upper_name2seq_with_indel, upper_name2alignedseq, tree, upper_name2indellist = \
-        nwk2fa_light(upper_tree, initseq, parsed_args, add_indel=True)   # Seems tricky but add_indel should be False here
-    fasta_writer_single(upper_name2seq, intermediate_fasta_path)
+    upper_name2seq_without_indel, upper_name2seq, upper_name2alignedseq, tree, upper_name2indellist = \
+        nwk2fa_light(upper_tree, initseq, parsed_args, )   # Seems tricky but add_indel should be False here
+    fasta_writer_single(upper_name2seq_without_indel, intermediate_fasta_path)
     indel_writer_single(upper_name2indellist, intermediate_indel_path)
 
     fasta_filelist = os.listdir(intermediate_fasta_path)
@@ -431,7 +433,7 @@ def nwk2fa_single(args, parsed_args):
     # translate tree
     if parsed_args.CRISPR: add_indel=True
     else: add_indel=False
-    name2seq, name2alignedseq, newtree, name2indellist = nwk2fa_light(tree, initseq, parsed_args=parsed_args, add_indel=add_indel)
+    upper_name2seq_without_indel, name2seq, name2alignedseq, newtree, name2indellist = nwk2fa_light(tree, initseq, parsed_args=parsed_args)
     fasta_writer_multiple(name2seq, args.output+"/PRESUMEout", "PRESUMEout")
     if parsed_args.CRISPR:
         fasta_writer_multiple(name2alignedseq, args.output+"/PRESUMEout", "PRESUMEout.aligned")
