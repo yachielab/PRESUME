@@ -279,6 +279,12 @@ def shell_generator(shell_outfp, treefile_list, fastafile_list, indelfile_list, 
                     " --delprob "    + args.delprob  +\
                     " --dellength "  + args.dellength+\
                     " --indels "     + indelfile
+            if (args.gtrgamma is not None):
+                python_command += \
+                    " --gtrgamma "+str(args.gtrgamma)
+            if (args.constant is not None):
+                python_command += \
+                    " --constant "+str(args.constant)
 
             qf.write(python_command)
         terminal_idx = idx
