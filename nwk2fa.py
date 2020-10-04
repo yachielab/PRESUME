@@ -96,6 +96,7 @@ def translate_tree(topology_dict, branch_length_dict,name_of_root, initseq, pars
     print("Initial sequence:", initseq)
 
     init_clade = nwk2fa_mutation.Lineage(branch_length=init_branch_length, name=name_of_root, seq= initseq, ROOT=True, parsed_args=parsed_args,indelsM=[])
+    init_clade.indels=parsed_args.initindels
     newtree = Phylo.BaseTree.Tree(init_clade)
     stack=[init_clade]
     cnt = 0
@@ -103,7 +104,6 @@ def translate_tree(topology_dict, branch_length_dict,name_of_root, initseq, pars
         clade=stack.pop()
         node_name=clade.name
         mother_seq=clade.seq
-        clade.indels=parsed_args.initindels
         if len(topology_dict[node_name]) == 2:
             children = [
                 nwk2fa_mutation.Lineage(branch_length = branch_length_dict[topology_dict[node_name][0]], name=str(topology_dict[node_name][0]), seq=mother_seq, parsed_args=parsed_args, mother_clade = clade, indelsM=clade.indels),
@@ -120,9 +120,6 @@ def nwk2fa_light(tree, initseq,parsed_args):
     lineage_tree = translate_tree(topology_dict, branch_length_dict, name_of_root, initseq,parsed_args=parsed_args)
     if len(tree.get_terminals()) != len(lineage_tree.get_terminals()):
         raise ValueError('something went wrong!!!')
-    
-    for clade in lineage_tree.get_nonterminals()+lineage_tree.get_terminals():
-        print(clade.name, clade.indels)
     
     if (parsed_args.CRISPR):
         name2seq        = {}
