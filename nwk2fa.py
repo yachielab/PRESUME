@@ -335,6 +335,8 @@ def nwk2fa_qsub(args, parsed_args):
     tree = Phylo.read(INFILE, "newick")
     tree = rename_internals(tree)
 
+    Phylo.write(tree, "{}/{}.nwk".format(args.output+"/PRESUMEout", "PRESUMEout"), "newick")
+
 
     tips_threshold = int(len(tree.get_terminals())**(1/2))
     decompose(INFILE, tips_threshold, decomp_nwk_path)
