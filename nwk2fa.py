@@ -142,6 +142,7 @@ def fasta_writer_single(name_seq_dict, outfp):
     return
 
 def indel_writer_single(name_indellist_dict, outfp):
+    print(name_indellist_dict)
     for name in name_indellist_dict.keys():
         filename = "{0}/{1}.indel".format(outfp, name)
         with open(filename, "w") as writer:
