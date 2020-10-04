@@ -254,9 +254,10 @@ def shell_generator(shell_outfp, treefile_list, fastafile_list, indelfile_list, 
     terminal_idx = 0
     for idx, (treefile, fastafile, indelfile) in enumerate(zip(treefile_list, fastafile_list, indelfile_list)):
         
-        OUTPUT_DIR = fasta_outfp+"/Down_{}".format(idx + 1)
+        parent_name= treefile.split("_")[1].split(".")[0]
+        OUTPUT_DIR = fasta_outfp+"/Down_{}".format(parent_name)
 
-        with open("{}/downstream_{}.sh".format(shell_outfp, idx + 1), 'w') as qf:
+        with open("{}/downstream_{}.sh".format(shell_outfp, parent_name), 'w') as qf:
             qf.write("#!/bin/bash\n")
             qf.write("#$ -S /bin/bash\n")
             qf.write("#$ -cwd\n")
@@ -411,7 +412,9 @@ def nwk2fa_qsub(args, parsed_args):
     subprocess.call(submit_command, shell=True)
     print("bottom tree created!")
 
-    command = "cat {}/* > {}/PRESUMEout/PRESUMEout.fasta.gz".format(downstream_fasta_path, OUTDIR)
+    command  = "cat {}/*/PRESUMEout/PRESUMEout.fa.gz > {}/PRESUMEout.fa.gz; ".format(downstream_fasta_path, OUTDIR)
+    command += "cat {}/*/PRESUMEout/PRESUMEout.aligned.fa.gz > {}/PRESUMEout.aligned.fa.gz; ".format(downstream_fasta_path, OUTDIR)
+    command += "cat {}/*/PRESUMEout/PRESUMEout.indel.gz > {}/PRESUMEout.indel.gz; ".format(downstream_fasta_path, OUTDIR)
     subprocess.call(command, shell=True)
     print("Done!")
     return
