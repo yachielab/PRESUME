@@ -1276,7 +1276,7 @@ if __name__ == "__main__":
         help="corresponging ancestral sequence (in upstream tree), \
             in case of distributed computing (default=None)",
         type=int,
-        default=0
+        default=None
         )
 
     # for distributed computing
