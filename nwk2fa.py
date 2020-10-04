@@ -334,7 +334,7 @@ def nwk2fa_qsub(args, parsed_args):
     tree = Phylo.read(INFILE, "newick")
     tree = rename_internals(tree)
 
-    
+
     tips_threshold = int(len(tree.get_terminals())**(1/2))
     decompose(INFILE, tips_threshold, decomp_nwk_path)
     filelist = os.listdir(decomp_nwk_path)
@@ -361,7 +361,7 @@ def nwk2fa_qsub(args, parsed_args):
     upper_name2seq_without_indel, upper_name2seq, upper_name2alignedseq, tree, upper_name2indellist = \
         nwk2fa_light(upper_tree, initseq, parsed_args, )   
     fasta_writer_single(upper_name2seq_without_indel, intermediate_fasta_path) # Seems tricky but "upper_name2seq_without_indel" shoule be appropriate here
-    indel_writer_single(upper_name2indellist, intermediate_indel_path)
+    if (parsed_args.CRISPR): indel_writer_single(upper_name2indellist, intermediate_indel_path)
 
     fasta_filelist = os.listdir(intermediate_fasta_path)
     if(parsed_args.CRISPR): indel_filelist = os.listdir(intermediate_indel_path)
