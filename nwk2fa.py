@@ -51,11 +51,11 @@ from newick to fasta
 github: https://github.com/yachielab/PRESUME
 '''
 
-def tabulate_names(tree):
+def rename_internals(tree):
     ### from https://biopython.org/wiki/Phylo_cookbook
     for idx, clade in enumerate(tree.find_clades()):
         if clade.name is None:
-            clade.name = str(idx)
+            clade.name = "clade"+str(idx)
     return tree
 
 def topology_shaper(tree):
@@ -307,6 +307,7 @@ def shell_generator(shell_outfp, treefile_list, fastafile_list, indelfile_list, 
         )
     return submit_command
 
+
 def nwk2fa_qsub(args, parsed_args):
     INFILE, OUTDIR =args.tree, args.output
     # initial sequence specification
@@ -331,6 +332,9 @@ def nwk2fa_qsub(args, parsed_args):
 
     # decompose tree
     tree = Phylo.read(INFILE, "newick")
+    tree = rename_internals(tree)
+
+    
     tips_threshold = int(len(tree.get_terminals())**(1/2))
     decompose(INFILE, tips_threshold, decomp_nwk_path)
     filelist = os.listdir(decomp_nwk_path)
@@ -426,6 +430,7 @@ def nwk2fa_single(args, parsed_args):
     
     # read tree
     tree = Phylo.read(args.tree, "newick")
+    tree = rename_internals(tree)
 
     # translate tree
     if parsed_args.CRISPR: add_indel=True
