@@ -103,6 +103,7 @@ def translate_tree(topology_dict, branch_length_dict,name_of_root, initseq, pars
         clade=stack.pop()
         node_name=clade.name
         mother_seq=clade.seq
+        clade.indels=self.initindels
         if len(topology_dict[node_name]) == 2:
             children = [
                 nwk2fa_mutation.Lineage(branch_length = branch_length_dict[topology_dict[node_name][0]], name=str(topology_dict[node_name][0]), seq=mother_seq, parsed_args=parsed_args, mother_clade = clade, indelsM=clade.indels),
@@ -319,8 +320,6 @@ def nwk2fa_qsub(args, parsed_args):
             initseq = str(list(sequences)[0].seq)
     '''
 
-    
-    
     # prepare intermediates
     intermediate_path = "{}/PRESUMEout/intermediate".format(OUTDIR)
     os.makedirs(intermediate_path, exist_ok = True)
