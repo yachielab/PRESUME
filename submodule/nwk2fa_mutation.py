@@ -131,10 +131,12 @@ class Lineage(Phylo.BaseTree.Clade):
         dropout         = False
 
         print(refpos2pos)
+        print(self.name,indel_list)
         for indel in indel_list:
             if (len(seqstr)==0):
                 dropout=True
                 break
+
             if (indel[0] == 'del'):
                 print(self.name, true_indel_list)
 
