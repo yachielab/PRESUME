@@ -355,6 +355,8 @@ def nwk2fa_qsub(args, parsed_args):
 
     upper_name2seq, upper_name2alignedseq, tree, upper_name2indellist = \
         nwk2fa_light(upper_tree, initseq, parsed_args, add_indel=False)   # Seems tricky but add_indel should be False here
+    upper_name2seq_with_indel, upper_name2alignedseq, tree, upper_name2indellist = \
+        nwk2fa_light(upper_tree, initseq, parsed_args, add_indel=True)   # Seems tricky but add_indel should be False here
     fasta_writer_single(upper_name2seq, intermediate_fasta_path)
     indel_writer_single(upper_name2indellist, intermediate_indel_path)
 
