@@ -255,7 +255,7 @@ def shell_generator(shell_outfp, treefile_list, fastafile_list, indelfile_list, 
     for idx, (treefile, fastafile, indelfile) in enumerate(zip(treefile_list, fastafile_list, indelfile_list)):
         
         parent_name= treefile.split("_")[1].split(".")[0]
-        print (parent)
+        print (parent_name)
         OUTPUT_DIR = fasta_outfp+"/Down_{}".format(parent_name)
 
         with open("{}/downstream_{}.sh".format(shell_outfp, parent_name), 'w') as qf:
