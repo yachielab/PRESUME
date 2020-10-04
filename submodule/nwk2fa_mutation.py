@@ -32,6 +32,7 @@ class Lineage(Phylo.BaseTree.Clade):
             else:
                 dseq=dseq + seq[i]
         '''
+        print(L)
         for i in range(parsed_args.L):
             #if(parsed_args.homoplasy is not None):
             #    dseq = dseq + self.homoplastic_mutation(seq, i, True)
