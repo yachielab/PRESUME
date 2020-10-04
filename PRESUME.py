@@ -898,7 +898,7 @@ def main(timelimit):
         esuname2zerolength={}
         for esu in SEQqueue:
             print(args.idANC)
-            if(args.idANC != 0):
+            if(args.idANC == 0):
                 esu_name = str(esu.id)
             else:
                 esu_name_prefix = str(hex(args.idANC)).split("x")[1]
@@ -926,12 +926,12 @@ def main(timelimit):
 
             # record indels
             if(CRISPR):
-                handle = gzip.open("indel.txt.gz", "wb")
+                handle = gzip.open("PRESUMEout.indel.gz", "wb")
                 if (True):
                 #with open("indel.txt", 'w') as handle:
                     for esu_idx, esu in enumerate(SEQqueue):
 
-                        if(args.idANC != 0):
+                        if(args.idANC == 0):
                             esu_name = str(esu.id)
                         else:
                             esu_name_prefix = str(hex(args.idANC)).split("x")[1]
@@ -1086,7 +1086,7 @@ def main(timelimit):
         #subprocess.call(command, shell=True)
         if args.f is None:
             if(CRISPR):
-                command = "cat intermediate/DOWN/*/PRESUMEout/indel.txt.gz > indel_combined.txt.gz 2> /dev/null;"
+                command = "cat intermediate/DOWN/*/PRESUMEout/PRESUMEout.indel.gz > PRESUMEout.indel.gz 2> /dev/null;"
                 
             if (args.chunks == 1):
                 command += "cat intermediate/DOWN/*/PRESUMEout/PRESUMEout.fa.gz > PRESUMEout.fa.gz;"
