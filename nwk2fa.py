@@ -227,7 +227,7 @@ def decompose(
     Phylo.write(tree, output + "/deUp.nwk", 'newick')
     return
 
-def shell_generator(shell_outfp, treefile_list, fastafile_list, tree_outfp, fasta_outfp, stdeo, parsed_args):
+def shell_generator(shell_outfp, treefile_list, fastafile_list, indelfile_list, tree_outfp, fasta_outfp, stdeo, parsed_args):
     PYTHON3 = (((
         subprocess.Popen('which python3', stdout=subprocess.PIPE, shell=True)
         .communicate()[0])
@@ -252,7 +252,7 @@ def shell_generator(shell_outfp, treefile_list, fastafile_list, tree_outfp, fast
         .split('\n'))[0]
 
     terminal_idx = 0
-    for idx, (treefile, fastafile) in enumerate(zip(treefile_list, fastafile_list)):
+    for idx, (treefile, fastafile, indelfile) in enumerate(zip(treefile_list, fastafile_list, indelfile_list)):
         with open("{}/downstream_{}.sh".format(shell_outfp, idx + 1), 'w') as qf:
             qf.write("#!/bin/bash\n")
             qf.write("#$ -S /bin/bash\n")
@@ -278,7 +278,7 @@ def shell_generator(shell_outfp, treefile_list, fastafile_list, tree_outfp, fast
                     " --inlength "   + args.inlength +\
                     " --delprob "    + args.delprob  +\
                     " --dellength "  + args.dellength+\
-                    " --indels "     + "../../indel/"+str(esu.id)+".txt"
+                    " --indels "     + indelfile
 
             qf.write(python_command)
         terminal_idx = idx
@@ -339,7 +339,8 @@ def nwk2fa_qsub(args, parsed_args):
     indel_writer_single(upper_name2indellist, intermediate_indel_path)
 
     fasta_filelist = os.listdir(intermediate_fasta_path)
-    nwk_filelist = os.listdir(decomp_nwk_path)
+    if(parsed_args.CRISPR): indel_filelist = os.listdir(intermediate_indel_path)
+    nwk_filelist   = os.listdir(decomp_nwk_path)
 
     for file in nwk_filelist:
         if file.split("_")[0] == "Down":
@@ -353,7 +354,7 @@ def nwk2fa_qsub(args, parsed_args):
     os.makedirs(downstream_fasta_path, exist_ok = True)
     os.makedirs(downstream_newick_path, exist_ok = True)
 
-    treefile_list, fastafile_list = [], []
+    treefile_list, fastafile_list, indelfile_list = [], [], []
     for file_nwk in nwk_filelist:
         if file_nwk.split("_")[0] == "Down":
             filename_without_ext = file_nwk.split(".")[0]
@@ -365,12 +366,19 @@ def nwk2fa_qsub(args, parsed_args):
 
             fastafile_list.append(path_of_fasta_in)
             treefile_list.append(path_of_newick_in)
+            
+            if(parsed_args.CRISPR): 
+                file_indel = "{}.indel".format(nodename)
+                path_of_indel_in = "{}/{}".format(intermediate_indel_path, file_indel)
+                indelfile_list.append(path_of_indel_in)
+            else:
+                indelfile_list.append(None)
 
     shell_path = "{}/shell".format(intermediate_path)
     os.makedirs(shell_path, exist_ok = True)
     stdeo_path = "{}/stdeo".format(intermediate_path)
     os.makedirs(stdeo_path, exist_ok = True)    
-    submit_command = shell_generator(shell_path, treefile_list, fastafile_list, downstream_newick_path, downstream_fasta_path ,stdeo_path, parsed_args)
+    submit_command = shell_generator(shell_path, treefile_list, fastafile_list, indelfile_list, downstream_newick_path, downstream_fasta_path ,stdeo_path, parsed_args)
     subprocess.call(submit_command, shell=True)
     print("bottom tree created!")
 
