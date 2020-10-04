@@ -131,14 +131,13 @@ class Lineage(Phylo.BaseTree.Clade):
         pos2refpos      = list(range(len(seqstr)))
         dropout         = False
 
-        print(refpos2pos)
         for indel in indel_list:
+            print(self.name, indel_list, true_indel_list)
             if (len(seqstr)==0):
                 dropout=True
                 break
 
             if (indel[0] == 'del'):
-                print(self.name, true_indel_list)
 
                 if( indel[1] in refpos2pos.keys() ):
                     true_indel_list.append(indel)
