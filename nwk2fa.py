@@ -300,13 +300,20 @@ def shell_generator(shell_outfp, treefile_list, fastafile_list, indelfile_list, 
 
 def nwk2fa_qsub(args, parsed_args):
     INFILE, OUTDIR =args.tree, args.output
+    # initial sequence specification
+    initseq = parsed_args.init_seq
+
+    '''
     initseq = False
     # initial sequence specification
     if (args.f is not None):
         with gzip.open(args.f, 'rt') as f:
             sequences = SeqIO.parse(f, 'fasta')
             initseq = str(list(sequences)[0].seq)
+    '''
 
+    
+    
     # prepare intermediates
     intermediate_path = "{}/PRESUMEout/intermediate".format(OUTDIR)
     os.makedirs(intermediate_path, exist_ok = True)
@@ -340,7 +347,7 @@ def nwk2fa_qsub(args, parsed_args):
     os.makedirs(intermediate_indel_path, exist_ok = True)
 
     upper_name2seq, upper_name2alignedseq, tree, upper_name2indellist = \
-        nwk2fa_light(upper_tree, initseq, parsed_args)
+        nwk2fa_light(upper_tree, parsed_args)
     fasta_writer_single(upper_name2seq, intermediate_fasta_path)
     indel_writer_single(upper_name2indellist, intermediate_indel_path)
 
