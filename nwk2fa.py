@@ -227,7 +227,7 @@ def decompose(
     Phylo.write(tree, output + "/deUp.nwk", 'newick')
     return
 
-def shell_generator(shell_outfp, treefile_list, fastafile_list, indelfile_list, tree_outfp, fasta_outfp, stdeo, parsed_args):
+def shell_generator(shell_outfp, treefile_list, fastafile_list, indelfile_list, tree_outfp, fasta_outfp, stdeo, args, parsed_args):
     PYTHON3 = (((
         subprocess.Popen('which python3', stdout=subprocess.PIPE, shell=True)
         .communicate()[0])
@@ -378,7 +378,17 @@ def nwk2fa_qsub(args, parsed_args):
     os.makedirs(shell_path, exist_ok = True)
     stdeo_path = "{}/stdeo".format(intermediate_path)
     os.makedirs(stdeo_path, exist_ok = True)    
-    submit_command = shell_generator(shell_path, treefile_list, fastafile_list, indelfile_list, downstream_newick_path, downstream_fasta_path ,stdeo_path, parsed_args)
+    submit_command = shell_generator(
+        shell_path, 
+        treefile_list, 
+        fastafile_list, 
+        indelfile_list, 
+        downstream_newick_path, 
+        downstream_fasta_path,
+        stdeo_path,
+        args,
+        parsed_args
+        )
     subprocess.call(submit_command, shell=True)
     print("bottom tree created!")
 
