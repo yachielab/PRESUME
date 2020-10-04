@@ -84,6 +84,17 @@ class PARSED_ARGS():
             print("fatal error: doubling time of initial SEQ is 0!")
             sys.exit(1)
 
+        self.growing_rate_origin = 1 / args.d
+        self.sigma_origin = args.s
+        self.alpha = args.a
+        self.T = args.T
+        self.e = args.e
+        self.m = args.m
+        self.homoplasy = args.homoplasy
+        self.constant = args.constant
+        self.gtrgamma = args.gtrgamma
+
+
         # initial sequence specification
         if (args.f is not None):
             if args.f.split(".")[-1]=='gz':
@@ -95,15 +106,12 @@ class PARSED_ARGS():
             self.L = len(self.initseq)
             handle.close()
 
-        self.growing_rate_origin = 1 / args.d
-        self.sigma_origin = args.s
-        self.alpha = args.a
-        self.T = args.T
-        self.e = args.e
-        self.m = args.m
-        self.homoplasy = args.homoplasy
-        self.constant = args.constant
-        self.gtrgamma = args.gtrgamma
+        elif (args.polyC):
+            self.initseq = 'C' * L  # initial sequence
+        else:
+            self.initseq = ''.join([
+                np.random.choice(['A', 'G', 'C', 'T']) for i in range(args.L)
+                ])
 
         # In case expected number of mutation is independent
         # on the doubling time of the SEQ
@@ -177,13 +185,6 @@ class PARSED_ARGS():
             self.del_lengths = [ make_list(args.dellength,'int'  , column = 0)   ,
                                  make_list(args.dellength,'float', column = 1)   ]
             self.CRISPR      = True
-
-        elif (args.polyC):
-            self.initseq = 'C' * L  # initial sequence
-        else:
-            self.initseq = ''.join([
-                np.random.choice(['A', 'G', 'C', 'T']) for i in range(args.L)
-                ])
 
         # initial indel specification (for distributed computing mode)
         if(self.CRISPR):
