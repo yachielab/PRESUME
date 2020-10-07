@@ -166,7 +166,7 @@ class ExceptionOfCodeOcenan(PresumeException):
 #   for Simulation
 class SEQ():
     # idM & mseq means id & sequence of mother SEQ, respectively.
-    def __init__(self, SEQid, idM, mseq, CVM, rM, dM, tM, indelsM, CV=False): # indels: list of [('in' or 'del', start_pos, length)]
+    def __init__(self, SEQid, idM, mseq, CVM, rM, dM, tM, indelsM, CV=False, STV=False): # indels: list of [('in' or 'del', start_pos, length)]
         self.id = SEQid  # for example: 0,1,2,...
         self.idM = idM
         self.CV = max(np.random.normal(CVM, CVM*alpha), 0)  # should be > 0
@@ -178,10 +178,16 @@ class SEQ():
         self.is_alive = (self.r >= 0 and np.random.rand() > e)
         
         if(self.is_alive):
-            if self.r == 0:
-                self.d = float("inf")
+            if STV:
+                if CV:
+                    self.r = self.growing_rate_dist(dM, rM*self.CV)
+                else:
+                    self.r = self.growing_rate_dist(dM, self.CV)
             else:
-                self.d = 1/self.r
+                if self.r == 0:
+                    self.d = float("inf")
+                else:
+                    self.d = 1/self.r
 
             self.t      = tM + self.d  # time t of doubling of this SEQ
             self.seq    = self.daughterseq(str(mseq), dM)
@@ -203,7 +209,7 @@ class SEQ():
         dseq = ""
         for i in range(L):
             if(args.homoplasy is not None):
-                dseq = dseq + self.homoplastic_mutation(seq, i, True)
+                dseq = dseq + self.homoplastic_mutation(seq[i], i)
             elif(args.constant is not None):
                 dseq = dseq + self.time_independent_mutation(seq[i], mu[i])
             elif(args.gtrgamma is not None):
@@ -213,15 +219,11 @@ class SEQ():
     # mutation of a site (NOT Jukes Cantor model.
     # directly define mutation matrix, not the mutation rate matrix
     # it's enough for calculate mutation of each duplication
-    def homoplastic_mutation(self, c, mu):
-        base = {'A': 0, 'C': 1, 'G': 2, 'T': 3}
+    def homoplastic_mutation(self, c, position):
+        base = {'A': 0, 'T': 1, 'G': 2, 'C': 3}
     
-        matrix = [
-            [1-mu, mu/3, mu/3, mu/3],
-            [mu/3, 1-mu, mu/3, mu/3],
-            [mu/3, mu/3, 1-mu, mu/3],
-            [mu/3, mu/3, mu/3, 1-mu]
-            ]
+        matrix = SUBSTITUTION_RATE_MATRIX[position]
+
         return random.choices(
             ['A', 'C', 'G', 'T'], k=1, weights=matrix[base[c]]
             )[0]
@@ -235,6 +237,7 @@ class SEQ():
             [mu/3, mu/3, 1-mu, mu/3],
             [mu/3, mu/3, mu/3, 1-mu]
             ]
+
         return random.choices(
             ['A', 'C', 'G', 'T'], k=1, weights=matrix[base[c]]
             )[0]
@@ -810,14 +813,14 @@ def main(timelimit):
                 # duplication
                 if args.CV:
                     daughter = [SEQ(i, esu.id, esu.seq, esu.CV,
-                                    esu.d, esu.r, esu.t, esu.indels, True),
+                                    esu.r, esu.d, esu.t, esu.indels, True),
                                 SEQ(i+1, esu.id, esu.seq, esu.CV,
-                                    esu.d, esu.r, esu.t, esu.indels, True)]
+                                    esu.r, esu.d, esu.t, esu.indels, True)]
                 else:
                     daughter = [SEQ(i, esu.id, esu.seq, esu.CV,
-                                    esu.d, esu.r, esu.t, esu.indels),
+                                    esu.r, esu.d, esu.t, esu.indels),
                                 SEQ(i+1, esu.id, esu.seq, esu.CV,
-                                    esu.d, esu.r, esu.t, esu.indels)]
+                                    esu.r, esu.d, esu.t, esu.indels)]
 
                 SEQqueue.extend(daughter)
 
@@ -1409,8 +1412,15 @@ if __name__ == "__main__":
 
     parser.add_argument(
         "--homoplasy",
-        help="Option of enable homoplasy model",
-        action="store_true",
+        help="file name of parameters of homoplasy model",
+        type=str,
+        default=None
+    )
+
+    parser.add_argument(
+        "--STV",
+        help="enable survival time variation model",
+        action='store_true',
         default=False
     )
 
@@ -1471,11 +1481,11 @@ if __name__ == "__main__":
             print("CSV loaded!")
 
     # --gamma xor --constant should be specified
-    if(args.gtrgamma is None and args.constant is None):
-        print("please specify --gtrgamma or --constant")
+    if(args.gtrgamma is None and args.constant is None and args.homoplasy is None):
+        print("please specify --gtrgamma, --constant, or --homoplasy")
         sys.exit(1)
-    if(args.gtrgamma is not None and args.constant is not None):
-        print("please don't specify both --gtrgamma and --constant")
+    if(args.gtrgamma is not None and args.constant is not None and args.homoplasy is None):
+        print("please don't specify both --gtrgamma, --constant, or --homoplasy")
         sys.exit(1)
 
     # initialize the pseudo-random number generator
@@ -1505,10 +1515,17 @@ if __name__ == "__main__":
     e = args.e
     m = args.m
 
+    if args.STV:
+        STV = True
+    else:
+        STV = False
+
     # In case expected number of mutation is independent
     # on the doubling time of the SEQ
     if args.homoplasy is not None:
-        
+        import submodule.homoplasy_model as hpm
+        SUBSTITUTION_RATE_MATRIX = hpm.sub_mat_parser(args.homoplasy)
+        L = len(SUBSTITUTION_RATE_MATRIX)
     elif(args.constant is not None):
         mu = [args.constant] * L
 
