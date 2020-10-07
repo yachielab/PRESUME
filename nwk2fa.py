@@ -17,6 +17,10 @@ import numpy as np
 import random
 import argparse
 import gzip
+import shutil
+
+from submodule import nwk2fa_mutation
+from submodule import args_reader
 
 LOGO='''
 ######     ######     #######     #####     #     #    #     #    #######
@@ -48,35 +52,11 @@ from newick to fasta
 github: https://github.com/yachielab/PRESUME
 '''
 
-# nwk2fa light
-class Lineage(Phylo.BaseTree.Clade):
-    def __init__(self, branch_length=1.0, name=None, clades=None, confidence=None, color=None, width=None, 
-    seq=None, mother_name=None, ROOT=False):
-        super(Lineage, self).__init__(branch_length, name, clades, confidence, color, width)
-
-        self.mother_name =mother_name
-        self.branch_length = branch_length
-        self.seq = seq if ROOT else self.replication(seq)
-        self.indel_list = [] # TODO: indel listです
-        self.substitution_list = [] 
-
-    def replication(self, seq):
-        '''
-        TODO: 厳密な変異モデルを実装すること。
-        '''
-        dseq=""
-        for i in range(len(seq)):
-            if random.randint(0, 100) < 10:
-                dseq=dseq+random.choice(['A','C','G','T'])
-            else:
-                dseq=dseq + seq[i]
-        return dseq
-
-def tabulate_names(tree):
+def rename_internals(tree):
     ### from https://biopython.org/wiki/Phylo_cookbook
     for idx, clade in enumerate(tree.find_clades()):
         if clade.name is None:
-            clade.name = str(idx)
+            clade.name = "clade"+str(idx)
     return tree
 
 def topology_shaper(tree):
@@ -88,31 +68,37 @@ def topology_shaper(tree):
     branch_length_dict[root.name] = root.branch_length if root.branch_length is not None else 1.0
     for clade in internal_nodes:
         if len(clade.clades) == 2:
-            mother_name = clade.name
+            mother_name     = clade.name
             daughter_L_name = clade.clades[0].name
             daughter_R_name = clade.clades[1].name
-            mother_branch_length = clade.branch_length if clade.branch_length is not None else 1.0
+            mother_branch_length  = clade.branch_length if clade.branch_length is not None else 1.0
             # define topology
             topology[mother_name] = [daughter_L_name, daughter_R_name]
-            topology[daughter_L_name] = []
-            topology[daughter_R_name] = []
+            #topology[daughter_L_name] = []
+            #topology[daughter_R_name] = []
             # define branch_length
             branch_length_dict[mother_name] = clade.branch_length
-
+            if clade.branch_length==None: clade.branch_length=10^(-10)             # if branch_length is not defined, PRESUME ignore mutations ccuring at the branch 
         else:
             raise ValueError('wrong clades! \n # of clades {}'.format(len(clade.clades)))
             pass
 
+    
     for clade in terminal_nodes:
         topology[clade.name] = []
         if clade.name != root.name:
-            branch_length_dict[clade.name] = clade.branch_length if clade.branch_length is not None else 1.0
+            branch_length_dict[clade.name] = clade.branch_length if clade.branch_length is not None else 1.0 
+    
     return topology, branch_length_dict, root.name
 
-def translate_tree(topology_dict, branch_length_dict,name_of_root, initseq):
-    if not initseq:
-        initseq=''.join([np.random.choice(['A', 'G', 'C', 'T']) for i in range(1000)])
-    init_clade = Lineage(branch_length=branch_length_dict[name_of_root], name=name_of_root, seq= initseq, ROOT=True)
+# Conduct a simulation
+def translate_tree(topology_dict, branch_length_dict,name_of_root, initseq, parsed_args):
+    
+    init_branch_length = parsed_args.dorigin                  ### Important! 
+    #init_branch_length = branch_length_dict[name_of_root]
+
+    init_clade = nwk2fa_mutation.Lineage(branch_length=init_branch_length, name=name_of_root, seq= initseq, ROOT=True, parsed_args=parsed_args,indelsM=[])
+    init_clade.indels=parsed_args.initindels
     newtree = Phylo.BaseTree.Tree(init_clade)
     stack=[init_clade]
     cnt = 0
@@ -120,24 +106,40 @@ def translate_tree(topology_dict, branch_length_dict,name_of_root, initseq):
         clade=stack.pop()
         node_name=clade.name
         mother_seq=clade.seq
-        if len(topology_dict[node_name]) ==2:
+        if len(topology_dict[node_name]) == 2:
             children = [
-                Lineage(branch_length = branch_length_dict[topology_dict[node_name][0]], name=str(topology_dict[node_name][0]), seq=mother_seq),
-                Lineage(branch_length = branch_length_dict[topology_dict[node_name][1]], name=str(topology_dict[node_name][1]), seq=mother_seq)
+                nwk2fa_mutation.Lineage(branch_length = branch_length_dict[topology_dict[node_name][0]], name=str(topology_dict[node_name][0]), seq=mother_seq, parsed_args=parsed_args, mother_clade = clade, indelsM=clade.indels),
+                nwk2fa_mutation.Lineage(branch_length = branch_length_dict[topology_dict[node_name][1]], name=str(topology_dict[node_name][1]), seq=mother_seq, parsed_args=parsed_args, mother_clade = clade, indelsM=clade.indels)
             ]
             clade.clades.extend(children)
             stack.extend(children)
             cnt += 1
     return newtree
 
-def nwk2fa_light(tree, initseq=False):   
+def nwk2fa_light(tree, initseq,parsed_args):
     # translate Phylo.BaseTree.Tree into Lineage
     topology_dict, branch_length_dict, name_of_root= topology_shaper(tree)
-    lineage_tree = translate_tree(topology_dict, branch_length_dict, name_of_root, initseq)
+    lineage_tree = translate_tree(topology_dict, branch_length_dict, name_of_root, initseq,parsed_args=parsed_args)
     if len(tree.get_terminals()) != len(lineage_tree.get_terminals()):
         raise ValueError('something went wrong!!!')
-    fasta_data = {item.name:item.seq for item in lineage_tree.get_terminals()}
-    return fasta_data, tree
+    
+
+    name2seq_without_indel  = {terminal.name:terminal.seq for terminal in lineage_tree.get_terminals()}
+
+    if (parsed_args.CRISPR):
+        name2seq        = {}
+        name2alignedseq = {}
+        name2indellist  = {}
+        for terminal in lineage_tree.get_terminals():
+            seq, alignedseq, indel_list    = terminal.get_seq_with_indel()
+            name2seq[terminal.name]        = seq
+            name2alignedseq[terminal.name] = alignedseq
+            name2indellist[terminal.name]  = indel_list
+    else:
+        name2seq, name2alignedseq = name2seq_without_indel, name2seq_without_indel
+        name2indellist            = None
+
+    return name2seq_without_indel, name2seq, name2alignedseq, tree, name2indellist
 
 def fasta_writer_single(name_seq_dict, outfp):
     for name in name_seq_dict.keys():
@@ -146,11 +148,41 @@ def fasta_writer_single(name_seq_dict, outfp):
             writer.write(">{0}\n{1}\n".format(name, name_seq_dict[name]))
     return
 
+def indel_writer_single(name_indellist_dict, outfp):
+    for name in name_indellist_dict.keys():
+        filename = "{0}/{1}.indel".format(outfp, name)
+        with open(filename, "w") as writer:
+            indellist = name_indellist_dict[name]
+            for indel in indellist:
+                if (indel[0] == "del") : writer.write(str(indel[0])+"\t"+str(indel[1])+"\t"+str(indel[2])+"\n")
+                elif (indel[0] == "in"): writer.write(str(indel[0])+"\t"+str(indel[1])+"\t"+str(indel[2])+"\t"+str(indel[3])+"\n")
+    return
+
 def fasta_writer_multiple(name_seq_dict, outfp, filename):
-    filename = "{0}/{1}.gz".format(outfp, filename)
+    filename = "{0}/{1}.fa.gz".format(outfp, filename)
     with gzip.open(filename, "wt") as writer:
         for name in name_seq_dict.keys():
             writer.write(">{0}\n{1}\n".format(name, name_seq_dict[name]))
+    return
+
+def indel_writer_multiple(name_indellist_dict, outfp, filename):
+    filename = "{0}/{1}.indel.gz".format(outfp, filename)
+    with gzip.open(filename, "wt") as writer:
+        for name in name_indellist_dict.keys():
+            writer.write("{0}\t".format(name))
+            
+            for indel_idx, indel in enumerate(name_indellist_dict[name]):
+                if (indel[0] == "del") : 
+                    mid    = indel[1] # pos is the midpoint of deletion
+                    length = indel[2]
+                    writer.write(("D_mid"+str(mid)+"_len"+str(length)))
+                elif (indel[0] == "in"): 
+                    pos    = indel[1] # pos is the midpoint of deletion
+                    seq    = indel[3]
+                    writer.write(("I_"+str(pos+0.5)+"_"+seq))
+                if (indel_idx < len(name_indellist_dict[name])-1):
+                    writer.write(";")
+            writer.write("\n")
     return
 
 # decomp tree
@@ -203,7 +235,7 @@ def decompose(
     Phylo.write(tree, output + "/deUp.nwk", 'newick')
     return
 
-def shell_generator(shell_outfp, treefile_list, fastafile_list, tree_outfp, fasta_outfp, stdeo):
+def shell_generator(shell_outfp, treefile_list, fastafile_list, indelfile_list, tree_outfp, fasta_outfp, stdeo, args, parsed_args):
     PYTHON3 = (((
         subprocess.Popen('which python3', stdout=subprocess.PIPE, shell=True)
         .communicate()[0])
@@ -228,26 +260,50 @@ def shell_generator(shell_outfp, treefile_list, fastafile_list, tree_outfp, fast
         .split('\n'))[0]
 
     terminal_idx = 0
-    for idx, (treefile, fastafile) in enumerate(zip(treefile_list, fastafile_list)):
-        with open("{}/downstream_{}.sh".format(shell_outfp, idx + 1), 'w') as qf:
+    for idx, (treefile, fastafile, indelfile) in enumerate(zip(treefile_list, fastafile_list, indelfile_list)):
+        
+        parent_name= treefile.split("/")[-1].split(".")[0]
+        OUTPUT_DIR = fasta_outfp+"/{}".format(parent_name)
+
+        with open("{}/downstream_{}.sh".format(shell_outfp, idx+1), 'w') as qf:
             qf.write("#!/bin/bash\n")
             qf.write("#$ -S /bin/bash\n")
             qf.write("#$ -cwd\n")
             qf.write("PATH={}\n".format(PATH))
             qf.write("LD_LIBRARY_PATH={}\n".format(LD_LIBRARY_PATH))
+            qf.write("mkdir "+OUTPUT_DIR+"\n")
+            qf.write("cd "+OUTPUT_DIR+"\n")
             qf.write("pwd\n")
+            #python_command = PYTHON3 + " " + NWK2FA + "/nwk2fa.py "\
+            #    + " --tree " + treefile\
+            #    + " --fasta " + fastafile\
+            #    + " --outdir_nwk " + tree_outfp\
+            #    + " --outdir_fasta " + fasta_outfp\
+            #    + " --filename " + "Down_{}".format(idx + 1)
 
-            python_command = PYTHON3 + " " + NWK2FA + "/nwk2fa.py "\
-                + " --tree " + treefile\
-                + " --fasta " + fastafile\
-                + " --outdir_nwk " + tree_outfp\
-                + " --outdir_fasta " + fasta_outfp\
-                + " --filename " + "Down_{}".format(idx + 1)
+            python_command = PYTHON3 + " " + NWK2FA + "/PRESUME.py "\
+                + " -f " + fastafile\
+                + " --seed " + str(np.random.randint(0, 10000))\
+                + " --tree " + treefile
+            if parsed_args.CRISPR:
+                python_command += \
+                    " --inprob "     + args.inprob   +\
+                    " --inlength "   + args.inlength +\
+                    " --delprob "    + args.delprob  +\
+                    " --dellength "  + args.dellength+\
+                    " --indels "     + indelfile
+            if (args.gtrgamma is not None):
+                python_command += \
+                    " --gtrgamma "+str(args.gtrgamma)
+            if (args.constant is not None):
+                python_command += \
+                    " --constant "+str(args.constant)
 
             qf.write(python_command)
         terminal_idx = idx
     
-    submit_command = "qsub -e {3} -o {3} -sync y -t 1-{0} {1}/nwk2fa_launcher.sh {2} &> /dev/null".format(
+    #submit_command = "qsub -e {3} -o {3} -sync y -t 1-{0} {1}/nwk2fa_launcher.sh {2} &> /dev/null".format(
+    submit_command = "qsub -e {3} -o {3} -sync y -t 1-{0} {1}/submodule/nwk2fa_launcher.sh {2} > {3}/nwk2fa_launcher.sh.out 2> {3}/nwk2fa_launcher.sh.err".format(
         terminal_idx + 1,
         NWK2FA,
         shell_outfp,
@@ -255,24 +311,36 @@ def shell_generator(shell_outfp, treefile_list, fastafile_list, tree_outfp, fast
         )
     return submit_command
 
-def nwk2fa_qsub(args):
+
+def nwk2fa_qsub(args, parsed_args):
     INFILE, OUTDIR =args.tree, args.output
+    # initial sequence specification
+    initseq = parsed_args.initseq
+
+    '''
     initseq = False
     # initial sequence specification
     if (args.f is not None):
         with gzip.open(args.f, 'rt') as f:
             sequences = SeqIO.parse(f, 'fasta')
             initseq = str(list(sequences)[0].seq)
+    '''
 
     # prepare intermediates
-    intermediate_path = "{}/intermediate".format(OUTDIR)
+    intermediate_path = "{}/PRESUMEout/intermediate".format(OUTDIR)
     os.makedirs(intermediate_path, exist_ok = True)
 
     decomp_nwk_path = "{}/decomp_tree".format(intermediate_path)
+
     os.makedirs(decomp_nwk_path, exist_ok = True)
 
     # decompose tree
     tree = Phylo.read(INFILE, "newick")
+    tree = rename_internals(tree)
+
+    Phylo.write(tree, "{}/{}.nwk".format(args.output+"/PRESUMEout", "PRESUMEout"), "newick")
+
+
     tips_threshold = int(len(tree.get_terminals())**(1/2))
     decompose(INFILE, tips_threshold, decomp_nwk_path)
     filelist = os.listdir(decomp_nwk_path)
@@ -292,13 +360,18 @@ def nwk2fa_qsub(args):
             print(terminal, " is not found!!")
     print("NWK2FA:created upper tree...")
     intermediate_fasta_path = "{}/fastas".format(intermediate_path)
+    intermediate_indel_path = "{}/indels".format(intermediate_path)
     os.makedirs(intermediate_fasta_path, exist_ok = True)
+    os.makedirs(intermediate_indel_path, exist_ok = True)
 
-    upper_fasta, tree = nwk2fa_light(upper_tree, initseq)
-    fasta_writer_single(upper_fasta, intermediate_fasta_path)
+    upper_name2seq_without_indel, upper_name2seq, upper_name2alignedseq, tree, upper_name2indellist = \
+        nwk2fa_light(upper_tree, initseq, parsed_args, )   
+    fasta_writer_single(upper_name2seq_without_indel, intermediate_fasta_path) # Seems tricky but "upper_name2seq_without_indel" shoule be appropriate here
+    if (parsed_args.CRISPR): indel_writer_single(upper_name2indellist, intermediate_indel_path)
 
     fasta_filelist = os.listdir(intermediate_fasta_path)
-    nwk_filelist = os.listdir(decomp_nwk_path)
+    if(parsed_args.CRISPR): indel_filelist = os.listdir(intermediate_indel_path)
+    nwk_filelist   = os.listdir(decomp_nwk_path)
 
     for file in nwk_filelist:
         if file.split("_")[0] == "Down":
@@ -312,7 +385,7 @@ def nwk2fa_qsub(args):
     os.makedirs(downstream_fasta_path, exist_ok = True)
     os.makedirs(downstream_newick_path, exist_ok = True)
 
-    treefile_list, fastafile_list = [], []
+    treefile_list, fastafile_list, indelfile_list = [], [], []
     for file_nwk in nwk_filelist:
         if file_nwk.split("_")[0] == "Down":
             filename_without_ext = file_nwk.split(".")[0]
@@ -324,36 +397,58 @@ def nwk2fa_qsub(args):
 
             fastafile_list.append(path_of_fasta_in)
             treefile_list.append(path_of_newick_in)
+            
+            if(parsed_args.CRISPR): 
+                file_indel = "{}.indel".format(nodename)
+                path_of_indel_in = "{}/{}".format(intermediate_indel_path, file_indel)
+                indelfile_list.append(path_of_indel_in)
+            else:
+                indelfile_list.append(None)
 
     shell_path = "{}/shell".format(intermediate_path)
     os.makedirs(shell_path, exist_ok = True)
     stdeo_path = "{}/stdeo".format(intermediate_path)
     os.makedirs(stdeo_path, exist_ok = True)    
-    submit_command = shell_generator(shell_path, treefile_list, fastafile_list, downstream_newick_path, downstream_fasta_path ,stdeo_path)
+    submit_command = shell_generator(
+        shell_path, 
+        treefile_list, 
+        fastafile_list, 
+        indelfile_list, 
+        downstream_newick_path, 
+        downstream_fasta_path,
+        stdeo_path,
+        args,
+        parsed_args
+        )
     subprocess.call(submit_command, shell=True)
     print("bottom tree created!")
 
-    command = "cat {}/* > {}/PRESUMEout.fasta.gz".format(downstream_fasta_path, OUTDIR)
+    command  = "cat {}/*/PRESUMEout/PRESUMEout.fa.gz > {}/PRESUMEout.fa.gz; ".format(downstream_fasta_path, OUTDIR+"/PRESUMEout")
+    if(parsed_args.CRISPR):
+        command += "cat {}/*/PRESUMEout/PRESUMEout.aligned.fa.gz > {}/PRESUMEout.aligned.fa.gz; ".format(downstream_fasta_path, OUTDIR+"/PRESUMEout")
+        command += "cat {}/*/PRESUMEout/PRESUMEout.indel.gz > {}/PRESUMEout.indel.gz; ".format(downstream_fasta_path, OUTDIR+"/PRESUMEout")
     subprocess.call(command, shell=True)
+    if (not args.debug) : shutil.rmtree(intermediate_path)
     print("Done!")
     return
 
-def nwk2fa_single(args):
-    initseq = False
+def nwk2fa_single(args, parsed_args):
     # initial sequence specification
-    if (args.f is not None):
-        with gzip.open(args.f, 'rt') as f:
-            sequences = SeqIO.parse(f, 'fasta')
-            initseq = str(list(sequences)[0].seq)
+    initseq = parsed_args.initseq
     
     # read tree
     tree = Phylo.read(args.tree, "newick")
+    tree = rename_internals(tree)
 
     # translate tree
-    newtree_fasta, newtree = nwk2fa_light(tree, initseq)
-    fasta_writer_multiple(newtree_fasta, args.outdir_fasta, "{}.fasta".format(args.filename))
-    Phylo.write(newtree, "{}/{}.nwk".format(args.outdir_nwk, args.filename), "newick")
+    upper_name2seq_without_indel, name2seq, name2alignedseq, newtree, name2indellist = nwk2fa_light(tree, initseq, parsed_args=parsed_args)
+    fasta_writer_multiple(name2seq, args.output+"/PRESUMEout", "PRESUMEout")
+    if parsed_args.CRISPR:
+        fasta_writer_multiple(name2alignedseq, args.output+"/PRESUMEout", "PRESUMEout.aligned")
+        indel_writer_multiple(name2indellist , args.output+"/PRESUMEout", "PRESUMEout")
+    Phylo.write(newtree, "{}/{}.nwk".format(args.output+"/PRESUMEout", "PRESUMEout"), "newick")
 
+'''
 if __name__ == "__main__":
     # INFILE = "/Users/keitowatano/Desktop/tmp_PRESUME/in/test_10k_tips.nwk"
     # OUTDIR = "/Users/keitowatano/Desktop/tmp_PRESUME/out/prototype_nwk2fa"
@@ -393,7 +488,8 @@ if __name__ == "__main__":
     tree = Phylo.read(args.tree, "newick")
 
     # translate tree
-    newtree_fasta, newtree = nwk2fa_light(tree, initseq)
-    fasta_writer_multiple(newtree_fasta, args.outdir_fasta, "{}.fasta".format(args.filename))
+    name2seq, newtree = nwk2fa_light(tree, initseq, parsed_args)
+    fasta_writer_multiple(name2seq, args.outdir_fasta, "{}.fasta".format(args.filename))
     Phylo.write(newtree, "{}/{}.nwk".format(args.outdir_nwk, args.filename), "newick")
 
+'''
