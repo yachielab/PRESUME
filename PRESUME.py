@@ -26,6 +26,7 @@ import re
 import csv
 import copy
 import gzip
+from submodule import args_reader
 
 LOGO = '''
 ######     ######     #######     #####     #     #    #     #    #######
@@ -526,7 +527,7 @@ def fasta_writer(name, seq, indels, file_name, overwrite_mode, Nchunks, filepath
                                 length = indel[2]
                                 chunk    = chunk[:start+1] + indel[3] + chunk[start+1:]
                                     
-                                pos2refposindel = pos2refposindel[:start] + ["in"]*length + pos2refposindel[start:]
+                                pos2refposindel = pos2refposindel[:start+1] + ["in"]*length + pos2refposindel[start+1:]
 
                                 refpos2pos = {}
                                 pos=0
@@ -896,7 +897,7 @@ def main(timelimit):
 
         esuname2zerolength={}
         for esu in SEQqueue:
-            if(args.idANC is None):
+            if(args.idANC == 0):
                 esu_name = str(esu.id)
             else:
                 esu_name_prefix = str(hex(args.idANC)).split("x")[1]
@@ -924,12 +925,12 @@ def main(timelimit):
 
             # record indels
             if(CRISPR):
-                handle = gzip.open("indel.txt.gz", "wb")
+                handle = gzip.open("PRESUMEout.indel.gz", "wb")
                 if (True):
                 #with open("indel.txt", 'w') as handle:
                     for esu_idx, esu in enumerate(SEQqueue):
 
-                        if(args.idANC is None):
+                        if(args.idANC == 0):
                             esu_name = str(esu.id)
                         else:
                             esu_name_prefix = str(hex(args.idANC)).split("x")[1]
@@ -1084,7 +1085,7 @@ def main(timelimit):
         #subprocess.call(command, shell=True)
         if args.f is None:
             if(CRISPR):
-                command = "cat intermediate/DOWN/*/PRESUMEout/indel.txt.gz > indel_combined.txt.gz 2> /dev/null;"
+                command = "cat intermediate/DOWN/*/PRESUMEout/PRESUMEout.indel.gz > PRESUMEout.indel.gz 2> /dev/null;"
                 
             if (args.chunks == 1):
                 command += "cat intermediate/DOWN/*/PRESUMEout/PRESUMEout.fa.gz > PRESUMEout.fa.gz;"
@@ -1331,7 +1332,7 @@ if __name__ == "__main__":
         "--seed",
         help="random seed used to initialize \
             the pseudo-random number generator",
-        type=str,
+        type=int,
         default=None
         )
     '''
@@ -1411,7 +1412,7 @@ if __name__ == "__main__":
         "--homoplasy",
         help="Option of enable homoplasy model",
         action="store_true",
-        default=False
+        default=None
     )
 
     args = parser.parse_args()
@@ -1433,15 +1434,23 @@ if __name__ == "__main__":
         print(LOGO)
         exit()
 
-    if args.tree and args.qsub:
-        import submodule.nwk2fa as n2f
+    OUTDIR = args.output
+    
+    if args.tree:
+        if (os.path.exists(os.getcwd() + "/" + args.tree)):
+            args.tree      = os.getcwd() + "/" + args.tree
+        processed_args = args_reader.PARSED_ARGS(args)
+
+        import nwk2fa as n2f
         print("tree mode!")
-        n2f.nwk2fa_qsub(args)
-        exit()
-    elif args.tree:
-        import submodule.nwk2fa as n2f
-        print("tree mode!")
-        n2f.nwk2fa_single(args)
+        os.chdir(OUTDIR)
+        os.makedirs("PRESUMEout", exist_ok=True)
+        os.chdir("PRESUMEout")
+
+        if (not args.qsub):
+            n2f.nwk2fa_single(args, processed_args)
+        else:
+            n2f.nwk2fa_qsub(args, processed_args)
         exit()
     
     # read argument from input CSV
@@ -1508,7 +1517,7 @@ if __name__ == "__main__":
     # In case expected number of mutation is independent
     # on the doubling time of the SEQ
     if args.homoplasy is not None:
-        
+        None
     elif(args.constant is not None):
         mu = [args.constant] * L
 
@@ -1606,14 +1615,15 @@ if __name__ == "__main__":
                 for line in handle:
                     chunks = line.split()
                     if (chunks[0] == "del") : initindels.append([chunks[0], int(chunks[1]), int(chunks[2])])
-                    elif (chunks[1] == "in"): initindels.append([chunks[0], int(chunks[1]), int(chunks[2]), chunks[3]])
+                    elif (chunks[0] == "in"): initindels.append([chunks[0], int(chunks[1]), int(chunks[2]), chunks[3]])
+                    else:
+                        print("Error: Invalid input for --indels option")
         else:
             initindels=[]
     else:
         initindels=None
 
     # setup directory
-    OUTDIR = args.output
     if not os.path.exists(OUTDIR):
         os.makedirs(OUTDIR)
     os.chdir(OUTDIR)
