@@ -181,9 +181,9 @@ class SEQ():
         if(self.is_alive):
             if STV:
                 if CV:
-                    self.r = self.growing_rate_dist(dM, rM*self.CV)
+                    self.d = self.growing_rate_dist(dM, rM*self.CV)
                 else:
-                    self.r = self.growing_rate_dist(dM, self.CV)
+                    self.d = self.growing_rate_dist(dM, self.CV)
             else:
                 if self.r == 0:
                     self.d = float("inf")
@@ -812,15 +812,28 @@ def main(timelimit):
                 if args.viewANC:
                     true_indels, is_dead = fasta_writer(esu.id, esu.seq, esu.indels, "ancestral_sequences.fasta", True, Nchunks = args.chunks)
                 # duplication
+
                 if args.CV:
-                    daughter = [SEQ(i, esu.id, esu.seq, esu.CV,
-                                    esu.r, esu.d, esu.t, esu.indels, True),
-                                SEQ(i+1, esu.id, esu.seq, esu.CV,
+                    if args.STV:
+                        daughter = [SEQ(i, esu.id, esu.seq, esu.CV,
+                                        esu.r, esu.d, esu.t, esu.indels, True, True),
+                                    SEQ(i+1, esu.id, esu.seq, esu.CV,
+                                    esu.r, esu.d, esu.t, esu.indels, True, True)]
+                    else:
+                        daughter = [SEQ(i, esu.id, esu.seq, esu.CV,
+                                        esu.r, esu.d, esu.t, esu.indels, True),
+                                    SEQ(i+1, esu.id, esu.seq, esu.CV,
                                     esu.r, esu.d, esu.t, esu.indels, True)]
                 else:
-                    daughter = [SEQ(i, esu.id, esu.seq, esu.CV,
-                                    esu.r, esu.d, esu.t, esu.indels),
-                                SEQ(i+1, esu.id, esu.seq, esu.CV,
+                    if args.STV:
+                        daughter = [SEQ(i, esu.id, esu.seq, esu.CV,
+                                        esu.r, esu.d, esu.t, esu.indels, False, True),
+                                    SEQ(i+1, esu.id, esu.seq, esu.CV,
+                                    esu.r, esu.d, esu.t, esu.indels, False, True)]
+                    else:
+                        daughter = [SEQ(i, esu.id, esu.seq, esu.CV,
+                                        esu.r, esu.d, esu.t, esu.indels),
+                                    SEQ(i+1, esu.id, esu.seq, esu.CV,
                                     esu.r, esu.d, esu.t, esu.indels)]
 
                 SEQqueue.extend(daughter)
