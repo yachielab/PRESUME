@@ -1421,9 +1421,6 @@ if __name__ == "__main__":
     parser.add_argument(
         "--STV",
         help="enable survival time variation model",
-        action='store_true',
-        default=False
-        help="Option of enable homoplasy model",
         action="store_true",
         default=None
     )
