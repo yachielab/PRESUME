@@ -887,6 +887,7 @@ def main(timelimit):
         else:
             if(c < C):
                 delta_timelimit = inittimelimit/(timelimit/inittimelimit)
+                print(timelimit)
                 timelimit += delta_timelimit
             else:
                 print("Number of generated sequences reached "+str(C))
