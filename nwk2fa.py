@@ -330,19 +330,25 @@ def nwk2fa_qsub(args, parsed_args):
     intermediate_path = "{}/PRESUMEout/intermediate".format(OUTDIR)
     os.makedirs(intermediate_path, exist_ok = True)
 
-    decomp_nwk_path = "{}/decomp_tree".format(intermediate_path)
-
-    os.makedirs(decomp_nwk_path, exist_ok = True)
-
     # decompose tree
-    tree = Phylo.read(INFILE, "newick")
-    tree = rename_internals(tree)
 
-    Phylo.write(tree, "{}/{}.nwk".format(args.output+"/PRESUMEout", "PRESUMEout"), "newick")
+    # if a tree file was given
+    if os.path.isfile (INFILE):
+        tree = Phylo.read(INFILE, "newick")
+        tree = rename_internals(tree)
 
+        Phylo.write(tree, "{}/{}.nwk".format(args.output+"/PRESUMEout", "PRESUMEout"), "newick")
 
-    tips_threshold = int(len(tree.get_terminals())**(1/2))
-    decompose(INFILE, tips_threshold, decomp_nwk_path)
+        tips_threshold = int(len(tree.get_terminals())**(1/2))
+        decomp_nwk_path = "{}/decomp_tree".format(intermediate_path)
+        os.makedirs(decomp_nwk_path, exist_ok = True)
+        decompose(INFILE, tips_threshold, decomp_nwk_path)
+    # if a directory containing decompsed tree files was given
+    elif os.path.exists(INFILE):
+        decomp_nwk_path = INFILE
+    else:
+        print("Error: no such file or directory!", INFILE, file=sys.stderr)
+        
     filelist = os.listdir(decomp_nwk_path)
     terminals = []
     for file in filelist:
