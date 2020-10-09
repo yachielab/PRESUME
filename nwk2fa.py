@@ -348,7 +348,7 @@ def nwk2fa_qsub(args, parsed_args):
         shutil.copytree(INFILE, decomp_nwk_path)
     else:
         print("Error: no such file or directory!", INFILE, file=sys.stderr)
-        exit()
+        exit
         
     filelist = os.listdir(decomp_nwk_path)
     terminals = []
