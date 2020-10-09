@@ -776,6 +776,7 @@ def main(timelimit):
         Timepoint[0] = args.tMorigin + dorigin - (timelimit / 2)
     i += 1
     c  = 1  # current number of SEQs
+    prev_c = 0
 
     # SEQs propagation
     while(True):
@@ -886,9 +887,12 @@ def main(timelimit):
         # if the required number of SEQs specified
         else:
             if(c < C):
-                delta_timelimit = inittimelimit/(timelimit/inittimelimit)
-                print(timelimit)
+                #delta_timelimit = inittimelimit/(timelimit/inittimelimit)
+                ave_growth_rate = (c-prev_c)/delta_timelimit
+                delta_timelimit = max((C-c)/ave_growth_rate, inittimelimit)
                 timelimit += delta_timelimit
+                prev_c = c
+                print(ave_growth_rate ,delta_timelimit, timelimit)
             else:
                 print("Number of generated sequences reached "+str(C))
                 break
