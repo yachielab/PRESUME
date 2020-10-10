@@ -171,14 +171,36 @@ class SEQ():
         self.id = SEQid  # for example: 0,1,2,...
         self.idM = idM
         self.CV = max(np.random.normal(CVM, CVM*alpha), 0)  # should be > 0
+
+        '''
         if CV:
             self.r = self.growing_rate_dist(rM, rM*self.CV)
         else:
             self.r = self.growing_rate_dist(rM, self.CV)
+        '''
+        if STV:
+            if CV:
+                self.d = custom_dist(dM, rM*self.CV, dist=dist)
+            else:
+                self.d = custom_dist(dM, self.CV, dist=dist)
+            if self.d == 0:
+                self.r = float("inf")
+            else:
+                self.r = 1/self.d
+        else:
+            if CV:
+                self.r = custom_dist(rM, rM*self.CV, dist=dist)
+            else:
+                self.r = custom_dist(rM, self.CV, dist=dist)
+            if self.r == 0:
+                self.d = float("inf")
+            else:
+                self.d = 1/self.r
         
-        self.is_alive = (self.r >= 0 and np.random.rand() > e)
+        self.is_alive = (self.d > 0 and np.random.rand() > e)
         
         if(self.is_alive):
+            '''
             if STV:
                 if CV:
                     self.d = self.growing_rate_dist(dM, rM*self.CV)
@@ -189,6 +211,7 @@ class SEQ():
                     self.d = float("inf")
                 else:
                     self.d = 1/self.r
+            '''
 
             self.t      = tM + self.d  # time t of doubling of this SEQ
             self.seq    = self.daughterseq(str(mseq), dM)
@@ -198,11 +221,16 @@ class SEQ():
 
             self.mutation_rate = compare_sequences(str(mseq), self.seq)
 
+            print(dM, self.d, sep='\t', file=sys.stderr)
+
+
+    '''
     def growing_rate_dist(self, mu, sigma):
         growing_rate = np.random.normal(mu, sigma)
         if growing_rate <= 0:
             growing_rate = -1
         return growing_rate
+    '''
 
     # receive mother SEQ sequence, introduce mutations,
     # return daughter sequence.
@@ -292,6 +320,23 @@ class SEQ():
                         generated_indels.append( [ 'del', pos, length ] )
             
         return generated_indels
+
+def custom_dist(m, sigma, dist = 'norm'):
+    if   dist == 'norm':
+        return np.random.normal(m, sigma) # m: mu
+    elif dist == 'lognorm':
+        # mode = exp(mean - sigma^2)
+        #return np.random.lognormal(np.log(m)+sigma**2, sigma)
+        #return np.random.lognormal(np.log(m)-sigma**2, sigma)
+        return np.random.lognormal(m, sigma)
+    elif dist == 'gamma':
+        # shape * scale^2 = sigma^2
+        # shape * scale   = mean
+        return (m/(sigma**2))*np.random.gamma(shape=sigma**2) # scale = 1 as a default
+    elif dist == 'exp':
+        # shape * scale^2 = sigma^2
+        # shape * scale   = mean
+        return (m/(sigma**2))*np.random.exponential(scale=sigma**2) # scale = 1 as a default
 
 def compare_sequences(motherseq, myseq):
     if len(motherseq) != len(myseq):
@@ -809,6 +854,7 @@ def main(timelimit):
 
             elif(SEQqueue[k].t < timelimit):
                 esu = SEQqueue.pop(k)
+                #print(esu.t)
                 # save ancestoral sequences
                 if args.viewANC:
                     true_indels, is_dead = fasta_writer(esu.id, esu.seq, esu.indels, "ancestral_sequences.fasta", True, Nchunks = args.chunks)
@@ -887,12 +933,11 @@ def main(timelimit):
         # if the required number of SEQs specified
         else:
             if(c < C):
-                #delta_timelimit = inittimelimit/(timelimit/inittimelimit)
-                ave_growth_rate = (c-prev_c)/delta_timelimit
-                delta_timelimit = max((C-c)/ave_growth_rate, inittimelimit)
+                #ave_growth_rate = max((c-prev_c)/delta_timelimit, 0.0001)
+                #delta_timelimit = max(min((C-c)/ave_growth_rate, inittimelimit), inittimelimit*(0.0001))
+                #prev_c = c
+                delta_timelimit = inittimelimit/(timelimit/inittimelimit)
                 timelimit += delta_timelimit
-                prev_c = c
-                print(ave_growth_rate ,delta_timelimit, timelimit)
             else:
                 print("Number of generated sequences reached "+str(C))
                 break
@@ -1440,7 +1485,14 @@ if __name__ == "__main__":
         "--STV",
         help="enable survival time variation model",
         action="store_true",
-        default=None
+        default=False
+    )
+
+    parser.add_argument(
+        "--dist",
+        help="Distribution of d or 1/d (permissive values: 'norm', 'lognorm', 'gamma')",
+        type=str,
+        default='norm'
     )
 
     args = parser.parse_args()
@@ -1541,6 +1593,7 @@ if __name__ == "__main__":
     T = args.T
     e = args.e
     m = args.m
+    dist = args.dist
 
     if args.STV:
         STV = True
