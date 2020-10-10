@@ -200,18 +200,6 @@ class SEQ():
         self.is_alive = (self.d > 0 and np.random.rand() > e)
         
         if(self.is_alive):
-            '''
-            if STV:
-                if CV:
-                    self.d = self.growing_rate_dist(dM, rM*self.CV)
-                else:
-                    self.d = self.growing_rate_dist(dM, self.CV)
-            else:
-                if self.r == 0:
-                    self.d = float("inf")
-                else:
-                    self.d = 1/self.r
-            '''
 
             self.t      = tM + self.d  # time t of doubling of this SEQ
             self.seq    = self.daughterseq(str(mseq), dM)
@@ -221,16 +209,7 @@ class SEQ():
 
             self.mutation_rate = compare_sequences(str(mseq), self.seq)
 
-            print(dM, self.d, sep='\t', file=sys.stderr)
-
-
-    '''
-    def growing_rate_dist(self, mu, sigma):
-        growing_rate = np.random.normal(mu, sigma)
-        if growing_rate <= 0:
-            growing_rate = -1
-        return growing_rate
-    '''
+            #print(dM, self.d, sep='\t', file=sys.stderr)
 
     # receive mother SEQ sequence, introduce mutations,
     # return daughter sequence.
@@ -328,11 +307,14 @@ def custom_dist(m, sigma, dist = 'norm'):
         # mode = exp(mean - sigma^2)
         #return np.random.lognormal(np.log(m)+sigma**2, sigma)
         #return np.random.lognormal(np.log(m)-sigma**2, sigma)
-        return np.random.lognormal(m, sigma)
+        return np.random.lognormal(np.log(m), sigma)
     elif dist == 'gamma':
         # shape * scale^2 = sigma^2
-        # shape * scale   = mean
-        return (m/(sigma**2))*np.random.gamma(shape=sigma**2) # scale = 1 as a default
+        # shape * scale   = m
+        if (sigma==0):
+            return m # scale = 1 as a default 
+        else:
+            return np.random.gamma(shape=(m**2)/(sigma**2), scale=(sigma**2)/m) # scale = 1 as a default
     elif dist == 'exp':
         # shape * scale^2 = sigma^2
         # shape * scale   = mean
