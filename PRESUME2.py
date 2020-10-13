@@ -213,7 +213,7 @@ class SEQ():
 
             self.mutation_rate = compare_sequences(str(mseq), self.seq)
 
-            print(dM, self.d, self.r,self.is_alive,sep='\t', file=sys.stderr)
+            #print(dM, self.d, self.r,self.is_alive,sep='\t', file=sys.stderr)
 
     # receive mother SEQ sequence, introduce mutations,
     # return daughter sequence.
@@ -339,7 +339,7 @@ def custom_dist(param1, param2, dist = 'norm'):
         # s = a + b
         a = mean * (sumab - 2) / 2 + 1
         b = sumab - a
-        return 2 * np.random.beta(a = a, b = b) # scale = 1 as a default
+        return np.random.beta(a = a, b = b) # scale = 1 as a default
 
 def compare_sequences(motherseq, myseq):
     if len(motherseq) != len(myseq):
