@@ -178,27 +178,30 @@ class SEQ():
         else:
             self.r = self.growing_rate_dist(rM, self.CV)
         '''
-        if STV:
-            if CV:
-                self.d = custom_dist(dM, rM*self.CV, dist=dist)
-            else:
-                self.d = custom_dist(dM, self.CV, dist=dist)
-            if self.d == 0:
-                self.r = float("inf")
-            else:
-                self.r = 1/self.d
-        else:
-            if CV:
-                self.r = custom_dist(rM, rM*self.CV, dist=dist)
-            else:
-                self.r = custom_dist(rM, self.CV, dist=dist)
-            if self.r == 0:
-                self.d = float("inf")
-            else:
-                self.d = 1/self.r
-        
+
         LOWER_LIMIT_doubling_time = args.ld
-        self.is_alive = (self.d > LOWER_LIMIT_doubling_time and np.random.rand() > e)
+        self.d = 0
+        while self.d < LOWER_LIMIT_doubling_time:
+            if STV:
+                if CV:
+                    self.d = custom_dist(dM, dM*self.CV, dist=dist)
+                else:
+                    self.d = custom_dist(dM, self.CV, dist=dist)
+                if self.d == 0:
+                    self.r = float("inf")
+                else:
+                    self.r = 1/self.d
+            else:
+                if CV:
+                    self.r = custom_dist(rM, rM*self.CV, dist=dist)
+                else:
+                    self.r = custom_dist(rM, self.CV, dist=dist)
+                if self.r == 0:
+                    self.d = float("inf")
+                else:
+                    self.d = 1/self.r
+
+        self.is_alive = (np.random.rand() > e)
         
         if(self.is_alive):
 
@@ -210,7 +213,7 @@ class SEQ():
 
             self.mutation_rate = compare_sequences(str(mseq), self.seq)
 
-            print(dM, self.d, self.is_alive,sep='\t', file=sys.stderr)
+            print(dM, self.d, self.r,self.is_alive,sep='\t', file=sys.stderr)
 
     # receive mother SEQ sequence, introduce mutations,
     # return daughter sequence.
@@ -301,27 +304,42 @@ class SEQ():
             
         return generated_indels
 
-def custom_dist(m, sigma, dist = 'norm'):
+def custom_dist(param1, param2, dist = 'norm'):
     if   dist == 'norm':
-        return np.random.normal(m, sigma) # m: mu
+        mean  = param1
+        sigma = param2 
+        return np.random.normal(mean, sigma) 
     elif dist == 'lognorm':
+        median = param1
+        sigma  = param2 
         # mode = exp(mean - sigma^2)
         #return np.random.lognormal(np.log(m)+sigma**2, sigma)
         #return np.random.lognormal(np.log(m)-sigma**2, sigma)
-        return np.random.lognormal(np.log(m), sigma)
+        return np.random.lognormal(np.log(median), sigma)
     elif dist == 'gamma':
+        mean  = param1
+        sigma = param2
         # shape * scale^2 = sigma^2
         # shape * scale   = m
         if (sigma==0):
             return m # scale = 1 as a default 
         else:
             return np.random.gamma(shape=(m**2)/(sigma**2), scale=(sigma**2)/m) # scale = 1 as a default
-            #return np.random.gamma(shape=sigma, scale=sigma/m) # scale = 1 as a default
     elif dist == 'exp':
+        mean  = param1
+        sigma = param2
         # shape * scale^2 = sigma^2
         # shape * scale   = mean
         #return (m/(sigma**2))*np.random.exponential(scale=sigma**2) # scale = 1 as a default
         return np.random.exponential(scale=sigma**2) # scale = 1 as a default
+    elif dist == 'beta':
+        mean  = param1
+        sumab = param2 
+        # m = 2 * (a - 1) / (a + b - 2)
+        # s = a + b
+        a = mean * (sumab - 2) / 2 + 1
+        b = sumab - a
+        return 2 * np.random.beta(a = a, b = b) # scale = 1 as a default
 
 def compare_sequences(motherseq, myseq):
     if len(motherseq) != len(myseq):
