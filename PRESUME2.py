@@ -339,7 +339,7 @@ def custom_dist(param1, param2, dist = 'norm'):
         # s = a + b
         a = mean * (sumab - 2) / 2 + 1
         b = sumab - a
-        return 2*np.random.beta(a = a, b = b) 
+        return 2*np.random.beta(a = a, b = b)  # return 0~2
 
 def compare_sequences(motherseq, myseq):
     if len(motherseq) != len(myseq):
