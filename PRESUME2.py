@@ -920,11 +920,8 @@ def main(timelimit):
                                         SEQ(i+1, esu.id, esu.seq, esu.CV,
                                         esu.r, esu.d, esu.t, esu.indels)]
                     ##########################  editing! ###########################
-                    #SEQqueue.extend(daughter)
                     SEQqueue = SEQqueue_push(SEQqueue, daughter[0])
-                    #print(SEQqueue)
                     SEQqueue = SEQqueue_push(SEQqueue, daughter[1])
-                    #print([SEQ.t for SEQ in SEQqueue])
                     ###############################################################
                     if args.debug:
                         for sister in daughter:
