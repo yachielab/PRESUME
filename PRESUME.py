@@ -1544,7 +1544,7 @@ if __name__ == "__main__":
         "--dist",
         help="Distribution of d or 1/d (permissive values: 'norm', 'lognorm', 'gamma')",
         type=str,
-        default='norm'
+        default='gamma'
     )
 
     args = parser.parse_args()
