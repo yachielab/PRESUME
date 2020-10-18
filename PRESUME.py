@@ -178,26 +178,30 @@ class SEQ():
         else:
             self.r = self.growing_rate_dist(rM, self.CV)
         '''
-        if STV:
-            if CV:
-                self.d = custom_dist(dM, rM*self.CV, dist=dist)
+
+        LOWER_LIMIT_doubling_time = args.ld
+        self.d = 0
+        while self.d < LOWER_LIMIT_doubling_time:
+            if STV:
+                if CV:
+                    self.d = custom_dist(dM, dM*self.CV, dist=dist)
+                else:
+                    self.d = custom_dist(dM, self.CV, dist=dist)
+                if self.d == 0:
+                    self.r = float("inf")
+                else:
+                    self.r = 1/self.d
             else:
-                self.d = custom_dist(dM, self.CV, dist=dist)
-            if self.d == 0:
-                self.r = float("inf")
-            else:
-                self.r = 1/self.d
-        else:
-            if CV:
-                self.r = custom_dist(rM, rM*self.CV, dist=dist)
-            else:
-                self.r = custom_dist(rM, self.CV, dist=dist)
-            if self.r == 0:
-                self.d = float("inf")
-            else:
-                self.d = 1/self.r
-        
-        self.is_alive = (self.d > 0 and np.random.rand() > e)
+                if CV:
+                    self.r = custom_dist(rM, rM*self.CV, dist=dist)
+                else:
+                    self.r = custom_dist(rM, self.CV, dist=dist)
+                if self.r == 0:
+                    self.d = float("inf")
+                else:
+                    self.d = 1/self.r
+
+        self.is_alive = (np.random.rand() > e)
         
         if(self.is_alive):
 
@@ -209,7 +213,7 @@ class SEQ():
 
             self.mutation_rate = compare_sequences(str(mseq), self.seq)
 
-            #print(dM, self.d, sep='\t', file=sys.stderr)
+            #print(dM, self.d, self.r,self.is_alive,sep='\t', file=sys.stderr)
 
     # receive mother SEQ sequence, introduce mutations,
     # return daughter sequence.
@@ -300,26 +304,42 @@ class SEQ():
             
         return generated_indels
 
-def custom_dist(m, sigma, dist = 'norm'):
+def custom_dist(param1, param2, dist = 'norm'):
     if   dist == 'norm':
-        return np.random.normal(m, sigma) # m: mu
+        mean  = param1
+        sigma = param2 
+        return np.random.normal(mean, sigma) 
     elif dist == 'lognorm':
+        median = param1
+        sigma  = param2 
         # mode = exp(mean - sigma^2)
         #return np.random.lognormal(np.log(m)+sigma**2, sigma)
         #return np.random.lognormal(np.log(m)-sigma**2, sigma)
-        return np.random.lognormal(np.log(m), sigma)
+        return np.random.lognormal(np.log(median), sigma)
     elif dist == 'gamma':
+        mean  = param1
+        sigma = param2
         # shape * scale^2 = sigma^2
         # shape * scale   = m
         if (sigma==0):
             return m # scale = 1 as a default 
         else:
             return np.random.gamma(shape=(m**2)/(sigma**2), scale=(sigma**2)/m) # scale = 1 as a default
-            #return np.random.gamma(shape=sigma, scale=sigma/m) # scale = 1 as a default
     elif dist == 'exp':
+        mean  = param1
+        sigma = param2
         # shape * scale^2 = sigma^2
         # shape * scale   = mean
-        return (m/(sigma**2))*np.random.exponential(scale=sigma**2) # scale = 1 as a default
+        #return (m/(sigma**2))*np.random.exponential(scale=sigma**2) # scale = 1 as a default
+        return np.random.exponential(scale=sigma**2) # scale = 1 as a default
+    elif dist == 'beta':
+        mean  = param1
+        sumab = param2 
+        # m = 2 * (a - 1) / (a + b - 2)
+        # s = a + b
+        a = mean * (sumab - 2) / 2 + 1
+        b = sumab - a
+        return 2*np.random.beta(a = a, b = b)  # return 0~2
 
 def compare_sequences(motherseq, myseq):
     if len(motherseq) != len(myseq):
@@ -749,6 +769,52 @@ def make_list(txtfile, datatype, column):
             elif(datatype=='int'): List.append(int  (line.split("\n")[0].split("\t")[column]))
     return List
 
+
+# new4! 
+def SEQqueue_push(SEQqueue, SEQ):
+    N = len(SEQqueue)
+
+    def BinarySearch(SEQqueue,query): # 一致する or それより小さい最大の値のindex
+        N = len(SEQqueue)
+        m, M= 0, N-1
+        if SEQqueue[m].is_alive:
+            if (query.t < SEQqueue[m].t):
+                return m-1
+        if not SEQqueue[M].is_alive:
+            return M
+        if (SEQqueue[M].t < query.t):
+            return M
+        else:
+            while (True):
+                mid = int((m+M)/2)
+                if (M-m < 2):
+                    return m 
+                elif (not(SEQqueue[mid].is_alive)):
+                    m = mid
+                elif (SEQqueue[mid].t  < query.t):
+                    m = mid
+                elif (SEQqueue[mid].t  > query.t):
+                    M = mid
+                elif (SEQqueue[mid].t  == query.t):
+                    return mid
+
+    if not SEQ.is_alive:
+        return [SEQ] + SEQqueue
+    
+    elif N > 0:
+        idx = BinarySearch(SEQqueue,SEQ)
+        return SEQqueue[:idx+1] + [SEQ] + SEQqueue[idx+1:]
+    else:
+        return [SEQ]
+
+def check_sort_SEQqueue(SEQqueue): # for debug
+    i = 0
+    while i < len(SEQqueue)-1:
+        if (SEQqueue[i].is_alive):
+            if (SEQqueue[i].t > SEQqueue[i+1].t):
+                print ("Error: check_sort_SEQqueue()", SEQqueue[i].t, SEQqueue[i+1].t)
+        i += 1
+
 # main
 def main(timelimit):
     '''
@@ -769,6 +835,7 @@ def main(timelimit):
     # for safety: program definitely stops when the number of SEQs
     # exceeds UPPER_LIMIT
     UPPER_LIMIT = args.u
+    UPPER_LIMIT_doubling_time = args.ud
     delta_timelimit = timelimit
     inittimelimit = timelimit
 
@@ -804,30 +871,85 @@ def main(timelimit):
         Timepoint[0] = args.tMorigin + dorigin - (timelimit / 2)
     i += 1
     c  = 1  # current number of SEQs
-    prev_c = 0
+
+    prev_seq_t = 0
 
     # SEQs propagation
     while(True):
-        if (c == 0):
-            all_dead(args.idANC)
-            try:
-                os.remove("ancestoral_sequences.fasta")
-            except FileNotFoundError:
-                pass
-            if args.save:
-                argument_saver(args)
-            return 1
+        #check_sort_SEQqueue(SEQqueue)
 
-        # SEQs divide until t (time) of all of them exceed timelimit
-        k = 0  # iterator of SEQqueue
+        if SEQqueue[0].is_alive:
+            if c >= C:
+                if prev_seq_t != SEQqueue[0].t:
+                    break
 
-        # while there remains some SEQs whose time is less than timelimit
-        while(k < c):
+        if timelimit == None:
+              
+            esu        = SEQqueue.pop(0)
 
-            if (not SEQqueue[k].is_alive):
+            if (esu.is_alive):
+
+                #print(esu.t)
+
+                if (esu.d < UPPER_LIMIT_doubling_time):
+                    prev_seq_t = esu.t
+                    # save ancestoral sequences
+                    if args.viewANC:
+                        true_indels, is_dead = fasta_writer(esu.id, esu.seq, esu.indels, "ancestral_sequences.fasta", True, Nchunks = args.chunks)
+                    # duplication
+                    if args.CV:
+                        if args.STV:
+                            daughter = [SEQ(i, esu.id, esu.seq, esu.CV,
+                                            esu.r, esu.d, esu.t, esu.indels, True, True),
+                                        SEQ(i+1, esu.id, esu.seq, esu.CV,
+                                        esu.r, esu.d, esu.t, esu.indels, True, True)]
+                        else:
+                            daughter = [SEQ(i, esu.id, esu.seq, esu.CV,
+                                            esu.r, esu.d, esu.t, esu.indels, True),
+                                        SEQ(i+1, esu.id, esu.seq, esu.CV,
+                                        esu.r, esu.d, esu.t, esu.indels, True)]
+                    else:
+                        if args.STV:
+                            daughter = [SEQ(i, esu.id, esu.seq, esu.CV,
+                                            esu.r, esu.d, esu.t, esu.indels, False, True),
+                                        SEQ(i+1, esu.id, esu.seq, esu.CV,
+                                        esu.r, esu.d, esu.t, esu.indels, False, True)]
+                        else:
+                            daughter = [SEQ(i, esu.id, esu.seq, esu.CV,
+                                            esu.r, esu.d, esu.t, esu.indels),
+                                        SEQ(i+1, esu.id, esu.seq, esu.CV,
+                                        esu.r, esu.d, esu.t, esu.indels)]
+                    ##########################  editing! ###########################
+                    SEQqueue = SEQqueue_push(SEQqueue, daughter[0])
+                    SEQqueue = SEQqueue_push(SEQqueue, daughter[1])
+                    ###############################################################
+                    if args.debug:
+                        for sister in daughter:
+                            if sister.is_alive:
+                                mut_rate_log[sister.id]=sister.mutation_rate
+                    # [<mother>, <daughter1>, <daughter2> ]
+                    Lineage[esu.id] = [esu.idM, i, i+1]
+                    if daughter[0].is_alive:
+                        Timepoint[daughter[0].id] = daughter[0].t
+                    if daughter[1].is_alive:
+                        Timepoint[daughter[1].id] = daughter[1].t
+                    try:
+                        Lineage[i] = [esu.id]
+                        Lineage[i+1] = [esu.id]  # Terminal ESUs
+                    except IndexError:
+                        print("UPPER LIMIT EXCEEDED!!!")
+                        return 1
+                    i += 2
+                    c += 1
+                    if args.bar:
+                        progress_bar(pbar, c)
+                else:
+                    print("SEQ.d > "+str(UPPER_LIMIT_doubling_time)+"!!")
+                    sys.exit()
+            else:
                 # Note: Variable name "esu" means Evolutionally Sequence Unit
                 # as container of SEQ object
-                esu = SEQqueue.pop(k)
+                
                 Lineage[esu.id] = ["dead"]
                 if(esu.id != 0):
                     death(Lineage, esu.idM)
@@ -835,71 +957,10 @@ def main(timelimit):
                 if args.bar:
                     progress_bar(pbar, c)
 
-            elif(SEQqueue[k].t < timelimit):
-                esu = SEQqueue.pop(k)
-                #print(esu.t)
-                # save ancestoral sequences
-                if args.viewANC:
-                    true_indels, is_dead = fasta_writer(esu.id, esu.seq, esu.indels, "ancestral_sequences.fasta", True, Nchunks = args.chunks)
-                # duplication
-
-                if args.CV:
-                    if args.STV:
-                        daughter = [SEQ(i, esu.id, esu.seq, esu.CV,
-                                        esu.r, esu.d, esu.t, esu.indels, True, True),
-                                    SEQ(i+1, esu.id, esu.seq, esu.CV,
-                                    esu.r, esu.d, esu.t, esu.indels, True, True)]
-                    else:
-                        daughter = [SEQ(i, esu.id, esu.seq, esu.CV,
-                                        esu.r, esu.d, esu.t, esu.indels, True),
-                                    SEQ(i+1, esu.id, esu.seq, esu.CV,
-                                    esu.r, esu.d, esu.t, esu.indels, True)]
-                else:
-                    if args.STV:
-                        daughter = [SEQ(i, esu.id, esu.seq, esu.CV,
-                                        esu.r, esu.d, esu.t, esu.indels, False, True),
-                                    SEQ(i+1, esu.id, esu.seq, esu.CV,
-                                    esu.r, esu.d, esu.t, esu.indels, False, True)]
-                    else:
-                        daughter = [SEQ(i, esu.id, esu.seq, esu.CV,
-                                        esu.r, esu.d, esu.t, esu.indels),
-                                    SEQ(i+1, esu.id, esu.seq, esu.CV,
-                                    esu.r, esu.d, esu.t, esu.indels)]
-
-                SEQqueue.extend(daughter)
-
-                if args.debug:
-                    for sister in daughter:
-                        if sister.is_alive:
-                            mut_rate_log[sister.id]=sister.mutation_rate
-
-                # [<mother>, <daughter1>, <daughter2> ]
-                Lineage[esu.id] = [esu.idM, i, i+1]
-                if daughter[0].is_alive:
-                    Timepoint[daughter[0].id] = daughter[0].t
-                if daughter[1].is_alive:
-                    Timepoint[daughter[1].id] = daughter[1].t
-
-                try:
-                    Lineage[i] = [esu.id]
-                    Lineage[i+1] = [esu.id]  # Terminal ESUs
-
-                except IndexError:
-                    print("UPPER LIMIT EXCEEDED!!!")
-                    return 1
-
-                i += 2
-                c += 1
-                if args.bar:
-                    progress_bar(pbar, c)
-
-            else:
-                k += 1
-
-            if(c > UPPER_LIMIT):  # for safety
-                raise UpperLimitExceededError(UPPER_LIMIT)
-                return 1
-
+        else:  
+            if(SEQqueue[0].t > timelimit):
+                break
+            
         if (c == 0):
             all_dead(args.idANC)
             try:
@@ -909,21 +970,15 @@ def main(timelimit):
             if args.save:
                 argument_saver(args)
             return 1
+        elif(c > UPPER_LIMIT):  # for safety
+            raise UpperLimitExceededError(UPPER_LIMIT)
+            return 1
+            
 
-        # if the required number of SEQs is not specified (default)
-        if(C is None):
-            break
-        # if the required number of SEQs specified
-        else:
-            if(c < C):
-                #ave_growth_rate = max((c-prev_c)/delta_timelimit, 0.0001)
-                #delta_timelimit = max(min((C-c)/ave_growth_rate, inittimelimit), inittimelimit*(0.0001))
-                #prev_c = c
-                delta_timelimit = inittimelimit/(timelimit/inittimelimit)
-                timelimit += delta_timelimit
-            else:
-                print("Number of generated sequences reached "+str(C))
-                break
+    timelimit = SEQqueue[0].t
+
+
+    ##########Simulation finished############
 
 
     # in case of "sequential computing"
@@ -1171,7 +1226,7 @@ def main(timelimit):
         argument_saver(args)
 
     print("\n=====================================================")
-    print("Simulation end time point:         "+str(2*timelimit))
+    print("Simulation end time point:         "+str(timelimit))
     print("Number of generated sequences:     "+str(tip_count))
     print("Seed for random number generation: "+str(seed))
     print("=====================================================\n")
@@ -1206,9 +1261,9 @@ if __name__ == "__main__":
 
     parser.add_argument(
         "--monitor",
-        help="time limit (default=1)",
+        help="time limit (default=None)",
         type=float,
-        default=1
+        default=None
         )
 
     parser.add_argument(
@@ -1286,6 +1341,20 @@ if __name__ == "__main__":
         help="upper limit of number of sequences (default=2^20)",
         type=int,
         default=np.power(2, 20)
+        )
+    
+    parser.add_argument(
+        "--ud",
+        help="upper limit of doubling time (default=10^10)",
+        type=int,
+        default=np.power(10, 10)
+        )
+    
+    parser.add_argument(
+        "--ld",
+        help="lower limit of doubling time (default=10^(-5))",
+        type=float,
+        default=(1/10)**5
         )
 
     parser.add_argument(
