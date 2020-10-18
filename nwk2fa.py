@@ -316,7 +316,7 @@ def nwk2fa_qsub(args, parsed_args):
     INFILE, OUTDIR =args.tree, args.output
     # initial sequence specification
     initseq = parsed_args.initseq
-    fasta_writer_multiple({"root":initseq}, args.output+"/root", "PRESUMEout")
+    fasta_writer_multiple({"root":initseq}, args.output+"/PRESUMEout", "root")
 
     '''
     initseq = False
@@ -444,7 +444,7 @@ def nwk2fa_single(args, parsed_args):
     # initial sequence specification
     initseq = parsed_args.initseq
 
-    fasta_writer_multiple({"root":initseq}, args.output+"/root", "PRESUMEout")
+    fasta_writer_multiple({"root":initseq}, args.output+"/PRESUMEout", "root")
     
     # read tree
     tree = Phylo.read(args.tree, "newick")
