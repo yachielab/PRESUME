@@ -183,18 +183,18 @@ class SEQ():
         while self.d < LOWER_LIMIT_doubling_time:
             if STV:
                 if CV:
-                    self.d = custom_dist(dM, dM*self.CV, dist=processed_args.dist)
+                    self.d = custom_dist(dM, dM*self.CV, dist=args.dist)
                 else:
-                    self.d = custom_dist(dM, self.CV, dist=processed_args.dist)
+                    self.d = custom_dist(dM, self.CV, dist=args.dist)
                 if self.d == 0:
                     self.r = float("inf")
                 else:
                     self.r = 1/self.d
             else:
                 if CV:
-                    self.r = custom_dist(rM, rM*self.CV, dist=processed_args.dist)
+                    self.r = custom_dist(rM, rM*self.CV, dist=args.dist)
                 else:
-                    self.r = custom_dist(rM, self.CV, dist=processed_args.dist)
+                    self.r = custom_dist(rM, self.CV, dist=args.dist)
                 if self.r == 0:
                     self.d = float("inf")
                 else:
