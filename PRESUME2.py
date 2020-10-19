@@ -321,9 +321,9 @@ def custom_dist(param1, param2, dist = 'norm'):
         # shape * scale^2 = sigma^2
         # shape * scale   = m
         if (sigma==0):
-            return m # scale = 1 as a default 
+            return mean # scale = 1 as a default 
         else:
-            return np.random.gamma(shape=(m**2)/(sigma**2), scale=(sigma**2)/m) # scale = 1 as a default
+            return np.random.gamma(shape=(mean**2)/(sigma**2), scale=(sigma**2)/mean) # scale = 1 as a default
     elif dist == 'exp':
         mean  = param1
         sigma = param2
