@@ -1646,7 +1646,7 @@ if __name__ == "__main__":
     alpha = args.a
     T = args.T
     e = args.e
-    m = args.m
+    m_mutation = args.m
     dist = args.dist
 
     if args.STV:
@@ -1714,7 +1714,7 @@ if __name__ == "__main__":
         # model of site heterogeneity:
         # calculate relative substitution rate gamma for each site
         shape = float(gamma_str[0])  # shape of gamma distribution
-        gamma = np.random.gamma(shape, m / shape, L)  # mean is args.m
+        gamma = np.random.gamma(shape, m_mutation / shape, L)  # mean is args.m
 
     # set indel parameters from raw lab experiments
     CRISPR      = False
