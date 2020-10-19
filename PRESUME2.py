@@ -252,7 +252,7 @@ class SEQ():
         return random.choices(
             ['A', 'C', 'G', 'T'], k=1, weights=matrix[base[c]]
             )[0]
-            
+
     
     # mutation of a site (GTR-Gamma model)
     def time_dependent_mutation(self, c, gamma, dM):
@@ -853,7 +853,7 @@ def main(timelimit):
     # First of all, there exits only 1 SEQ.
     SEQqueue.append(
         SEQ(i, -1, processed_args.initseq, processed_args.sigma_origin, processed_args.growing_rate_origin,
-            processed_args.dorigin, processed_args.args.tMorigin, processed_args.initindels, True))
+            processed_args.dorigin, args.tMorigin, processed_args.initindels, True))
     SEQqueue[0].seq = processed_args.initseq
     SEQqueue[0].indels = processed_args.initindels
     if args.idANC == 0:
