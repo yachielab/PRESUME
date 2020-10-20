@@ -323,7 +323,7 @@ def custom_dist(param1, param2, dist = 'norm'):
         else:
             return np.random.gamma(shape=(mean**2)/(sigma**2), scale=(sigma**2)/mean) # scale = 1 as a default
     elif dist == 'gamma2':
-        mean  = processed_args.dorigin
+        mean  = processed_args.dorigin if args.STV else 1/processed_args.dorigin
         sigma = param2
         # shape * scale^2 = sigma^2
         # shape * scale   = mean
