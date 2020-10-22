@@ -301,6 +301,9 @@ def shell_generator(shell_outfp, treefile_list, fastafile_list, indelfile_list, 
             if (args.constant is not None):
                 python_command += \
                     " --constant "+str(args.constant)
+            if (args.debug):
+                python_command += \
+                    " --debug "
 
             qf.write(python_command)
         terminal_idx = idx
