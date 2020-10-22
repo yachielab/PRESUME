@@ -461,7 +461,7 @@ def nwk2fa_qsub(args, parsed_args):
     if(parsed_args.CRISPR):
         command += "cat {}/*/PRESUMEout/PRESUMEout.aligned.fa.gz > {}/PRESUMEout.aligned.fa.gz; ".format(downstream_fasta_path, OUTDIR+"/PRESUMEout")
         command += "cat {}/*/PRESUMEout/PRESUMEout.indel.gz > {}/PRESUMEout.indel.gz; ".format(downstream_fasta_path, OUTDIR+"/PRESUMEout")
-    if(parsed_args.save_save_N_mutations):
+    if(parsed_args.save_N_mutations):
         command += "cat {}/mother_daughter_Nsubstitutions.up.txt {}/*/PRESUMEout/mother_daughter_Nsubstitutions.txt > {}/mother_daughter_Nsubstitutions.txt; \
                     rm {}/mother_daughter_Nsubstitutions.up.txt; "\
                     .format(OUTDIR+"/PRESUMEout", downstream_fasta_path, OUTDIR+"/PRESUMEout",OUTDIR+"/PRESUMEout")
