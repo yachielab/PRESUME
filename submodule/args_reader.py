@@ -93,6 +93,7 @@ class PARSED_ARGS():
         self.homoplasy = args.homoplasy
         self.constant = args.constant
         self.gtrgamma = args.gtrgamma
+        self.save_N_mutations = args.debug
 
 
         # initial sequence specification
