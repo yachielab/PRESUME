@@ -78,7 +78,9 @@ def topology_shaper(tree):
             #topology[daughter_R_name] = []
             # define branch_length
             branch_length_dict[mother_name] = clade.branch_length
-            if clade.branch_length==None: clade.branch_length=10^(-10)             # if branch_length is not defined, PRESUME ignore mutations ccuring at the branch 
+            if clade.branch_length==None: 
+                print("Notice!: Input tree contains branches whose lengths are None.")
+                clade.branch_length=10^(-10)             # if branch_length is not defined, PRESUME ignore mutations ccuring at the branch 
         else:
             raise ValueError('wrong clades! \n # of clades {}'.format(len(clade.clades)))
             pass
@@ -92,10 +94,10 @@ def topology_shaper(tree):
     return topology, branch_length_dict, root.name
 
 # Conduct a simulation
-def translate_tree(topology_dict, branch_length_dict,name_of_root, initseq, parsed_args):
+def translate_tree(topology_dict, branch_length_dict,name_of_root, initseq, parsed_args): # should change func name
     
-    init_branch_length = parsed_args.dorigin                  ### Important! 
-    #init_branch_length = branch_length_dict[name_of_root]
+    #init_branch_length = parsed_args.dorigin
+    init_branch_length = branch_length_dict[name_of_root]
 
     init_clade = nwk2fa_mutation.Lineage(branch_length=init_branch_length, name=name_of_root, seq= initseq, ROOT=True, parsed_args=parsed_args,indelsM=[])
     init_clade.indels=parsed_args.initindels
@@ -120,6 +122,7 @@ def nwk2fa_light(tree, initseq,parsed_args):
     # translate Phylo.BaseTree.Tree into Lineage
     topology_dict, branch_length_dict, name_of_root= topology_shaper(tree)
     lineage_tree = translate_tree(topology_dict, branch_length_dict, name_of_root, initseq,parsed_args=parsed_args)
+
     if len(tree.get_terminals()) != len(lineage_tree.get_terminals()):
         raise ValueError('something went wrong!!!')
     
@@ -139,7 +142,7 @@ def nwk2fa_light(tree, initseq,parsed_args):
         name2seq, name2alignedseq = name2seq_without_indel, name2seq_without_indel
         name2indellist            = None
 
-    return name2seq_without_indel, name2seq, name2alignedseq, tree, name2indellist
+    return name2seq_without_indel, name2seq, name2alignedseq, name2indellist, tree, lineage_tree
 
 def fasta_writer_single(name_seq_dict, outfp):
     for name in name_seq_dict.keys():
@@ -311,6 +314,22 @@ def shell_generator(shell_outfp, treefile_list, fastafile_list, indelfile_list, 
         )
     return submit_command
 
+def count_mutations_per_branch(lineage, outfp):
+
+    def seq_dist(str1, str2):
+        if (len(str1)!=len(str2)):
+            print("Error: seq_dist() len(str1)!=len(str2)")
+            return None
+        else:
+            Ndiff = 0
+            for i in range(len(str1)):
+                if str1[i] != str2[i]:
+                    Ndiff += 1
+            return Ndiff
+
+    for node in lineage.get_nonterminals():
+        for child in node.clades:
+            print(node.name, child.name, seq_dist(node.seq, child.seq), sep = '\t', file = outfp)
 
 def nwk2fa_qsub(args, parsed_args):
     INFILE, OUTDIR =args.tree, args.output
@@ -372,8 +391,15 @@ def nwk2fa_qsub(args, parsed_args):
     os.makedirs(intermediate_fasta_path, exist_ok = True)
     os.makedirs(intermediate_indel_path, exist_ok = True)
 
-    upper_name2seq_without_indel, upper_name2seq, upper_name2alignedseq, tree, upper_name2indellist = \
+    # simulation of upper lineage
+    upper_name2seq_without_indel, upper_name2seq, upper_name2alignedseq, upper_name2indellist, tree, lineage_tree = \
         nwk2fa_light(upper_tree, initseq, parsed_args, )   
+
+    #  mutation count per branch
+    if (parsed_args.save_N_mutations):
+        with open(args.output+"/PRESUMEout/mother_daughter_Nsubstitutions.up.txt",'a') as outfp:
+            count_mutations_per_branch(lineage_tree, outfp)
+
     fasta_writer_single(upper_name2seq_without_indel, intermediate_fasta_path) # Seems tricky but "upper_name2seq_without_indel" shoule be appropriate here
     if (parsed_args.CRISPR): indel_writer_single(upper_name2indellist, intermediate_indel_path)
 
@@ -435,6 +461,10 @@ def nwk2fa_qsub(args, parsed_args):
     if(parsed_args.CRISPR):
         command += "cat {}/*/PRESUMEout/PRESUMEout.aligned.fa.gz > {}/PRESUMEout.aligned.fa.gz; ".format(downstream_fasta_path, OUTDIR+"/PRESUMEout")
         command += "cat {}/*/PRESUMEout/PRESUMEout.indel.gz > {}/PRESUMEout.indel.gz; ".format(downstream_fasta_path, OUTDIR+"/PRESUMEout")
+    if(parsed_args.save_save_N_mutations):
+        command += "cat {}/mother_daughter_Nsubstitutions.up.txt {}/*/PRESUMEout/mother_daughter_Nsubstitutions.txt > {}/mother_daughter_Nsubstitutions.txt; \
+                    rm {}/mother_daughter_Nsubstitutions.up.txt; "\
+                    .format(OUTDIR+"/PRESUMEout", downstream_fasta_path, OUTDIR+"/PRESUMEout",OUTDIR+"/PRESUMEout")
     subprocess.call(command, shell=True)
     if (not args.debug) : shutil.rmtree(intermediate_path)
     print("Done!")
@@ -450,13 +480,21 @@ def nwk2fa_single(args, parsed_args):
     tree = Phylo.read(args.tree, "newick")
     tree = rename_internals(tree)
 
-    # translate tree
-    upper_name2seq_without_indel, name2seq, name2alignedseq, newtree, name2indellist = nwk2fa_light(tree, initseq, parsed_args=parsed_args)
+    # output
+    upper_name2seq_without_indel, name2seq, name2alignedseq, name2indellist, newtree, lineage_tree = nwk2fa_light(tree, initseq, parsed_args=parsed_args)
+    #  sequences
     fasta_writer_multiple(name2seq, args.output+"/PRESUMEout", "PRESUMEout")
+    #  aligned sequences and indel list
     if parsed_args.CRISPR:
         fasta_writer_multiple(name2alignedseq, args.output+"/PRESUMEout", "PRESUMEout.aligned")
         indel_writer_multiple(name2indellist , args.output+"/PRESUMEout", "PRESUMEout")
+    #  tree
     Phylo.write(newtree, "{}/{}.nwk".format(args.output+"/PRESUMEout", "PRESUMEout"), "newick")
+    #  mutation count per branch
+    if (parsed_args.save_N_mutations):
+        with open(args.output+"/PRESUMEout/mother_daughter_Nsubstitutions.txt",'a') as outfp:
+            count_mutations_per_branch(lineage_tree, outfp)
+   
 
 '''
 if __name__ == "__main__":

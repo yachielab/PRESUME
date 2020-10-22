@@ -1312,7 +1312,7 @@ if __name__ == "__main__":
 
     parser.add_argument(
         "-T",
-        help="Threashold of doubling time to be deleted (default=1000)",
+        help="Threashold of doubling time to be deleted (default = 1000)",
         type=float,
         default=1000
         )
