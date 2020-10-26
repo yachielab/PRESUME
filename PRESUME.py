@@ -878,17 +878,25 @@ def main(timelimit):
     while(True):
         #check_sort_SEQqueue(SEQqueue)
 
+        if timelimit is not None:
+            if SEQqueue[0].t > timelimit:
+                time_over = False
+            else:
+                time_over = False
+        else:
+            time_over = False
+
         if SEQqueue[0].is_alive:
             if C is not None:
                 if c >= C:
                     if prev_seq_t != SEQqueue[0].t:
                         break
 
-        if timelimit == None:
-              
-            esu        = SEQqueue.pop(0)
+        if (SEQqueue[0].is_alive):
 
-            if (esu.is_alive):
+            if not time_over:
+              
+                esu        = SEQqueue.pop(0)
 
                 #print(esu.t)
 
@@ -949,20 +957,20 @@ def main(timelimit):
                 else:
                     print("SEQ.d > "+str(UPPER_LIMIT_doubling_time)+"!!")
                     sys.exit()
+            
             else:
-                # Note: Variable name "esu" means Evolutionally Sequence Unit
-                # as container of SEQ object
-                
-                Lineage[esu.id] = ["dead"]
-                if(esu.id != 0):
-                    death(Lineage, esu.idM)
-                c -= 1
-                if args.bar:
-                    progress_bar(pbar, c)
-
-        else:  
-            if(SEQqueue[0].t > timelimit):
                 break
+
+        else:
+            # Note: Variable name "esu" means Evolutionally Sequence Unit
+            # as container of SEQ object
+            
+            Lineage[esu.id] = ["dead"]
+            if(esu.id != 0):
+                death(Lineage, esu.idM)
+            c -= 1
+            if args.bar:
+                progress_bar(pbar, c)
             
         if (c == 0):
             all_dead(args.idANC)
