@@ -985,8 +985,8 @@ def main(timelimit):
             raise UpperLimitExceededError(UPPER_LIMIT)
             return 1
             
-
-    timelimit = SEQqueue[0].t
+    if (timelimit is None):
+        timelimit = SEQqueue[0].t
 
 
     ##########Simulation finished############
