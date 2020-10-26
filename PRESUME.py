@@ -878,14 +878,6 @@ def main(timelimit):
     while(True):
         #check_sort_SEQqueue(SEQqueue)
 
-        if timelimit is not None:
-            if SEQqueue[0].t > timelimit:
-                time_over = False
-            else:
-                time_over = False
-        else:
-            time_over = False
-
         if SEQqueue[0].is_alive:
             if C is not None:
                 if c >= C:
@@ -893,6 +885,14 @@ def main(timelimit):
                         break
 
         if (SEQqueue[0].is_alive):
+
+            if timelimit is not None:
+                if SEQqueue[0].t > timelimit:
+                    time_over = False
+                else:
+                    time_over = False
+            else:
+                time_over = False
 
             if not time_over:
               
