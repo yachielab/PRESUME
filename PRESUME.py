@@ -879,9 +879,10 @@ def main(timelimit):
         #check_sort_SEQqueue(SEQqueue)
 
         if SEQqueue[0].is_alive:
-            if c >= C:
-                if prev_seq_t != SEQqueue[0].t:
-                    break
+            if C is not None:
+                if c >= C:
+                    if prev_seq_t != SEQqueue[0].t:
+                        break
 
         if timelimit == None:
               
