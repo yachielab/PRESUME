@@ -886,8 +886,6 @@ def main(timelimit):
 
         if (SEQqueue[0].is_alive):
 
-            print(c)
-
             if timelimit is not None:
                 if SEQqueue[0].t > timelimit:
                     time_over = True
