@@ -171,13 +171,6 @@ class SEQ():
         self.idM = idM
         self.CV = max(np.random.normal(CVM, CVM*processed_args.alpha), 0)  # should be > 0
 
-        '''
-        if CV:
-            self.r = self.growing_rate_dist(rM, rM*self.CV)
-        else:
-            self.r = self.growing_rate_dist(rM, self.CV)
-        '''
-
         LOWER_LIMIT_doubling_time = args.ld
         self.d = 0
         while self.d < LOWER_LIMIT_doubling_time:
@@ -863,14 +856,18 @@ def main(timelimit):
     # First of all, there exits only 1 SEQ.
     SEQqueue.append(
         SEQ(i, -1, processed_args.initseq, processed_args.sigma_origin, processed_args.growing_rate_origin,
-            processed_args.dorigin, args.tMorigin, processed_args.initindels, True))
+            processed_args.dorigin, args.tMorigin, processed_args.initindels))
     SEQqueue[0].seq = processed_args.initseq
     SEQqueue[0].indels = processed_args.initindels
+
     if args.idANC == 0:
         Timepoint[0] = SEQqueue[0].t if SEQqueue[0].is_alive else None # sequential mode
     else:
-        Timepoint[0] = args.tMorigin + processed_args.dorigin # distributed mode
-    #Timepoint[0] = SEQqueue[0].t if SEQqueue[0].is_alive else None 
+        SEQqueue[0].d = processed_args.dorigin
+        SEQqueue[0].r = 1 / SEQqueue[0].d
+        SEQqueue[0].t = args.tMorigin + SEQqueue[0].d 
+        Timepoint[0]  = args.tMorigin + processed_args.dorigin # distributed mode
+    
     i += 1
     c  = 1  # current number of SEQs
 
