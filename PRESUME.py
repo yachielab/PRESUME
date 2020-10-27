@@ -1159,8 +1159,8 @@ def main(timelimit):
                         + " -u " + str(UPPER_LIMIT)\
                         + " --idANC "    + str(esu.id)\
                         + " --tMorigin " + str(esu.t - esu.d)\
-                        + " --seed "     + str(np.random.randint(0, 10000))\
-                        + " --chunks "   + str(args.chunks)
+                        + " --seed "     + str(args.seed)\
+                        + " --chunks "   + str(args.chunks) # use the same seed: topologies of bottom trees are same as that of the top tree
                     if args.CV:
                         python_command += " --CV"
                     
@@ -1555,9 +1555,9 @@ if __name__ == "__main__":
 
     parser.add_argument(
         "--dist",
-        help="Distribution of d or 1/d (permissive values: 'norm', 'lognorm', 'gamma')",
+        help="Distribution of d or 1/d (permissive values: 'norm', 'lognorm', 'gamma', 'gamma2')",
         type=str,
-        default='norm'
+        default='gamma2'
     )
 
     args = parser.parse_args()
@@ -1598,185 +1598,6 @@ if __name__ == "__main__":
         else:
             n2f.nwk2fa_qsub(args, processed_args)
         exit()
-
-    '''
-    # read argument from input CSV
-    if args.param:
-        with open(args.param, "rt") as fin:
-            cin = csv.reader(fin)
-            arglist = [row for row in cin]
-            valid_format = len(arglist[0]) == len(arglist[1])
-            if not valid_format:
-                print("ERROR:invalid format!")
-                quit()
-            for position in range(len(arglist[0])):
-                if len(arglist[1][position].split('.')) != 1:
-                    loaded_arg = float(arglist[1][position])
-                    args.__dict__[arglist[0][position]] = loaded_arg
-                elif arglist[1][position] in ["True", "False"]:
-                    if arglist[1][position] == "True":
-                        args.__dict__[arglist[0][position]] = True
-                    else:
-                        args.__dict__[arglist[0][position]] = False
-                elif len(arglist[1][position].split('/')) != 1:
-                    loaded_arg = str(arglist[1][position])
-                    args.__dict__[arglist[0][position]] = loaded_arg
-                else:
-                    loaded_arg = int(arglist[1][position])
-                    args.__dict__[arglist[0][position]] = loaded_arg
-            print("CSV loaded!")
-
-    # --gamma xor --constant should be specified
-    if(args.gtrgamma is None and args.constant is None and args.homoplasy is None):
-        print("please specify --gtrgamma, --constant, or --homoplasy")
-        sys.exit(1)
-    if(args.gtrgamma is not None and args.constant is not None and args.homoplasy is None):
-        print("please don't specify both --gtrgamma, --constant, or --homoplasy")
-        sys.exit(1)
-
-    # initialize the pseudo-random number generator
-    if args.seed is not None:
-        seed = args.seed
-    elif args.seed == "rand":
-        seed = np.random.randint(0, args.r)
-    elif args.seed is None:
-        seed = 0
-    else:
-        seed = int(args.seed)
-    np.random.seed(int(seed))
-    random.seed(int(seed))
-
-
-    # parameters###### (corresponding to the Figure.2a)
-    L = args.L
-    dorigin = args.d
-    if dorigin == 0:
-        print("fatal error: doubling time of initial SEQ is 0!")
-        sys.exit(1)
-
-    growing_rate_origin = 1 / args.d
-    sigma_origin = args.s
-    alpha = args.a
-    T = args.T
-    e = args.e
-    m_mutation = args.m
-    dist = args.dist
-
-    if args.STV:
-        STV = True
-    else:
-        STV = False
-
-    # In case expected number of mutation is independent
-    # on the doubling time of the SEQ
-    if args.homoplasy is not None:
-        None
-    elif(args.constant is not None):
-        mu = [args.constant] * L
-
-    # substitution rate matrix (GTR-Gamma model)
-    # -> define substitution matrix function
-    if(args.gtrgamma is not None):
-        if(args.gtrgamma == "default"):
-            model = "GTR{0.03333/0.03333/0.03333/0.03333/0.03333/0.03333} \
-            +FU{0.25/0.25/0.25/0.25} \
-            +G4{10000}"
-        else:
-            model = args.gtrgamma
-        models_str = str(model).split("+")
-        abcdef = (models_str[0].split("{"))[1].split("}")[0].split("/")
-        piACGT = (models_str[1].split("{"))[1].split("}")[0].split("/")
-        gamma_str = (models_str[2].split("{"))[1].split("}")[0].split("/")
-        a1 = float(abcdef[0])  # A <-> C
-        a2 = float(abcdef[1])  # A <-> G
-        a3 = float(abcdef[2])  # A <-> T
-        a4 = float(abcdef[3])  # C <-> G
-        a5 = float(abcdef[4])  # C <-> T
-        a6 = float(abcdef[5])  # G <-> T
-        piA = float(piACGT[0])
-        piC = float(piACGT[1])
-        piG = float(piACGT[2])
-        piT = float(piACGT[3])
-        if (abs(piA+piC+piG+piT-1) > 0.001):
-            print("error piA+piC+piG+piT not equal to 1!")
-            sys.exit(1)
-        # substitution rate matrix
-        R = np.matrix([
-            [-(a1*piC+a2*piG+a3*piT), a1*piC, a2*piG, a3*piT],
-            [a1*piA, -(a1*piA+a4*piG+a5*piT), a4*piG, a5*piT],
-            [a2*piA, a4*piC, -(a2*piA+a4*piC+a6*piT), a6*piT],
-            [a3*piA, a5*piC, a6*piG, -(a3*piA+a5*piC+a6*piG)]])
-        print("Substitution rate matrix:")
-        print(R)
-        # Al: eigen values (np.array),
-        # U: eigen vectors matrix :
-        # R = U * diag(Al) * U^(-1)
-        Al, U = np.linalg.eig(R)
-
-        # return transition matrix
-        def P(t, gamma):
-            exp_rambda = np.diag(
-                    np.array([
-                        np.exp(Al[0] * t * gamma),
-                        np.exp(Al[1] * t * gamma),
-                        np.exp(Al[2] * t * gamma),
-                        np.exp(Al[3] * t * gamma)]
-                    )
-                )
-            return np.dot(np.dot(U, exp_rambda), np.linalg.inv(U))
-        # model of site heterogeneity:
-        # calculate relative substitution rate gamma for each site
-        shape = float(gamma_str[0])  # shape of gamma distribution
-        gamma = np.random.gamma(shape, m_mutation / shape, L)  # mean is args.m
-
-    # set indel parameters from raw lab experiments
-    CRISPR      = False
-    if (args.inprob != None): 
-        args.inprob    = os.path.abspath(args.inprob)
-        args.inlength  = os.path.abspath(args.inlength)
-        args.delprob   = os.path.abspath(args.delprob)
-        args.dellength = os.path.abspath(args.dellength)
-        pos2inprob  =   make_list(args.inprob  , 'float', column = 0)
-        in_lengths  = [ make_list(args.inlength, 'int'  , column = 0)   ,
-                        make_list(args.inlength, 'float', column = 1)   ]
-        pos2delprob =   make_list(args.delprob , 'float', column = 0)
-        del_lengths = [ make_list(args.dellength,'int'  , column = 0)   ,
-                        make_list(args.dellength,'float', column = 1)   ]
-        CRISPR      = True
-
-    # initial sequence specification
-    if (args.f is not None):
-
-        handle = gzip.open(args.f, 'rt')
-        sequences = SeqIO.parse(handle, 'fasta')
-        initseq = str(list(sequences)[0].seq)
-        L = len(initseq)
-        handle.close()
-
-    elif (args.polyC):
-        initseq = 'C' * L  # initial sequence
-    else:
-        initseq = ''.join([
-            np.random.choice(['A', 'G', 'C', 'T']) for i in range(L)
-            ])
-    
-    # initial indel specification (for distributed computing mode)
-    if(CRISPR):
-        if (args.indels is not None):
-            initindels = []
-            with open(args.indels, 'r') as handle:
-                for line in handle:
-                    chunks = line.split()
-                    if (chunks[0] == "del") : initindels.append([chunks[0], int(chunks[1]), int(chunks[2])])
-                    elif (chunks[0] == "in"): initindels.append([chunks[0], int(chunks[1]), int(chunks[2]), chunks[3]])
-                    else:
-                        print("Error: Invalid input for --indels option")
-        else:
-            initindels=[]
-    else:
-        initindels=None
-
-    '''
 
     # setup directory
     if not os.path.exists(OUTDIR):
