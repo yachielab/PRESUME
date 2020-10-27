@@ -865,11 +865,11 @@ def main(timelimit):
             processed_args.dorigin, args.tMorigin, processed_args.initindels, True))
     SEQqueue[0].seq = processed_args.initseq
     SEQqueue[0].indels = processed_args.initindels
-    #if args.idANC == 0:
-    #    Timepoint[0] = SEQqueue[0].t if SEQqueue[0].is_alive else None # sequential mode
-    #else:
-    #    Timepoint[0] = args.tMorigin + processed_args.dorigin - (timelimit / 2) # distributed mode
-    Timepoint[0] = SEQqueue[0].t if SEQqueue[0].is_alive else None 
+    if args.idANC == 0:
+        Timepoint[0] = SEQqueue[0].t if SEQqueue[0].is_alive else None # sequential mode
+    else:
+        Timepoint[0] = args.tMorigin + processed_args.dorigin - (timelimit / 2) # distributed mode
+    #Timepoint[0] = SEQqueue[0].t if SEQqueue[0].is_alive else None 
     i += 1
     c  = 1  # current number of SEQs
 
