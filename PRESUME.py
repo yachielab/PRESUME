@@ -1160,7 +1160,8 @@ def main(timelimit):
                         + " --idANC "    + str(esu.id)\
                         + " --tMorigin " + str(esu.t - esu.d)\
                         + " --seed "     + str(args.seed)\
-                        + " --chunks "   + str(args.chunks) # use the same seed: topologies of bottom trees are same as that of the top tree
+                        + " --chunks "   + str(args.chunks)\
+                        + " --dist "   + str(args.dist) # use the same seed: topologies of bottom trees are same as that of the top tree
                     if args.CV:
                         python_command += " --CV"
                     
@@ -1555,7 +1556,7 @@ if __name__ == "__main__":
 
     parser.add_argument(
         "--dist",
-        help="Distribution of d or 1/d (permissive values: 'norm', 'lognorm', 'gamma', 'gamma2')",
+        help="Distribution of d or 1/d (permissive values: 'norm', 'lognorm', 'gamma', 'gamma2') (default: 'gamma2)",
         type=str,
         default='gamma2'
     )
@@ -1581,6 +1582,11 @@ if __name__ == "__main__":
 
     OUTDIR = args.output
 
+    # initialize the pseudo-random number generator
+    if (args.seed is None):
+        args.seed = np.random.randint(1,10000)
+    np.random.seed(args.seed)
+    random.seed(args.seed)
     processed_args = args_reader.PARSED_ARGS(args)
     
     if args.tree:

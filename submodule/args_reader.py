@@ -64,7 +64,6 @@ class PARSED_ARGS():
             print("please don't specify both --gtrgamma and --constant")
             sys.exit(1)
 
-        # initialize the pseudo-random number generator
         if args.seed is not None:
             self.seed = args.seed
         elif args.seed == "rand":
@@ -73,9 +72,6 @@ class PARSED_ARGS():
             self.seed = 0
         else:
             self.seed = int(args.seed)
-        np.random.seed(self.seed)
-        random.seed(self.seed)
-
 
         # parameters###### (corresponding to the Figure.2a)
         self.L = args.L
