@@ -425,12 +425,11 @@ def create_newick(Lineage, Timepoint, timelimit, upper_tree=False):
             elif Timepoint[key] > timelimit:
                 Timepoint[key] = timelimit
     else:
-        None
-        #for key in Timepoint.keys():
-        #    if Timepoint[key] is None:
-        #        pass
-        #    elif Timepoint[key] >= 2 * timelimit:
-        #        Timepoint[key] = 3 * timelimit
+        for key in Timepoint.keys():
+            if Timepoint[key] is None:
+                pass
+            elif Timepoint[key] >= 2 * timelimit:
+                Timepoint[key] = 2 * timelimit
     init_clade = Phylo.BaseTree.Clade(name="0")
     tree = Phylo.BaseTree.Tree(init_clade)
     list_of_dead = []
@@ -1235,6 +1234,9 @@ def main(timelimit):
     # finish
     if args.save:
         argument_saver(args)
+
+    if (args.qsub):
+        timelimit = timelimit * 2
 
     print("\n=====================================================")
     print("Simulation end time point:         "+str(timelimit))
