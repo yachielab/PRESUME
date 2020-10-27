@@ -1155,7 +1155,7 @@ def main(timelimit):
                         + " -u " + str(UPPER_LIMIT)\
                         + " --idANC "    + str(esu.id)\
                         + " --tMorigin " + str(esu.t - esu.d)\
-                        + " --seed "     + str(args.seed)\
+                        + " --seed "     + str(np.random.randint(1,10000))\
                         + " --chunks "   + str(args.chunks)\
                         + " --dist "   + str(args.dist) # use the same seed: topologies of bottom trees are same as that of the top tree
                     if args.CV:
