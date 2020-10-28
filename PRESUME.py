@@ -1598,12 +1598,7 @@ if __name__ == "__main__":
         if (os.path.exists(os.getcwd() + "/" + args.tree)):
             args.tree      = os.getcwd() + "/" + args.tree
         processed_args = args_reader.PARSED_ARGS(args)
-        if args.profile:
-            from submodule import nwk2fa_be as n2f
-            print("tree mode! (base editor mode)")
-        else:
-            from submodule import nwk2fa as n2f
-            print("tree mode!")
+        from submodule import nwk2fa as n2f
         os.chdir(OUTDIR)
         os.makedirs("PRESUMEout", exist_ok=True)
         os.chdir("PRESUMEout")
