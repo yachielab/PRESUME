@@ -332,6 +332,29 @@ def count_mutations_per_branch(lineage, outfp):
         for child in node.clades:
             print(node.name, child.name, seq_dist(node.seq, child.seq), sep = '\t', file = outfp)
 
+def count_mutations_per_position(lineage, outfp):
+
+    def seq_dist(str1, str2):
+        if (len(str1)!=len(str2)):
+            print("Error: seq_dist() len(str1)!=len(str2)")
+            return None
+        else:
+            diffvec = np.zeros(len(str1))
+            for i in range(len(str1)):
+                if str1[i] != str2[i]:
+                    diffvec[i] = 1
+            return diffvec
+
+    L = len(lineage.clade.seq)
+    count_array = np.zeros(L)
+
+    for node in lineage.get_nonterminals():
+        for child in node.clades:
+            count_array += seq_diff(node.seq, child.seq)
+    
+    for i in range(L):
+        print(str(i)+","+count_array[i], sep = '\n', file = outfp)
+
 def nwk2fa_qsub(args, parsed_args):
     INFILE, OUTDIR =args.tree, args.output
     # initial sequence specification
