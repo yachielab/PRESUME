@@ -6,23 +6,6 @@ import os
 import gzip
 from Bio import SeqIO
 
-
-
-LOGO = '''
-######     ######     #######     #####     #     #    #     #    #######
-#     #    #     #    #          #     #    #     #    ##   ##    #
-#     #    #     #    #          #          #     #    # # # #    #
-######     ######     #####       #####     #     #    #  #  #    #####
-#          #   #      #                #    #     #    #     #    #
-#          #    #     #          #     #    #     #    #     #    #
-#          #     #    #######     #####      #####     #     #    #######
-
-Version:     1.0.0
-Last update: April 24, 2020
-GitHub:      https://github.com/yachielab/PRESUME
-'''
-
-
 class PARSED_ARGS():
     # idM & mseq means id & sequence of mother SEQ, respectively.
     def __init__(self, args): # indels: list of [('in' or 'del', start_pos, length)]
@@ -196,6 +179,13 @@ class PARSED_ARGS():
                 self.initindels=[]
         else:
             self.initindels=None
+
+        # for nwk2fa specification
+        if args.tree:
+            self.tree = args.tree
+            if args.profile:
+                self.profile=args.profile
+
     # return transition matrix
     def P(self, gamma, t):
         exp_rambda = np.diag(
