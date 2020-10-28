@@ -181,7 +181,7 @@ class SEQ():
         if(self.is_alive):
             if STV:
                 if CV:
-                    self.d = self.growing_rate_dist(dM, rM*self.CV)
+                    self.d = self.growing_rate_dist(dM, dM*self.CV)
                 else:
                     self.d = self.growing_rate_dist(dM, self.CV)
             else:
@@ -888,6 +888,13 @@ def main(timelimit):
             if(c < C):
                 delta_timelimit = inittimelimit/(timelimit/inittimelimit)
                 timelimit += delta_timelimit
+                ## DEBUG
+                d_sum = 0
+                N = 0
+                for seq in SEQqueue:
+                    d_sum += seq.d
+                    N += 1
+                print("DEBUG:current average d is {}".format(d_sum/N))
             else:
                 print("Number of generated sequences reached "+str(C))
                 break

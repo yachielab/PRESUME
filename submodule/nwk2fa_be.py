@@ -23,31 +23,7 @@ from submodule import nwk2fa_mutation
 from submodule import args_reader
 
 LOGO='''
-######     ######     #######     #####     #     #    #     #    #######
-#     #    #     #    #          #     #    #     #    ##   ##    #
-#     #    #     #    #          #          #     #    # # # #    #
-######     ######     #####       #####     #     #    #  #  #    #####
-#          #   #      #                #    #     #    #     #    #
-#          #    #     #          #     #    #     #    #     #    #
-#          #     #    #######     #####      #####     #     #    #######
-
-
-###### #####   ####  #    #    #    # ###### #    # #  ####  #    # 
-#      #    # #    # ##  ##    ##   # #      #    # # #    # #   #  
-#####  #    # #    # # ## #    # #  # #####  #    # # #      ####   
-#      #####  #    # #    #    #  # # #      # ## # # #      #  #   
-#      #   #  #    # #    #    #   ## #      ##  ## # #    # #   #  
-#      #    #  ####  #    #    #    # ###### #    # #  ####  #    # 
-                                                                    
-                                                  
-#####  ####     ######   ##    ####  #####   ##   
-  #   #    #    #       #  #  #        #    #  #  
-  #   #    #    #####  #    #  ####    #   #    # 
-  #   #    #    #      ######      #   #   ###### 
-  #   #    #    #      #    # #    #   #   #    # 
-  #    ####     #      #    #  ####    #   #    # 
-
-DEBUG MODE of PRESUME
+DEBUG MODE of PRESUME (model of base editor)
 from newick to fasta
 github: https://github.com/yachielab/PRESUME
 '''
@@ -311,7 +287,6 @@ def shell_generator(shell_outfp, treefile_list, fastafile_list, indelfile_list, 
         )
     return submit_command
 
-
 def nwk2fa_qsub(args, parsed_args):
     INFILE, OUTDIR =args.tree, args.output
     # initial sequence specification
@@ -447,49 +422,3 @@ def nwk2fa_single(args, parsed_args):
         fasta_writer_multiple(name2alignedseq, args.output+"/PRESUMEout", "PRESUMEout.aligned")
         indel_writer_multiple(name2indellist , args.output+"/PRESUMEout", "PRESUMEout")
     Phylo.write(newtree, "{}/{}.nwk".format(args.output+"/PRESUMEout", "PRESUMEout"), "newick")
-
-'''
-if __name__ == "__main__":
-    # INFILE = "/Users/keitowatano/Desktop/tmp_PRESUME/in/test_10k_tips.nwk"
-    # OUTDIR = "/Users/keitowatano/Desktop/tmp_PRESUME/out/prototype_nwk2fa"
-    parser = argparse.ArgumentParser(description='PRESUME.py', add_help=True)
-    parser.add_argument(
-        "--tree",
-        type=str
-        )
-    parser.add_argument(
-        "--fasta",
-        type=str
-        )
-
-    parser.add_argument(
-        "--outdir_nwk",
-        type=str
-        )
-
-    parser.add_argument(
-        "--outdir_fasta",
-        type=str
-        )
-
-    parser.add_argument(
-        "--filename",
-        type=str
-        )
-
-    args = parser.parse_args()
-
-    # read sequence
-    with open(args.fasta, "r") as reader:
-        for seq_record in SeqIO.parse(reader, "fasta"):
-            initseq = str(seq_record.seq)
-    
-    # read tree
-    tree = Phylo.read(args.tree, "newick")
-
-    # translate tree
-    name2seq, newtree = nwk2fa_light(tree, initseq, parsed_args)
-    fasta_writer_multiple(name2seq, args.outdir_fasta, "{}.fasta".format(args.filename))
-    Phylo.write(newtree, "{}/{}.nwk".format(args.outdir_nwk, args.filename), "newick")
-
-'''
