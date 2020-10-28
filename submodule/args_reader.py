@@ -246,4 +246,6 @@ class PARSED_ARGS():
 
                 substitution_prob_matrix[pos, i, i] = 1 - change_prob
         
+        for matrix in substitution_prob_matrix:
+            print (matrix)
         return substitution_prob_matrix

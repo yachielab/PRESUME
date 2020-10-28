@@ -1606,7 +1606,11 @@ if __name__ == "__main__":
             n2f.nwk2fa_single(args, processed_args)
         else:
             n2f.nwk2fa_qsub(args, processed_args)
-        exit()
+
+        print("\n=====================================================")
+        print("Seed for random number generation: "+str(processed_args.seed))
+        print("=====================================================\n")
+        sys.exit(0)
 
     # setup directory
     if not os.path.exists(OUTDIR):
