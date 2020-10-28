@@ -334,7 +334,7 @@ def count_mutations_per_branch(lineage, outfp):
 
 def count_mutations_per_position(lineage, outfp):
 
-    def seq_dist(str1, str2):
+    def seq_diff(str1, str2):
         if (len(str1)!=len(str2)):
             print("Error: seq_dist() len(str1)!=len(str2)")
             return None
