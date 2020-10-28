@@ -19,7 +19,7 @@ import argparse
 import gzip
 import shutil
 
-from submodule import nwk2fa_mutation
+from submodule import nwk2fa_be_mutation
 from submodule import args_reader
 
 LOGO='''
@@ -27,6 +27,33 @@ DEBUG MODE of PRESUME (model of base editor)
 from newick to fasta
 github: https://github.com/yachielab/PRESUME
 '''
+
+def hello():
+    print("hello world!")
+
+class Lineage_BE(nwk2fa_be_mutation.Lineage):
+    def __init__(self, branch_length=1.0, name=None, clades=None, confidence=None, color=None, width=None, 
+    seq=None, mother_name=None, ROOT=False, parsed_args=None, indelsM=None, mother_clade=None):
+        super(nwk2fa_be_mutation.Lineage, self).__init__(branch_length, name, clades, confidence, color, width, mother_name, ROOT, parsed_args, indelsM, mother_clade)
+        self.seq = seq if ROOT else self.replication(seq, parsed_args)
+
+
+    def replication(self, seq, parsed_args):
+        dseq=""
+        for i in range(parsed_args.L):
+            dseq = dseq + self.homoplastic_mutation(seq[i],i)
+
+        return dseq
+
+    def homoplastic_mutation(self, c, position):
+        def mutation(matrix, c):
+            base = {'A': 0, 'C': 1, 'G': 2, 'T': 3}
+            return random.choices(['A', 'C', 'G', 'T'], k=1, weights=matrix[base[c]])[0]
+        
+        matrix = nwk2fa_be_mutation.sub_mat_parser(args.mu_file)
+
+        while True:
+            yield mutation(c, position)
 
 def rename_internals(tree):
     ### from https://biopython.org/wiki/Phylo_cookbook
@@ -73,7 +100,7 @@ def translate_tree(topology_dict, branch_length_dict,name_of_root, initseq, pars
     init_branch_length = parsed_args.dorigin                  ### Important! 
     #init_branch_length = branch_length_dict[name_of_root]
 
-    init_clade = nwk2fa_mutation.Lineage(branch_length=init_branch_length, name=name_of_root, seq= initseq, ROOT=True, parsed_args=parsed_args,indelsM=[])
+    init_clade = nwk2fa_be_mutation.Lineage(branch_length=init_branch_length, name=name_of_root, seq= initseq, ROOT=True, parsed_args=parsed_args,indelsM=[])
     init_clade.indels=parsed_args.initindels
     newtree = Phylo.BaseTree.Tree(init_clade)
     stack=[init_clade]
@@ -84,8 +111,8 @@ def translate_tree(topology_dict, branch_length_dict,name_of_root, initseq, pars
         mother_seq=clade.seq
         if len(topology_dict[node_name]) == 2:
             children = [
-                nwk2fa_mutation.Lineage(branch_length = branch_length_dict[topology_dict[node_name][0]], name=str(topology_dict[node_name][0]), seq=mother_seq, parsed_args=parsed_args, mother_clade = clade, indelsM=clade.indels),
-                nwk2fa_mutation.Lineage(branch_length = branch_length_dict[topology_dict[node_name][1]], name=str(topology_dict[node_name][1]), seq=mother_seq, parsed_args=parsed_args, mother_clade = clade, indelsM=clade.indels)
+                nwk2fa_be_mutation.Lineage(branch_length = branch_length_dict[topology_dict[node_name][0]], name=str(topology_dict[node_name][0]), seq=mother_seq, parsed_args=parsed_args, mother_clade = clade, indelsM=clade.indels),
+                nwk2fa_be_mutation.Lineage(branch_length = branch_length_dict[topology_dict[node_name][1]], name=str(topology_dict[node_name][1]), seq=mother_seq, parsed_args=parsed_args, mother_clade = clade, indelsM=clade.indels)
             ]
             clade.clades.extend(children)
             stack.extend(children)
@@ -291,15 +318,12 @@ def nwk2fa_qsub(args, parsed_args):
     INFILE, OUTDIR =args.tree, args.output
     # initial sequence specification
     initseq = parsed_args.initseq
+    SUBSTITUTION_PROBABILITY_MATRIX = nwk2fa_be_mutation.sub_mat_parser(parsed_args.profile)
 
-    '''
-    initseq = False
-    # initial sequence specification
-    if (args.f is not None):
-        with gzip.open(args.f, 'rt') as f:
-            sequences = SeqIO.parse(f, 'fasta')
-            initseq = str(list(sequences)[0].seq)
-    '''
+    initseq = parsed_args.initseq
+    if len(SUBSTITUTION_PROBABILITY_MATRIX) != len(initseq):
+        print("ERROR:A length of initial sequence should be the same with SUBSTITUTION_PROBABILITY_MATRIX.please check your input.")
+        print("length of initseq:{}, length of SUBSTITUTION_PROBABILITY_MATRIX:{}".format(len(initseq), len(SUBSTITUTION_PROBABILITY_MATRIX)))
 
     # prepare intermediates
     intermediate_path = "{}/PRESUMEout/intermediate".format(OUTDIR)
@@ -408,8 +432,12 @@ def nwk2fa_qsub(args, parsed_args):
     return
 
 def nwk2fa_single(args, parsed_args):
+    SUBSTITUTION_PROBABILITY_MATRIX = nwk2fa_be_mutation.sub_mat_parser(parsed_args.profile)
     # initial sequence specification
     initseq = parsed_args.initseq
+    if len(SUBSTITUTION_PROBABILITY_MATRIX) != len(initseq):
+        print("ERROR:A length of initial sequence should be the same with SUBSTITUTION_PROBABILITY_MATRIX.please check your input.")
+        print("length of initseq:{}, length of SUBSTITUTION_PROBABILITY_MATRIX:{}".format(len(initseq), len(SUBSTITUTION_PROBABILITY_MATRIX)))
     
     # read tree
     tree = Phylo.read(args.tree, "newick")
