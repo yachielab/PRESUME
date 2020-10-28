@@ -386,15 +386,18 @@ def nwk2fa_qsub(args, parsed_args):
     for terminal in terminals:
         if not (terminal in upper_terminals):
             print(terminal, " is not found!!")
-    print("NWK2FA:created upper tree...")
+    
+    
     intermediate_fasta_path = "{}/fastas".format(intermediate_path)
     intermediate_indel_path = "{}/indels".format(intermediate_path)
     os.makedirs(intermediate_fasta_path, exist_ok = True)
     os.makedirs(intermediate_indel_path, exist_ok = True)
 
     # simulation of upper lineage
+    print("NWK2FA: Simulating on upper trees...", end = '')
     upper_name2seq_without_indel, upper_name2seq, upper_name2alignedseq, upper_name2indellist, tree, lineage_tree = \
         nwk2fa_light(upper_tree, initseq, parsed_args, )   
+    print("Finished!")
 
     #  mutation count per branch
     if (parsed_args.save_N_mutations):
@@ -443,7 +446,8 @@ def nwk2fa_qsub(args, parsed_args):
     shell_path = "{}/shell".format(intermediate_path)
     os.makedirs(shell_path, exist_ok = True)
     stdeo_path = "{}/stdeo".format(intermediate_path)
-    os.makedirs(stdeo_path, exist_ok = True)    
+    os.makedirs(stdeo_path, exist_ok = True)   
+    print("NWK2FA: Simulating on bottom trees... ", end = '') 
     submit_command = shell_generator(
         shell_path, 
         treefile_list, 
@@ -456,7 +460,7 @@ def nwk2fa_qsub(args, parsed_args):
         parsed_args
         )
     subprocess.call(submit_command, shell=True)
-    print("bottom tree created!")
+    print("Finished!")
 
     command  = "cat {}/*/PRESUMEout/PRESUMEout.fa.gz > {}/PRESUMEout.fa.gz; ".format(downstream_fasta_path, OUTDIR+"/PRESUMEout")
     if(parsed_args.CRISPR):
