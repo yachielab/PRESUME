@@ -246,7 +246,8 @@ def shell_generator(shell_outfp, treefile_list, fastafile_list, indelfile_list, 
         .split('\n')
         )[0]
 
-    NWK2FA = os.path.dirname(os.path.abspath(__file__))
+    NWK2FAdir  = os.path.dirname(os.path.abspath(__file__))
+    PRESUMEdir = "/".join(NWK2FAdir.split("/")[:-1])
 
     PATH = (((
         subprocess.Popen('echo $PATH', stdout=subprocess.PIPE,
@@ -277,14 +278,8 @@ def shell_generator(shell_outfp, treefile_list, fastafile_list, indelfile_list, 
             qf.write("mkdir "+OUTPUT_DIR+"\n")
             qf.write("cd "+OUTPUT_DIR+"\n")
             qf.write("pwd\n")
-            #python_command = PYTHON3 + " " + NWK2FA + "/nwk2fa.py "\
-            #    + " --tree " + treefile\
-            #    + " --fasta " + fastafile\
-            #    + " --outdir_nwk " + tree_outfp\
-            #    + " --outdir_fasta " + fasta_outfp\
-            #    + " --filename " + "Down_{}".format(idx + 1)
 
-            python_command = PYTHON3 + " " + NWK2FA + "/PRESUME.py "\
+            python_command = PYTHON3 + " " + PRESUMEdir + "/PRESUME.py "\
                 + " -f " + fastafile\
                 + " --seed " + str(np.random.randint(0, 10000))\
                 + " --tree " + treefile

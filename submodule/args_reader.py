@@ -5,7 +5,6 @@ import random
 import os
 import gzip
 from Bio import SeqIO
-import pandas as pd
 
 class PARSED_ARGS():
     # idM & mseq means id & sequence of mother SEQ, respectively.
