@@ -301,6 +301,9 @@ def shell_generator(shell_outfp, treefile_list, fastafile_list, indelfile_list, 
             if (args.constant is not None):
                 python_command += \
                     " --constant "+str(args.constant)
+            if (args.editprofile is not None):
+                python_command += \
+                    " --editprofile "+str(args.editprofile)
             if (args.debug):
                 python_command += \
                     " --debug "
