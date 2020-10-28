@@ -330,7 +330,7 @@ def count_mutations_per_branch(lineage, outfp):
 
     for node in lineage.get_nonterminals():
         for child in node.clades:
-            print(node.name, child.name, seq_dist(node.seq, child.seq), sep = '\t', file = outfp)
+            print(node.name, child.name, seq_dist(node.seq, child.seq), sep = ',', file = outfp)
 
 def count_mutations_per_position(lineage, outfp):
 
