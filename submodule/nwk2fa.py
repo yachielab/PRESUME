@@ -309,7 +309,7 @@ def shell_generator(shell_outfp, treefile_list, fastafile_list, indelfile_list, 
     #submit_command = "qsub -e {3} -o {3} -sync y -t 1-{0} {1}/nwk2fa_launcher.sh {2} &> /dev/null".format(
     submit_command = "qsub -e {3} -o {3} -sync y -t 1-{0} {1}/submodule/nwk2fa_launcher.sh {2} > {3}/nwk2fa_launcher.sh.out 2> {3}/nwk2fa_launcher.sh.err".format(
         terminal_idx + 1,
-        NWK2FA,
+        PRESUMEdir,
         shell_outfp,
         stdeo
         )
