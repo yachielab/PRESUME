@@ -427,7 +427,7 @@ def nwk2fa_qsub(args, parsed_args):
         with open(args.output+"/PRESUMEout/mother_daughter_Nsubstitutions.up.txt",'a') as outfp:
             count_mutations_per_branch(lineage_tree, outfp)
         with open(args.output+"/PRESUMEout/position_Nsubstitutions.up.txt",'a') as outfp:
-            count_mutations_per_position(lineage, outfp)
+            count_mutations_per_position(lineage_tree, outfp)
 
     fasta_writer_single(upper_name2seq_without_indel, intermediate_fasta_path) # Seems tricky but "upper_name2seq_without_indel" shoule be appropriate here
     if (parsed_args.CRISPR): indel_writer_single(upper_name2indellist, intermediate_indel_path)
@@ -528,7 +528,7 @@ def nwk2fa_single(args, parsed_args):
         with open(args.output+"/PRESUMEout/mother_daughter_Nsubstitutions.txt",'a') as outfp:
             count_mutations_per_branch(lineage_tree, outfp)
         with open(args.output+"/PRESUMEout/position_Nsubstitutions.txt",'a') as outfp:
-            count_mutations_per_position(lineage, outfp)
+            count_mutations_per_position(lineage_tree, outfp)
    
 
 '''
