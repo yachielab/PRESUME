@@ -5,13 +5,11 @@ import random
 import os
 import gzip
 from Bio import SeqIO
+import pandas as pd
 
 class PARSED_ARGS():
     # idM & mseq means id & sequence of mother SEQ, respectively.
     def __init__(self, args): # indels: list of [('in' or 'del', start_pos, length)]
-        if args.version:
-            print(LOGO)
-            exit()
 
         # read argument from input CSV
         if args.param:
@@ -40,8 +38,8 @@ class PARSED_ARGS():
                 print("CSV loaded!")
 
         # --gamma xor --constant should be specified
-        if(args.gtrgamma is None and args.constant is None):
-            print("please specify --gtrgamma or --constant")
+        if(args.gtrgamma is None and args.constant is None and args.editprofile is None):
+            print("please specify --gtrgamma, --constant, or --editprofile")
             sys.exit(1)
         if(args.gtrgamma is not None and args.constant is not None):
             print("please don't specify both --gtrgamma and --constant")
@@ -69,10 +67,10 @@ class PARSED_ARGS():
         self.T = args.T
         self.e = args.e
         self.m = args.m
-        self.homoplasy = args.homoplasy
         self.constant = args.constant
         self.gtrgamma = args.gtrgamma
         self.save_N_mutations = args.debug
+        self.editprofile      = args.editprofile
 
 
         # initial sequence specification
@@ -95,8 +93,8 @@ class PARSED_ARGS():
 
         # In case expected number of mutation is independent
         # on the doubling time of the SEQ
-        if args.homoplasy is not None:
-            None
+        if args.editprofile is not None:
+            self.sub_prob_mtx_list = self.sub_mat_parser(args.editprofile)
         elif(args.constant is not None):
             self.mu = [args.constant] * self.L
 
@@ -183,8 +181,7 @@ class PARSED_ARGS():
         # for nwk2fa specification
         if args.tree:
             self.tree = args.tree
-            if args.profile:
-                self.profile=args.profile
+                
 
     # return transition matrix
     def P(self, gamma, t):
@@ -198,20 +195,55 @@ class PARSED_ARGS():
             )
         return np.dot(np.dot(self.U, exp_rambda), np.linalg.inv(self.U))
     
-    
-    '''
-    # setup directory
-    OUTDIR = args.output
-    if not os.path.exists(OUTDIR):
-        os.makedirs(OUTDIR)
-    os.chdir(OUTDIR)
-    os.makedirs("PRESUMEout", exist_ok=True)
-    os.chdir("PRESUMEout")
-    #   excecute main
-    print(LOGO)
-    if args.r == 1:
-        return_main = main(args.monitor)
-    else:
-        counter = recursive_main(args.monitor, args.r, main)
-    #      print("Number of retrials:", counter)
-    '''
+    def sub_mat_parser(self,infile):
+
+        # substitution matrix
+        # = [
+        # A: [AtoA, AtoT, AtoG, AtoC]
+        # C: [CtoA, CtoT, CtoG, CtoC]
+        # G: [GtoA, GtoT, GtoG, GtoC]
+        # T: [TtoA, TtoT, TtoG, TtoC]
+        # ] * L
+
+        base = {'A': 0, 'C': 1, 'G': 2, 'T': 3}
+
+        with open(infile, 'r') as handle:
+            
+            row = 0
+            for line in handle:
+
+                if (row == 0):
+                    
+                    substitution_prob_matrix = np.zeros((self.L, 4, 4))
+                
+                else:
+
+                    transition = line.split(",")[0] # eg. 'CT'
+                    prob_list  = [float(prob_str) for prob_str in line.split(",")[1:]]
+
+                    for pos, prob in enumerate(prob_list):
+
+                        if (pos < self.L):
+                            substitution_prob_matrix[pos][base[transition[0]]][base[transition[1]]] = prob
+                        else:
+                            print("args_reader.py: Edit profile assumes longer sequence than the actual sequence length")
+                            sys.exit(1)
+
+                row       += 1
+        
+        for pos in range(self.L):
+            
+            for i in range(4):
+
+                change_prob = 0
+                for j in range(4):
+                    if (i != j):
+                        change_prob += substitution_prob_matrix[pos, i, j] 
+
+                if (change_prob > 1):
+                    print("args_reader.py: Editing probability > 1!")
+                    sys.exit(1)
+
+                substitution_prob_matrix[pos, i, i] = 1 - change_prob
+        
+        return substitution_prob_matrix

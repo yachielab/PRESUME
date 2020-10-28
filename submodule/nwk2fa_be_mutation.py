@@ -1,3 +1,4 @@
+'''
 __version__ = "1.0.0"
 
 __author__ = "\
@@ -240,3 +241,4 @@ def sub_mat_parser(infile):
         substitution_rate_matrix[idx][2][2] =  1 - (matrix[2][0] + matrix[2][1] + matrix[2][3])
         substitution_rate_matrix[idx][3][3] =  1 - (matrix[3][0] + matrix[3][1] + matrix[3][2])
     return substitution_rate_matrix
+'''

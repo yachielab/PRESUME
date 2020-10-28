@@ -1,3 +1,4 @@
+'''
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 __version__ = "2.0.0"
@@ -477,3 +478,5 @@ def nwk2fa_single(args, parsed_args):
         indel_writer_multiple(name2indellist , args.output+"/PRESUMEout", "PRESUMEout")
     #  tree
     Phylo.write(newtree, "{}/{}.nwk".format(args.output+"/PRESUMEout", "PRESUMEout"), "newick")
+
+'''
