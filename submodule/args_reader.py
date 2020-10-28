@@ -84,7 +84,7 @@ class PARSED_ARGS():
             handle.close()
 
         elif (args.polyC):
-            self.initseq = 'C' * L  # initial sequence
+            self.initseq = 'C' * self.L  # initial sequence
         else:
             self.initseq = ''.join([
                 np.random.choice(['A', 'G', 'C', 'T']) for i in range(args.L)
@@ -246,6 +246,6 @@ class PARSED_ARGS():
 
                 substitution_prob_matrix[pos, i, i] = 1 - change_prob
         
-        for matrix in substitution_prob_matrix:
-            print (matrix)
+        #for matrix in substitution_prob_matrix:
+        #    print (matrix)
         return substitution_prob_matrix

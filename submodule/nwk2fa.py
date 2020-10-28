@@ -424,9 +424,9 @@ def nwk2fa_qsub(args, parsed_args):
 
     #  mutation count per branch
     if (parsed_args.save_N_mutations):
-        with open(args.output+"/PRESUMEout/mother_daughter_Nsubstitutions.up.txt",'a') as outfp:
+        with open(args.output+"/PRESUMEout/mother_daughter_Nsubstitutions.up.csv",'a') as outfp:
             count_mutations_per_branch(lineage_tree, outfp)
-        with open(args.output+"/PRESUMEout/position_Nsubstitutions.up.txt",'a') as outfp:
+        with open(args.output+"/PRESUMEout/position_Nsubstitutions.up.csv",'a') as outfp:
             count_mutations_per_position(lineage_tree, outfp)
 
     fasta_writer_single(upper_name2seq_without_indel, intermediate_fasta_path) # Seems tricky but "upper_name2seq_without_indel" shoule be appropriate here
@@ -492,11 +492,11 @@ def nwk2fa_qsub(args, parsed_args):
         command += "cat {}/*/PRESUMEout/PRESUMEout.aligned.fa.gz > {}/PRESUMEout.aligned.fa.gz; ".format(downstream_fasta_path, OUTDIR+"/PRESUMEout")
         command += "cat {}/*/PRESUMEout/PRESUMEout.indel.gz > {}/PRESUMEout.indel.gz; ".format(downstream_fasta_path, OUTDIR+"/PRESUMEout")
     if(parsed_args.save_N_mutations):
-        command += "cat {}/mother_daughter_Nsubstitutions.up.txt {}/*/PRESUMEout/mother_daughter_Nsubstitutions.txt > {}/mother_daughter_Nsubstitutions.txt; \
-                    rm {}/mother_daughter_Nsubstitutions.up.txt; "\
+        command += "cat {}/mother_daughter_Nsubstitutions.up.csv {}/*/PRESUMEout/mother_daughter_Nsubstitutions.csv > {}/mother_daughter_Nsubstitutions.csv; \
+                    rm {}/mother_daughter_Nsubstitutions.up.csv; "\
                     .format(OUTDIR+"/PRESUMEout", downstream_fasta_path, OUTDIR+"/PRESUMEout",OUTDIR+"/PRESUMEout")
-        command += "cat {}/position_Nsubstitutions.up.txt {}/*/PRESUMEout/position_Nsubstitutions.txt > {}/position_Nsubstitutions.txt; \
-                    rm {}/position_Nsubstitutions.up.txt; "\
+        command += "cat {}/position_Nsubstitutions.up.csv {}/*/PRESUMEout/position_Nsubstitutions.csv > {}/position_Nsubstitutions.csv; \
+                    rm {}/position_Nsubstitutions.up.csv; "\
                     .format(OUTDIR+"/PRESUMEout", downstream_fasta_path, OUTDIR+"/PRESUMEout",OUTDIR+"/PRESUMEout")
     subprocess.call(command, shell=True)
     if (not args.debug) : shutil.rmtree(intermediate_path)
@@ -525,7 +525,7 @@ def nwk2fa_single(args, parsed_args):
     Phylo.write(newtree, "{}/{}.nwk".format(args.output+"/PRESUMEout", "PRESUMEout"), "newick")
     #  mutation count per branch
     if (parsed_args.save_N_mutations):
-        with open(args.output+"/PRESUMEout/mother_daughter_Nsubstitutions.txt",'a') as outfp:
+        with open(args.output+"/PRESUMEout/mother_daughter_Nsubstitutions.csv",'a') as outfp:
             count_mutations_per_branch(lineage_tree, outfp)
-        with open(args.output+"/PRESUMEout/position_Nsubstitutions.txt",'a') as outfp:
+        with open(args.output+"/PRESUMEout/position_Nsubstitutions.csv",'a') as outfp:
             count_mutations_per_position(lineage_tree, outfp)
