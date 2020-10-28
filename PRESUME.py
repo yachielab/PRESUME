@@ -1560,6 +1560,12 @@ if __name__ == "__main__":
         default='gamma2'
     )
 
+    parser.add_argument(
+        "--profile",
+        help="file name of a base editing profile(for debug, unsupported.)",
+        type=str,
+        default=None
+    )
     args = parser.parse_args()
     
     # "Code Ocean" specific process
@@ -1591,9 +1597,8 @@ if __name__ == "__main__":
     if args.tree:
         if (os.path.exists(os.getcwd() + "/" + args.tree)):
             args.tree      = os.getcwd() + "/" + args.tree
-
-        import nwk2fa as n2f
-        print("tree mode!")
+        processed_args = args_reader.PARSED_ARGS(args)
+        from submodule import nwk2fa as n2f
         os.chdir(OUTDIR)
         os.makedirs("PRESUMEout", exist_ok=True)
         os.chdir("PRESUMEout")
