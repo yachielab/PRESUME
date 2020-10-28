@@ -94,6 +94,7 @@ class PARSED_ARGS():
         # on the doubling time of the SEQ
         if args.editprofile is not None:
             self.sub_prob_mtx_list = self.sub_mat_parser(args.editprofile)
+            args.editprofile       = os.getcwd() + "/" + args.editprofile.split("/")[-1]
         elif(args.constant is not None):
             self.mu = [args.constant] * self.L
 
