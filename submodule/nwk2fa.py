@@ -426,6 +426,8 @@ def nwk2fa_qsub(args, parsed_args):
     if (parsed_args.save_N_mutations):
         with open(args.output+"/PRESUMEout/mother_daughter_Nsubstitutions.up.txt",'a') as outfp:
             count_mutations_per_branch(lineage_tree, outfp)
+        with open(args.output+"/PRESUMEout/position_Nsubstitutions.up.txt",'a') as outfp:
+            count_mutations_per_position(lineage, outfp)
 
     fasta_writer_single(upper_name2seq_without_indel, intermediate_fasta_path) # Seems tricky but "upper_name2seq_without_indel" shoule be appropriate here
     if (parsed_args.CRISPR): indel_writer_single(upper_name2indellist, intermediate_indel_path)
@@ -493,6 +495,9 @@ def nwk2fa_qsub(args, parsed_args):
         command += "cat {}/mother_daughter_Nsubstitutions.up.txt {}/*/PRESUMEout/mother_daughter_Nsubstitutions.txt > {}/mother_daughter_Nsubstitutions.txt; \
                     rm {}/mother_daughter_Nsubstitutions.up.txt; "\
                     .format(OUTDIR+"/PRESUMEout", downstream_fasta_path, OUTDIR+"/PRESUMEout",OUTDIR+"/PRESUMEout")
+        command += "cat {}/position_Nsubstitutions.up.txt {}/*/PRESUMEout/position_Nsubstitutions.txt > {}/position_Nsubstitutions.txt; \
+                    rm {}/position_Nsubstitutions.up.txt; "\
+                    .format(OUTDIR+"/PRESUMEout", downstream_fasta_path, OUTDIR+"/PRESUMEout",OUTDIR+"/PRESUMEout")
     subprocess.call(command, shell=True)
     if (not args.debug) : shutil.rmtree(intermediate_path)
     print("Done!")
@@ -522,6 +527,8 @@ def nwk2fa_single(args, parsed_args):
     if (parsed_args.save_N_mutations):
         with open(args.output+"/PRESUMEout/mother_daughter_Nsubstitutions.txt",'a') as outfp:
             count_mutations_per_branch(lineage_tree, outfp)
+        with open(args.output+"/PRESUMEout/position_Nsubstitutions.txt",'a') as outfp:
+            count_mutations_per_position(lineage, outfp)
    
 
 '''
