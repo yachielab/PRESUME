@@ -353,7 +353,7 @@ def count_mutations_per_position(lineage, outfp):
             count_array += seq_diff(node.seq, child.seq)
     
     for i in range(L):
-        print(str(i)+","+count_array[i], sep = '\n', file = outfp)
+        print(str(i),count_array[i], sep = ',', file = outfp)
 
 def nwk2fa_qsub(args, parsed_args):
     INFILE, OUTDIR =args.tree, args.output
