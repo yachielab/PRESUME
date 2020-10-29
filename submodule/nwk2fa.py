@@ -246,7 +246,8 @@ def shell_generator(shell_outfp, treefile_list, fastafile_list, indelfile_list, 
         .split('\n')
         )[0]
 
-    NWK2FA = os.path.dirname(os.path.abspath(__file__))
+    NWK2FAdir  = os.path.dirname(os.path.abspath(__file__))
+    PRESUMEdir = "/".join(NWK2FAdir.split("/")[:-1])
 
     PATH = (((
         subprocess.Popen('echo $PATH', stdout=subprocess.PIPE,
@@ -277,14 +278,8 @@ def shell_generator(shell_outfp, treefile_list, fastafile_list, indelfile_list, 
             qf.write("mkdir "+OUTPUT_DIR+"\n")
             qf.write("cd "+OUTPUT_DIR+"\n")
             qf.write("pwd\n")
-            #python_command = PYTHON3 + " " + NWK2FA + "/nwk2fa.py "\
-            #    + " --tree " + treefile\
-            #    + " --fasta " + fastafile\
-            #    + " --outdir_nwk " + tree_outfp\
-            #    + " --outdir_fasta " + fasta_outfp\
-            #    + " --filename " + "Down_{}".format(idx + 1)
 
-            python_command = PYTHON3 + " " + NWK2FA + "/PRESUME.py "\
+            python_command = PYTHON3 + " " + PRESUMEdir + "/PRESUME.py "\
                 + " -f " + fastafile\
                 + " --seed " + str(np.random.randint(0, 10000))\
                 + " --tree " + treefile
@@ -301,6 +296,9 @@ def shell_generator(shell_outfp, treefile_list, fastafile_list, indelfile_list, 
             if (args.constant is not None):
                 python_command += \
                     " --constant "+str(args.constant)
+            if (args.editprofile is not None):
+                python_command += \
+                    " --editprofile "+str(args.editprofile)
             if (args.debug):
                 python_command += \
                     " --debug "
@@ -311,7 +309,7 @@ def shell_generator(shell_outfp, treefile_list, fastafile_list, indelfile_list, 
     #submit_command = "qsub -e {3} -o {3} -sync y -t 1-{0} {1}/nwk2fa_launcher.sh {2} &> /dev/null".format(
     submit_command = "qsub -e {3} -o {3} -sync y -t 1-{0} {1}/submodule/nwk2fa_launcher.sh {2} > {3}/nwk2fa_launcher.sh.out 2> {3}/nwk2fa_launcher.sh.err".format(
         terminal_idx + 1,
-        NWK2FA,
+        PRESUMEdir,
         shell_outfp,
         stdeo
         )
@@ -332,7 +330,30 @@ def count_mutations_per_branch(lineage, outfp):
 
     for node in lineage.get_nonterminals():
         for child in node.clades:
-            print(node.name, child.name, seq_dist(node.seq, child.seq), sep = '\t', file = outfp)
+            print(node.name, child.name, seq_dist(node.seq, child.seq), sep = ',', file = outfp)
+
+def count_mutations_per_position(lineage, outfp):
+
+    def seq_diff(str1, str2):
+        if (len(str1)!=len(str2)):
+            print("Error: seq_dist() len(str1)!=len(str2)")
+            return None
+        else:
+            diffvec = np.zeros(len(str1))
+            for i in range(len(str1)):
+                if str1[i] != str2[i]:
+                    diffvec[i] = 1
+            return diffvec
+
+    L = len(lineage.clade.seq)
+    count_array = np.zeros(L)
+
+    for node in lineage.get_nonterminals():
+        for child in node.clades:
+            count_array += seq_diff(node.seq, child.seq)
+    
+    for i in range(L):
+        print(str(i),count_array[i], sep = ',', file = outfp)
 
 def nwk2fa_qsub(args, parsed_args):
     INFILE, OUTDIR =args.tree, args.output
@@ -388,20 +409,25 @@ def nwk2fa_qsub(args, parsed_args):
     for terminal in terminals:
         if not (terminal in upper_terminals):
             print(terminal, " is not found!!")
-    print("NWK2FA:created upper tree...")
+    
+    
     intermediate_fasta_path = "{}/fastas".format(intermediate_path)
     intermediate_indel_path = "{}/indels".format(intermediate_path)
     os.makedirs(intermediate_fasta_path, exist_ok = True)
     os.makedirs(intermediate_indel_path, exist_ok = True)
 
     # simulation of upper lineage
+    print("NWK2FA: Simulating on upper trees...", end = '')
     upper_name2seq_without_indel, upper_name2seq, upper_name2alignedseq, upper_name2indellist, tree, lineage_tree = \
         nwk2fa_light(upper_tree, initseq, parsed_args, )   
+    print("Finished!")
 
     #  mutation count per branch
     if (parsed_args.save_N_mutations):
-        with open(args.output+"/PRESUMEout/mother_daughter_Nsubstitutions.up.txt",'a') as outfp:
+        with open(args.output+"/PRESUMEout/mother_daughter_Nsubstitutions.up.csv",'a') as outfp:
             count_mutations_per_branch(lineage_tree, outfp)
+        with open(args.output+"/PRESUMEout/position_Nsubstitutions.up.csv",'a') as outfp:
+            count_mutations_per_position(lineage_tree, outfp)
 
     fasta_writer_single(upper_name2seq_without_indel, intermediate_fasta_path) # Seems tricky but "upper_name2seq_without_indel" shoule be appropriate here
     if (parsed_args.CRISPR): indel_writer_single(upper_name2indellist, intermediate_indel_path)
@@ -445,7 +471,8 @@ def nwk2fa_qsub(args, parsed_args):
     shell_path = "{}/shell".format(intermediate_path)
     os.makedirs(shell_path, exist_ok = True)
     stdeo_path = "{}/stdeo".format(intermediate_path)
-    os.makedirs(stdeo_path, exist_ok = True)    
+    os.makedirs(stdeo_path, exist_ok = True)   
+    print("NWK2FA: Simulating on bottom trees... ", end = '') 
     submit_command = shell_generator(
         shell_path, 
         treefile_list, 
@@ -458,15 +485,18 @@ def nwk2fa_qsub(args, parsed_args):
         parsed_args
         )
     subprocess.call(submit_command, shell=True)
-    print("bottom tree created!")
+    print("Finished!")
 
     command  = "cat {}/*/PRESUMEout/PRESUMEout.fa.gz > {}/PRESUMEout.fa.gz; ".format(downstream_fasta_path, OUTDIR+"/PRESUMEout")
     if(parsed_args.CRISPR):
         command += "cat {}/*/PRESUMEout/PRESUMEout.aligned.fa.gz > {}/PRESUMEout.aligned.fa.gz; ".format(downstream_fasta_path, OUTDIR+"/PRESUMEout")
         command += "cat {}/*/PRESUMEout/PRESUMEout.indel.gz > {}/PRESUMEout.indel.gz; ".format(downstream_fasta_path, OUTDIR+"/PRESUMEout")
     if(parsed_args.save_N_mutations):
-        command += "cat {}/mother_daughter_Nsubstitutions.up.txt {}/*/PRESUMEout/mother_daughter_Nsubstitutions.txt > {}/mother_daughter_Nsubstitutions.txt; \
-                    rm {}/mother_daughter_Nsubstitutions.up.txt; "\
+        command += "cat {}/mother_daughter_Nsubstitutions.up.csv {}/*/PRESUMEout/mother_daughter_Nsubstitutions.csv > {}/mother_daughter_Nsubstitutions.csv; \
+                    rm {}/mother_daughter_Nsubstitutions.up.csv; "\
+                    .format(OUTDIR+"/PRESUMEout", downstream_fasta_path, OUTDIR+"/PRESUMEout",OUTDIR+"/PRESUMEout")
+        command += "cat {}/position_Nsubstitutions.up.csv {}/*/PRESUMEout/position_Nsubstitutions.csv > {}/position_Nsubstitutions.csv; \
+                    rm {}/position_Nsubstitutions.up.csv; "\
                     .format(OUTDIR+"/PRESUMEout", downstream_fasta_path, OUTDIR+"/PRESUMEout",OUTDIR+"/PRESUMEout")
     subprocess.call(command, shell=True)
     if (not args.debug) : shutil.rmtree(intermediate_path)
@@ -495,52 +525,7 @@ def nwk2fa_single(args, parsed_args):
     Phylo.write(newtree, "{}/{}.nwk".format(args.output+"/PRESUMEout", "PRESUMEout"), "newick")
     #  mutation count per branch
     if (parsed_args.save_N_mutations):
-        with open(args.output+"/PRESUMEout/mother_daughter_Nsubstitutions.txt",'a') as outfp:
+        with open(args.output+"/PRESUMEout/mother_daughter_Nsubstitutions.csv",'a') as outfp:
             count_mutations_per_branch(lineage_tree, outfp)
-   
-
-'''
-if __name__ == "__main__":
-    # INFILE = "/Users/keitowatano/Desktop/tmp_PRESUME/in/test_10k_tips.nwk"
-    # OUTDIR = "/Users/keitowatano/Desktop/tmp_PRESUME/out/prototype_nwk2fa"
-    parser = argparse.ArgumentParser(description='PRESUME.py', add_help=True)
-    parser.add_argument(
-        "--tree",
-        type=str
-        )
-    parser.add_argument(
-        "--fasta",
-        type=str
-        )
-
-    parser.add_argument(
-        "--outdir_nwk",
-        type=str
-        )
-
-    parser.add_argument(
-        "--outdir_fasta",
-        type=str
-        )
-
-    parser.add_argument(
-        "--filename",
-        type=str
-        )
-
-    args = parser.parse_args()
-
-    # read sequence
-    with open(args.fasta, "r") as reader:
-        for seq_record in SeqIO.parse(reader, "fasta"):
-            initseq = str(seq_record.seq)
-    
-    # read tree
-    tree = Phylo.read(args.tree, "newick")
-
-    # translate tree
-    name2seq, newtree = nwk2fa_light(tree, initseq, parsed_args)
-    fasta_writer_multiple(name2seq, args.outdir_fasta, "{}.fasta".format(args.filename))
-    Phylo.write(newtree, "{}/{}.nwk".format(args.outdir_nwk, args.filename), "newick")
-
-'''
+        with open(args.output+"/PRESUMEout/position_Nsubstitutions.csv",'a') as outfp:
+            count_mutations_per_position(lineage_tree, outfp)

@@ -1561,7 +1561,7 @@ if __name__ == "__main__":
     )
 
     parser.add_argument(
-        "--profile",
+        "--editprofile",
         help="file name of a base editing profile(for debug, unsupported.)",
         type=str,
         default=None
@@ -1597,7 +1597,6 @@ if __name__ == "__main__":
     if args.tree:
         if (os.path.exists(os.getcwd() + "/" + args.tree)):
             args.tree      = os.getcwd() + "/" + args.tree
-        processed_args = args_reader.PARSED_ARGS(args)
         from submodule import nwk2fa as n2f
         os.chdir(OUTDIR)
         os.makedirs("PRESUMEout", exist_ok=True)
@@ -1607,7 +1606,11 @@ if __name__ == "__main__":
             n2f.nwk2fa_single(args, processed_args)
         else:
             n2f.nwk2fa_qsub(args, processed_args)
-        exit()
+
+        print("\n=====================================================")
+        print("Seed for random number generation: "+str(processed_args.seed))
+        print("=====================================================\n")
+        sys.exit(0)
 
     # setup directory
     if not os.path.exists(OUTDIR):
