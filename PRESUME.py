@@ -449,6 +449,7 @@ def create_newick(Lineage, Timepoint, timelimit, upper_tree=False):
                 if(both_children_are_alive):
                     child_L = find_downstream_bifurcation(Lineage[SEQid][1], Lineage)
                     child_R = find_downstream_bifurcation(Lineage[SEQid][2], Lineage)
+                    print(child_L)
                     children = [
                         Phylo.BaseTree.Clade(
                             name=str(child_L),
