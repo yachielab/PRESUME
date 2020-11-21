@@ -26,7 +26,6 @@ import re
 import csv
 import copy
 import gzip
-from submodule import args_reader
 
 LOGO = '''
 ######     ######     #######     #####     #     #    #     #    #######
@@ -36,6 +35,7 @@ LOGO = '''
 #          #   #      #                #    #     #    #     #    #
 #          #    #     #          #     #    #     #    #     #    #
 #          #     #    #######     #####      #####     #     #    #######
+
 Version:     1.0.0
 Last update: April 24, 2020
 GitHub:      https://github.com/yachielab/PRESUME
@@ -166,91 +166,67 @@ class ExceptionOfCodeOcenan(PresumeException):
 #   for Simulation
 class SEQ():
     # idM & mseq means id & sequence of mother SEQ, respectively.
-    def __init__(self, SEQid, idM, mseq, CVM, rM, dM, tM, indelsM, CV=False, STV=False): # indels: list of [('in' or 'del', start_pos, length)]
+    def __init__(self, SEQid, idM, mseq, CVM, rM, dM, tM, indelsM, CV=False): # indels: list of [('in' or 'del', start_pos, length)]
         self.id = SEQid  # for example: 0,1,2,...
         self.idM = idM
-        self.CV = max(np.random.normal(CVM, CVM*processed_args.alpha), 0)  # should be > 0
-
-        LOWER_LIMIT_doubling_time = args.ld
-        self.d = 0
-        while self.d < LOWER_LIMIT_doubling_time:
-            if STV:
-                if CV:
-                    self.d = custom_dist(dM, dM*self.CV, dist=args.dist)
-                else:
-                    self.d = custom_dist(dM, self.CV, dist=args.dist)
-                if self.d == 0:
-                    self.r = float("inf")
-                else:
-                    self.r = 1/self.d
-            else:
-                if CV:
-                    self.r = custom_dist(rM, rM*self.CV, dist=args.dist)
-                else:
-                    self.r = custom_dist(rM, self.CV, dist=args.dist)
-                if self.r == 0:
-                    self.d = float("inf")
-                else:
-                    self.d = 1/self.r
-
-        self.is_alive = (np.random.rand() > processed_args.e)
+        self.CV = max(np.random.normal(CVM, CVM*alpha), 0)  # should be > 0
+        if CV:
+            self.r = self.growing_rate_dist(rM, rM*self.CV)
+        else:
+            self.r = self.growing_rate_dist(rM, self.CV)
+        
+        self.is_alive = (self.r >= 0 and np.random.rand() > e)
         
         if(self.is_alive):
+            if self.r == 0:
+                self.d = float("inf")
+            else:
+                self.d = 1/self.r
 
             self.t      = tM + self.d  # time t of doubling of this SEQ
             self.seq    = self.daughterseq(str(mseq), dM)
 
-            if (processed_args.CRISPR): self.indels = indelsM + self.gen_indels() # CRISPR == True if an inprob file path is specified 
+            if (CRISPR): self.indels = indelsM + self.gen_indels() # CRISPR == True if an inprob file path is specified 
             else       : self.indels = None
 
             self.mutation_rate = compare_sequences(str(mseq), self.seq)
 
-            #print(dM, self.d, self.r,self.is_alive,sep='\t', file=sys.stderr)
+    def growing_rate_dist(self, mu, sigma):
+        growing_rate = np.random.normal(mu, sigma)
+        if growing_rate <= 0:
+            growing_rate = -1
+        return growing_rate
 
     # receive mother SEQ sequence, introduce mutations,
     # return daughter sequence.
     def daughterseq(self, seq, dM):
         dseq = ""
-        for i in range(processed_args.L):
-            if(args.homoplasy is not None):
-                dseq = dseq + self.homoplastic_mutation(seq[i], i)
-            elif(args.constant is not None):
-                dseq = dseq + self.time_independent_mutation(seq[i], processed_args.mu[i])
-            elif(args.gtrgamma is not None):
-                dseq = dseq+self.time_dependent_mutation(seq[i], processed_args.gamma[i], dM)
+        for i in range(L):
+            if(args.constant is not None):
+                dseq = dseq + self.time_independent_mutation(seq[i], mu[i])
+            if(args.gtrgamma is not None):
+                dseq = dseq+self.time_dependent_mutation(seq[i], gamma[i], dM)
         return dseq
 
     # mutation of a site (NOT Jukes Cantor model.
     # directly define mutation matrix, not the mutation rate matrix
     # it's enough for calculate mutation of each duplication
-    def homoplastic_mutation(self, c, position):
-        base = {'A': 0, 'T': 1, 'G': 2, 'C': 3}
-    
-        matrix = SUBSTITUTION_RATE_MATRIX[position]
-
-        return random.choices(
-            ['A', 'C', 'G', 'T'], k=1, weights=matrix[base[c]]
-            )[0]
-    
     def time_independent_mutation(self, c, mu):
         base = {'A': 0, 'C': 1, 'G': 2, 'T': 3}
-    
         matrix = [
             [1-mu, mu/3, mu/3, mu/3],
             [mu/3, 1-mu, mu/3, mu/3],
             [mu/3, mu/3, 1-mu, mu/3],
             [mu/3, mu/3, mu/3, 1-mu]
             ]
-
         return random.choices(
             ['A', 'C', 'G', 'T'], k=1, weights=matrix[base[c]]
             )[0]
 
-    
     # mutation of a site (GTR-Gamma model)
     def time_dependent_mutation(self, c, gamma, dM):
         base = {'A': 0, 'C': 1, 'G': 2, 'T': 3}
-        matrix = processed_args.P(dM, gamma)
+        matrix = P(dM, gamma)
 
         # np.matrix[x] returns matrix, then the matrix is converted to array()
         return random.choices(
@@ -265,7 +241,7 @@ class SEQ():
                 seq = seq + random.choice(alphabet)
             return seq
 
-        seq_length = len(processed_args.pos2inprob)
+        seq_length = len(pos2inprob)
         
         shuffled_in_pos  = list(range(seq_length)); random.shuffle(shuffled_in_pos)
         shuffled_del_pos = list(range(seq_length)); random.shuffle(shuffled_del_pos)
@@ -279,9 +255,9 @@ class SEQ():
 
                 for pos in shuffled_in_pos:
 
-                    if ( random.random() < processed_args.pos2inprob[pos] ):
+                    if ( random.random() < pos2inprob[pos] ):
 
-                        length = random.choices(processed_args.in_lengths[0], k = 1, weights = processed_args.in_lengths[1])[0]
+                        length = random.choices(in_lengths[0], k = 1, weights = in_lengths[1])[0]
                         
                         generated_indels.append( [ 'in',  pos, length, randomstr(['A','T','G','C'], length) ] )
             
@@ -289,55 +265,13 @@ class SEQ():
 
                 for pos in shuffled_del_pos:
                     
-                    if ( random.random() < processed_args.pos2delprob[pos] ):
+                    if ( random.random() < pos2delprob[pos] ):
                         
-                        length = random.choices(processed_args.del_lengths[0], k = 1, weights = processed_args.del_lengths[1])[0]
+                        length = random.choices(del_lengths[0], k = 1, weights = del_lengths[1])[0]
 
                         generated_indels.append( [ 'del', pos, length ] )
             
         return generated_indels
-
-def custom_dist(param1, param2, dist = 'norm'):
-    if   dist == 'norm':
-        mean  = param1
-        sigma = param2 
-        return np.random.normal(mean, sigma) 
-    elif dist == 'lognorm':
-        median = param1
-        sigma  = param2 
-        return np.random.lognormal(np.log(median), sigma)
-    elif dist == 'gamma':
-        mean  = param1
-        sigma = param2
-        # shape * scale^2 = sigma^2
-        # shape * scale   = mean
-        if (sigma==0):
-            return mean # scale = 1 as a default 
-        else:
-            return np.random.gamma(shape=(mean**2)/(sigma**2), scale=(sigma**2)/mean) # scale = 1 as a default
-    elif dist == 'gamma2':
-        mean  = 1 # gamma2 mode generates random numbers following a fixed distribution
-        sigma = param2
-        # shape * scale^2 = sigma^2
-        # shape * scale   = mean
-        if (sigma==0):
-            return mean # scale = 1 as a default 
-        else:
-            return np.random.gamma(shape=(mean**2)/(sigma**2), scale=(sigma**2)/mean) # scale = 1 as a default
-    elif dist == 'exp':
-        mean  = param1
-        sigma = param2
-        # shape * scale^2 = sigma^2
-        # shape * scale   = mean
-        return np.random.exponential(scale=sigma**2) # scale = 1 as a default
-    elif dist == 'beta':
-        mean  = param1
-        sumab = param2 
-        # m = 2 * (a - 1) / (a + b - 2)
-        # s = a + b
-        a = mean * (sumab - 2) / 2 + 1
-        b = sumab - a
-        return 2*np.random.beta(a = a, b = b)  # return 0~2
 
 def compare_sequences(motherseq, myseq):
     if len(motherseq) != len(myseq):
@@ -429,7 +363,7 @@ def create_newick(Lineage, Timepoint, timelimit, upper_tree=False):
             if Timepoint[key] is None:
                 pass
             elif Timepoint[key] >= 2 * timelimit:
-                Timepoint[key] = 2 * timelimit
+                Timepoint[key] = 3 * timelimit
     init_clade = Phylo.BaseTree.Clade(name="0")
     tree = Phylo.BaseTree.Tree(init_clade)
     list_of_dead = []
@@ -576,7 +510,7 @@ def fasta_writer(name, seq, indels, file_name, overwrite_mode, Nchunks, filepath
                                 length = indel[2]
                                 chunk    = chunk[:start+1] + indel[3] + chunk[start+1:]
                                     
-                                pos2refposindel = pos2refposindel[:start+1] + ["in"]*length + pos2refposindel[start+1:]
+                                pos2refposindel = pos2refposindel[:start] + ["in"]*length + pos2refposindel[start:]
 
                                 refpos2pos = {}
                                 pos=0
@@ -767,52 +701,6 @@ def make_list(txtfile, datatype, column):
             elif(datatype=='int'): List.append(int  (line.split("\n")[0].split("\t")[column]))
     return List
 
-
-# new4! 
-def SEQqueue_push(SEQqueue, SEQ):
-    N = len(SEQqueue)
-
-    def BinarySearch(SEQqueue,query): # 一致する or それより小さい最大の値のindex
-        N = len(SEQqueue)
-        m, M= 0, N-1
-        if SEQqueue[m].is_alive:
-            if (query.t < SEQqueue[m].t):
-                return m-1
-        if not SEQqueue[M].is_alive:
-            return M
-        if (SEQqueue[M].t < query.t):
-            return M
-        else:
-            while (True):
-                mid = int((m+M)/2)
-                if (M-m < 2):
-                    return m 
-                elif (not(SEQqueue[mid].is_alive)):
-                    m = mid
-                elif (SEQqueue[mid].t  < query.t):
-                    m = mid
-                elif (SEQqueue[mid].t  > query.t):
-                    M = mid
-                elif (SEQqueue[mid].t  == query.t):
-                    return mid
-
-    if not SEQ.is_alive:
-        return [SEQ] + SEQqueue
-    
-    elif N > 0:
-        idx = BinarySearch(SEQqueue,SEQ)
-        return SEQqueue[:idx+1] + [SEQ] + SEQqueue[idx+1:]
-    else:
-        return [SEQ]
-
-def check_sort_SEQqueue(SEQqueue): # for debug
-    i = 0
-    while i < len(SEQqueue)-1:
-        if (SEQqueue[i].is_alive):
-            if (SEQqueue[i].t > SEQqueue[i+1].t):
-                print ("Error: check_sort_SEQqueue()", SEQqueue[i].t, SEQqueue[i+1].t)
-        i += 1
-
 # main
 def main(timelimit):
     '''
@@ -833,7 +721,6 @@ def main(timelimit):
     # for safety: program definitely stops when the number of SEQs
     # exceeds UPPER_LIMIT
     UPPER_LIMIT = args.u
-    UPPER_LIMIT_doubling_time = args.ud
     delta_timelimit = timelimit
     inittimelimit = timelimit
 
@@ -853,123 +740,25 @@ def main(timelimit):
         mut_rate_log = {}
 
     # First of all, there exits only 1 SEQ.
-    SEQqueue.append(
-        SEQ(i, -1, processed_args.initseq, processed_args.sigma_origin, processed_args.growing_rate_origin,
-            processed_args.dorigin, args.tMorigin, processed_args.initindels))
-    SEQqueue[0].seq = processed_args.initseq
-    SEQqueue[0].indels = processed_args.initindels
-
-    if args.idANC == 0:
-        Timepoint[0] = SEQqueue[0].t if SEQqueue[0].is_alive else None # sequential mode
+    if args.CV:
+        SEQqueue.append(
+            SEQ(i, -1, initseq, sigma_origin, growing_rate_origin,
+                dorigin, args.tMorigin, initindels, True))
     else:
-        SEQqueue[0].d = processed_args.dorigin
-        SEQqueue[0].r = 1 / SEQqueue[0].d
-        SEQqueue[0].t = args.tMorigin + SEQqueue[0].d 
-        Timepoint[0]  = args.tMorigin + processed_args.dorigin # distributed mode
-    
+        SEQqueue.append(
+            SEQ(i, -1, initseq, sigma_origin, growing_rate_origin,
+                dorigin, args.tMorigin, initindels, True))
+    SEQqueue[0].seq = initseq
+    SEQqueue[0].indels = initindels
+    if args.idANC == 0:
+        Timepoint[0] = SEQqueue[0].t if SEQqueue[0].is_alive else None
+    else:
+        Timepoint[0] = args.tMorigin + dorigin - (timelimit / 2)
     i += 1
     c  = 1  # current number of SEQs
 
-    prev_seq_t = 0
-
     # SEQs propagation
     while(True):
-        #check_sort_SEQqueue(SEQqueue)
-
-        if SEQqueue[0].is_alive:
-            if C is not None:
-                if c >= C:
-                    if prev_seq_t != SEQqueue[0].t:
-                        break
-
-        if (SEQqueue[0].is_alive):
-
-            if timelimit is not None:
-                if SEQqueue[0].t >= timelimit:
-                    time_over = True
-                else:
-                    time_over = False
-            else:
-                time_over = False
-
-            if not time_over:
-              
-                esu        = SEQqueue.pop(0)
-
-                #print(esu.t)
-
-                if (esu.d < UPPER_LIMIT_doubling_time):
-                    prev_seq_t = esu.t
-                    # save ancestoral sequences
-                    if args.viewANC:
-                        true_indels, is_dead = fasta_writer(esu.id, esu.seq, esu.indels, "ancestral_sequences.fasta", True, Nchunks = args.chunks)
-                    # duplication
-                    if args.CV:
-                        if args.STV:
-                            daughter = [SEQ(i, esu.id, esu.seq, esu.CV,
-                                            esu.r, esu.d, esu.t, esu.indels, True, True),
-                                        SEQ(i+1, esu.id, esu.seq, esu.CV,
-                                        esu.r, esu.d, esu.t, esu.indels, True, True)]
-                        else:
-                            daughter = [SEQ(i, esu.id, esu.seq, esu.CV,
-                                            esu.r, esu.d, esu.t, esu.indels, True),
-                                        SEQ(i+1, esu.id, esu.seq, esu.CV,
-                                        esu.r, esu.d, esu.t, esu.indels, True)]
-                    else:
-                        if args.STV:
-                            daughter = [SEQ(i, esu.id, esu.seq, esu.CV,
-                                            esu.r, esu.d, esu.t, esu.indels, False, True),
-                                        SEQ(i+1, esu.id, esu.seq, esu.CV,
-                                        esu.r, esu.d, esu.t, esu.indels, False, True)]
-                        else:
-                            daughter = [SEQ(i, esu.id, esu.seq, esu.CV,
-                                            esu.r, esu.d, esu.t, esu.indels),
-                                        SEQ(i+1, esu.id, esu.seq, esu.CV,
-                                        esu.r, esu.d, esu.t, esu.indels)]
-                    
-                    # propagation!
-                    SEQqueue = SEQqueue_push(SEQqueue, daughter[0])
-                    SEQqueue = SEQqueue_push(SEQqueue, daughter[1])
-
-
-                    if args.debug:
-                        for sister in daughter:
-                            if sister.is_alive:
-                                mut_rate_log[sister.id]=sister.mutation_rate
-                    # [<mother>, <daughter1>, <daughter2> ]
-                    Lineage[esu.id] = [esu.idM, i, i+1]
-                    if daughter[0].is_alive:
-                        Timepoint[daughter[0].id] = daughter[0].t
-                    if daughter[1].is_alive:
-                        Timepoint[daughter[1].id] = daughter[1].t
-                    try:
-                        Lineage[i] = [esu.id]
-                        Lineage[i+1] = [esu.id]  # Terminal ESUs
-                    except IndexError:
-                        print("UPPER LIMIT EXCEEDED!!!")
-                        return 1
-                    i += 2
-                    c += 1
-                    if args.bar:
-                        progress_bar(pbar, c)
-                else:
-                    print("SEQ.d > "+str(UPPER_LIMIT_doubling_time)+"!!")
-                    sys.exit()
-            
-            else:
-                break
-
-        else:
-            # Note: Variable name "esu" means Evolutionally Sequence Unit
-            # as container of SEQ object
-            
-            Lineage[esu.id] = ["dead"]
-            if(esu.id != 0):
-                death(Lineage, esu.idM)
-            c -= 1
-            if args.bar:
-                progress_bar(pbar, c)
-            
         if (c == 0):
             all_dead(args.idANC)
             try:
@@ -979,22 +768,103 @@ def main(timelimit):
             if args.save:
                 argument_saver(args)
             return 1
-        elif(c > UPPER_LIMIT):  # for safety
-            raise UpperLimitExceededError(UPPER_LIMIT)
+
+        # SEQs divide until t (time) of all of them exceed timelimit
+        k = 0  # iterator of SEQqueue
+
+        # while there remains some SEQs whose time is less than timelimit
+        while(k < c):
+
+            if (not SEQqueue[k].is_alive):
+                # Note: Variable name "esu" means Evolutionally Sequence Unit
+                # as container of SEQ object
+                esu = SEQqueue.pop(k)
+                Lineage[esu.id] = ["dead"]
+                if(esu.id != 0):
+                    death(Lineage, esu.idM)
+                c -= 1
+                if args.bar:
+                    progress_bar(pbar, c)
+
+            elif(SEQqueue[k].t < timelimit):
+                esu = SEQqueue.pop(k)
+                # save ancestoral sequences
+                if args.viewANC:
+                    true_indels, is_dead = fasta_writer(esu.id, esu.seq, esu.indels, "ancestral_sequences.fasta", True, Nchunks = args.chunks)
+                # duplication
+                if args.CV:
+                    daughter = [SEQ(i, esu.id, esu.seq, esu.CV,
+                                    esu.d, esu.r, esu.t, esu.indels, True),
+                                SEQ(i+1, esu.id, esu.seq, esu.CV,
+                                    esu.d, esu.r, esu.t, esu.indels, True)]
+                else:
+                    daughter = [SEQ(i, esu.id, esu.seq, esu.CV,
+                                    esu.d, esu.r, esu.t, esu.indels),
+                                SEQ(i+1, esu.id, esu.seq, esu.CV,
+                                    esu.d, esu.r, esu.t, esu.indels)]
+
+                SEQqueue.extend(daughter)
+
+                if args.debug:
+                    for sister in daughter:
+                        if sister.is_alive:
+                            mut_rate_log[sister.id]=sister.mutation_rate
+
+                # [<mother>, <daughter1>, <daughter2> ]
+                Lineage[esu.id] = [esu.idM, i, i+1]
+                if daughter[0].is_alive:
+                    Timepoint[daughter[0].id] = daughter[0].t
+                if daughter[1].is_alive:
+                    Timepoint[daughter[1].id] = daughter[1].t
+
+                try:
+                    Lineage[i] = [esu.id]
+                    Lineage[i+1] = [esu.id]  # Terminal ESUs
+
+                except IndexError:
+                    print("UPPER LIMIT EXCEEDED!!!")
+                    return 1
+
+                i += 2
+                c += 1
+                if args.bar:
+                    progress_bar(pbar, c)
+
+            else:
+                k += 1
+
+            if(c > UPPER_LIMIT):  # for safety
+                raise UpperLimitExceededError(UPPER_LIMIT)
+                return 1
+
+        if (c == 0):
+            all_dead(args.idANC)
+            try:
+                os.remove("ancestoral_sequences.fasta")
+            except FileNotFoundError:
+                pass
+            if args.save:
+                argument_saver(args)
             return 1
-            
-    if (timelimit is None):
-        timelimit = SEQqueue[0].t
 
-
-    ##########Simulation finished############
+        # if the required number of SEQs is not specified (default)
+        if(C is None):
+            break
+        # if the required number of SEQs specified
+        else:
+            if(c < C):
+                delta_timelimit = inittimelimit/(timelimit/inittimelimit)
+                timelimit += delta_timelimit
+            else:
+                print("Number of generated sequences reached "+str(C))
+                break
 
 
     # in case of "sequential computing"
     # or "downstream SEQ simulation of distributed computing"
     if(not args.qsub):
         # output initial sequence
-        fasta_writer("root", processed_args.initseq, None, "root.fa", False, Nchunks = args.chunks)
+        fasta_writer("root", initseq, None, "root.fa", False, Nchunks = args.chunks)
         # create fasta
         print("Generating a FASTA file...")
 
@@ -1010,7 +880,7 @@ def main(timelimit):
 
         esuname2zerolength={}
         for esu in SEQqueue:
-            if(args.idANC == 0):
+            if(args.idANC is None):
                 esu_name = str(esu.id)
             else:
                 esu_name_prefix = str(hex(args.idANC)).split("x")[1]
@@ -1021,7 +891,7 @@ def main(timelimit):
             
             true_indels, esu_zero_length = fasta_writer(esu_name, esu.seq, esu.indels, "PRESUMEout.fa", True, filepath2writer=filepath2writer, Nchunks=args.chunks) # fasta_writer() returns True if the seq. length <= 0
             esu.indels = true_indels
-            esuname2zerolength[esu_name] = esu_zero_length
+            esuname2zerolength[esu_name] = esu_zero_length  
 
             if (esu_zero_length):
                 Lineage[esu.id] = ["dead"]
@@ -1037,13 +907,13 @@ def main(timelimit):
         else: 
 
             # record indels
-            if(processed_args.CRISPR):
-                handle = gzip.open("PRESUMEout.indel.gz", "wb")
+            if(CRISPR):
+                handle = gzip.open("indel.txt.gz", "wb")
                 if (True):
                 #with open("indel.txt", 'w') as handle:
                     for esu_idx, esu in enumerate(SEQqueue):
 
-                        if(args.idANC == 0):
+                        if(args.idANC is None):
                             esu_name = str(esu.id)
                         else:
                             esu_name_prefix = str(hex(args.idANC)).split("x")[1]
@@ -1084,14 +954,14 @@ def main(timelimit):
     # in case of distributed computing
     else :
         # Root sequence
-        fasta_writer("root", processed_args.initseq, None, "root.fa", False, Nchunks = args.chunks)
+        fasta_writer("root", initseq, None, "root.fa", False, Nchunks = args.chunks)
         # preparation for qsub
         os.mkdir("intermediate")
         os.mkdir("intermediate/DOWN")
         os.mkdir("intermediate/fasta")
         os.mkdir("intermediate/shell")
 
-        if(processed_args.CRISPR): os.mkdir("intermediate/indel")
+        if(CRISPR): os.mkdir("intermediate/indel")
 
         PATH = (((
             subprocess.Popen('echo $PATH', stdout=subprocess.PIPE,
@@ -1124,7 +994,7 @@ def main(timelimit):
             
             else:
                 itr += 1
-                if(processed_args.CRISPR):
+                if(CRISPR):
                     indel_file_path =\
                         "intermediate/indel/{}.txt".\
                         format(str(esu.id))
@@ -1146,22 +1016,21 @@ def main(timelimit):
                     # divide until time point of (2 * timelimit)
                     python_command = PYTHON3 + " " + PRESUME + "/PRESUME.py "\
                         "--monitor " + str(2*timelimit)\
-                        + " -L " + str(processed_args.L)\
+                        + " -L " + str(L)\
                         + " -f " + "../../fasta/"+str(esu.id)+".fa.gz"\
                         + " -d " + str(esu.d)\
-                        + " -s " + str(processed_args.sigma_origin)\
-                        + " -T " + str(processed_args.T)\
-                        + " -e " + str(processed_args.e)\
+                        + " -s " + str(sigma_origin)\
+                        + " -T " + str(T)\
+                        + " -e " + str(e)\
                         + " -u " + str(UPPER_LIMIT)\
                         + " --idANC "    + str(esu.id)\
                         + " --tMorigin " + str(esu.t - esu.d)\
-                        + " --seed "     + str(np.random.randint(1,10000))\
-                        + " --chunks "   + str(args.chunks)\
-                        + " --dist "   + str(args.dist) # use the same seed: topologies of bottom trees are same as that of the top tree
+                        + " --seed "     + str(np.random.randint(0, 10000))\
+                        + " --chunks "   + str(args.chunks)
                     if args.CV:
                         python_command += " --CV"
                     
-                    if processed_args.CRISPR:
+                    if CRISPR:
                         python_command += \
                             " --inprob "     + args.inprob   +\
                             " --inlength "   + args.inlength +\
@@ -1198,17 +1067,17 @@ def main(timelimit):
                    rm PRESUME.*;"
         #subprocess.call(command, shell=True)
         if args.f is None:
-            if(processed_args.CRISPR):
-                command = "cat intermediate/DOWN/*/PRESUMEout/PRESUMEout.indel.gz > PRESUMEout.indel.gz 2> /dev/null;"
+            if(CRISPR):
+                command = "cat intermediate/DOWN/*/PRESUMEout/indel.txt.gz > indel_combined.txt.gz 2> /dev/null;"
                 
             if (args.chunks == 1):
                 command += "cat intermediate/DOWN/*/PRESUMEout/PRESUMEout.fa.gz > PRESUMEout.fa.gz;"
-                if(processed_args.CRISPR):
+                if(CRISPR):
                     command += "cat intermediate/DOWN/*/PRESUMEout/PRESUMEout.aligned.fa.gz > PRESUMEout.aligned.fa.gz 2> /dev/null;"
             else:
                 for i in range(args.chunks):
                     command += "cat intermediate/DOWN/*/PRESUMEout/PRESUMEout."+str(i)+".fa.gz > PRESUMEout."+str(i)+".fa.gz;"
-                    if(processed_args.CRISPR):
+                    if(CRISPR):
                         command += "cat intermediate/DOWN/*/PRESUMEout/PRESUMEout."+str(i)+".aligned.fa.gz > PRESUMEout."+str(i)+".aligned.fa.gz 2> /dev/null;"
             subprocess.call(command, shell=True)  # combine fasta
 
@@ -1227,21 +1096,17 @@ def main(timelimit):
             return 0
 
     # remove PRESUME.aligned.fa.gz when indel mode is not active
-    if (not processed_args.CRISPR):
-        if (os.path.isfile("PRESUMEout.aligned.fa.gz")):
-            os.remove("PRESUMEout.aligned.fa.gz")
+    if (not CRISPR):
+        os.remove("PRESUMEout.aligned.fa.gz")
 
     # finish
     if args.save:
         argument_saver(args)
 
-    if (args.qsub):
-        timelimit = timelimit * 2
-
     print("\n=====================================================")
-    print("Simulation end time point:         "+str(timelimit))
+    print("Simulation end time point:         "+str(2*timelimit))
     print("Number of generated sequences:     "+str(tip_count))
-    print("Seed for random number generation: "+str(processed_args.seed))
+    print("Seed for random number generation: "+str(seed))
     print("=====================================================\n")
     return 0
 
@@ -1274,9 +1139,9 @@ if __name__ == "__main__":
 
     parser.add_argument(
         "--monitor",
-        help="time limit (default=None)",
+        help="time limit (default=1)",
         type=float,
-        default=None
+        default=1
         )
 
     parser.add_argument(
@@ -1323,7 +1188,7 @@ if __name__ == "__main__":
 
     parser.add_argument(
         "-T",
-        help="Threashold of doubling time to be deleted (default = 1000)",
+        help="Threashold of doubling time to be deleted (default=1000)",
         type=float,
         default=1000
         )
@@ -1354,20 +1219,6 @@ if __name__ == "__main__":
         help="upper limit of number of sequences (default=2^20)",
         type=int,
         default=np.power(2, 20)
-        )
-    
-    parser.add_argument(
-        "--ud",
-        help="upper limit of doubling time (default=10^10)",
-        type=int,
-        default=np.power(10, 10)
-        )
-    
-    parser.add_argument(
-        "--ld",
-        help="lower limit of doubling time (default=10^(-5))",
-        type=float,
-        default=(1/10)**5
         )
 
     parser.add_argument(
@@ -1463,7 +1314,7 @@ if __name__ == "__main__":
         "--seed",
         help="random seed used to initialize \
             the pseudo-random number generator",
-        type=int,
+        type=str,
         default=None
         )
     '''
@@ -1539,33 +1390,7 @@ if __name__ == "__main__":
         default="",
     )
 
-    parser.add_argument(
-        "--homoplasy",
-        help="file name of parameters of homoplasy model",
-        type=str,
-        default=None
-    )
 
-    parser.add_argument(
-        "--STV",
-        help="enable survival time variation model",
-        action="store_true",
-        default=False
-    )
-
-    parser.add_argument(
-        "--dist",
-        help="Distribution of d or 1/d (permissive values: 'norm', 'lognorm', 'gamma', 'gamma2') (default: 'gamma2)",
-        type=str,
-        default='gamma2'
-    )
-
-    parser.add_argument(
-        "--editprofile",
-        help="file name of a base editing profile(for debug, unsupported.)",
-        type=str,
-        default=None
-    )
     args = parser.parse_args()
     
     # "Code Ocean" specific process
@@ -1585,34 +1410,179 @@ if __name__ == "__main__":
         print(LOGO)
         exit()
 
-    OUTDIR = args.output
+    if args.tree:
+        import submodule.nwk2fa as n2f
+        n2f.PRESUME_nwk2fa(args)
+        exit()
+    
+    # read argument from input CSV
+    if args.param:
+        with open(args.param, "rt") as fin:
+            cin = csv.reader(fin)
+            arglist = [row for row in cin]
+            valid_format = len(arglist[0]) == len(arglist[1])
+            if not valid_format:
+                print("ERROR:invalid format!")
+                quit()
+            for position in range(len(arglist[0])):
+                if len(arglist[1][position].split('.')) != 1:
+                    loaded_arg = float(arglist[1][position])
+                    args.__dict__[arglist[0][position]] = loaded_arg
+                elif arglist[1][position] in ["True", "False"]:
+                    if arglist[1][position] == "True":
+                        args.__dict__[arglist[0][position]] = True
+                    else:
+                        args.__dict__[arglist[0][position]] = False
+                elif len(arglist[1][position].split('/')) != 1:
+                    loaded_arg = str(arglist[1][position])
+                    args.__dict__[arglist[0][position]] = loaded_arg
+                else:
+                    loaded_arg = int(arglist[1][position])
+                    args.__dict__[arglist[0][position]] = loaded_arg
+            print("CSV loaded!")
+
+    # --gamma xor --constant should be specified
+    if(args.gtrgamma is None and args.constant is None):
+        print("please specify --gtrgamma or --constant")
+        sys.exit(1)
+    if(args.gtrgamma is not None and args.constant is not None):
+        print("please don't specify both --gtrgamma and --constant")
+        sys.exit(1)
 
     # initialize the pseudo-random number generator
-    if (args.seed is None):
-        args.seed = np.random.randint(1,10000)
-    np.random.seed(args.seed)
-    random.seed(args.seed)
-    processed_args = args_reader.PARSED_ARGS(args)
-    
-    if args.tree:
-        if (os.path.exists(os.getcwd() + "/" + args.tree)):
-            args.tree      = os.getcwd() + "/" + args.tree
-        from submodule import nwk2fa as n2f
-        os.chdir(OUTDIR)
-        os.makedirs("PRESUMEout", exist_ok=True)
-        os.chdir("PRESUMEout")
+    if args.seed is not None:
+        seed = args.seed
+    elif args.seed == "rand":
+        seed = np.random.randint(0, args.r)
+    elif args.seed is None:
+        seed = 0
+    else:
+        seed = int(args.seed)
+    np.random.seed(int(seed))
+    random.seed(int(seed))
 
-        if (not args.qsub):
-            n2f.nwk2fa_single(args, processed_args)
+
+    # parameters###### (corresponding to the Figure.2a)
+    L = args.L
+    dorigin = args.d
+    if dorigin == 0:
+        print("fatal error: doubling time of initial SEQ is 0!")
+        sys.exit(1)
+
+    growing_rate_origin = 1 / args.d
+    sigma_origin = args.s
+    alpha = args.a
+    T = args.T
+    e = args.e
+    m = args.m
+
+    # In case expected number of mutation is independent
+    # on the doubling time of the SEQ
+    if(args.constant is not None):
+        mu = [args.constant] * L
+
+    # substitution rate matrix (GTR-Gamma model)
+    # -> define substitution matrix function
+    if(args.gtrgamma is not None):
+        if(args.gtrgamma == "default"):
+            model = "GTR{0.03333/0.03333/0.03333/0.03333/0.03333/0.03333} \
+            +FU{0.25/0.25/0.25/0.25} \
+            +G4{10000}"
         else:
-            n2f.nwk2fa_qsub(args, processed_args)
+            model = args.gtrgamma
+        models_str = str(model).split("+")
+        abcdef = (models_str[0].split("{"))[1].split("}")[0].split("/")
+        piACGT = (models_str[1].split("{"))[1].split("}")[0].split("/")
+        gamma_str = (models_str[2].split("{"))[1].split("}")[0].split("/")
+        a1 = float(abcdef[0])  # A <-> C
+        a2 = float(abcdef[1])  # A <-> G
+        a3 = float(abcdef[2])  # A <-> T
+        a4 = float(abcdef[3])  # C <-> G
+        a5 = float(abcdef[4])  # C <-> T
+        a6 = float(abcdef[5])  # G <-> T
+        piA = float(piACGT[0])
+        piC = float(piACGT[1])
+        piG = float(piACGT[2])
+        piT = float(piACGT[3])
+        if (abs(piA+piC+piG+piT-1) > 0.001):
+            print("error piA+piC+piG+piT not equal to 1!")
+            sys.exit(1)
+        # substitution rate matrix
+        R = np.matrix([
+            [-(a1*piC+a2*piG+a3*piT), a1*piC, a2*piG, a3*piT],
+            [a1*piA, -(a1*piA+a4*piG+a5*piT), a4*piG, a5*piT],
+            [a2*piA, a4*piC, -(a2*piA+a4*piC+a6*piT), a6*piT],
+            [a3*piA, a5*piC, a6*piG, -(a3*piA+a5*piC+a6*piG)]])
+        print("Substitution rate matrix:")
+        print(R)
+        # Al: eigen values (np.array),
+        # U: eigen vectors matrix :
+        # R = U * diag(Al) * U^(-1)
+        Al, U = np.linalg.eig(R)
 
-        print("\n=====================================================")
-        print("Seed for random number generation: "+str(processed_args.seed))
-        print("=====================================================\n")
-        sys.exit(0)
+        # return transition matrix
+        def P(t, gamma):
+            exp_rambda = np.diag(
+                    np.array([
+                        np.exp(Al[0] * t * gamma),
+                        np.exp(Al[1] * t * gamma),
+                        np.exp(Al[2] * t * gamma),
+                        np.exp(Al[3] * t * gamma)]
+                    )
+                )
+            return np.dot(np.dot(U, exp_rambda), np.linalg.inv(U))
+        # model of site heterogeneity:
+        # calculate relative substitution rate gamma for each site
+        shape = float(gamma_str[0])  # shape of gamma distribution
+        gamma = np.random.gamma(shape, m / shape, L)  # mean is args.m
+
+    # set indel parameters from raw lab experiments
+    CRISPR      = False
+    if (args.inprob != None): 
+        args.inprob    = os.path.abspath(args.inprob)
+        args.inlength  = os.path.abspath(args.inlength)
+        args.delprob   = os.path.abspath(args.delprob)
+        args.dellength = os.path.abspath(args.dellength)
+        pos2inprob  =   make_list(args.inprob  , 'float', column = 0)
+        in_lengths  = [ make_list(args.inlength, 'int'  , column = 0)   ,
+                        make_list(args.inlength, 'float', column = 1)   ]
+        pos2delprob =   make_list(args.delprob , 'float', column = 0)
+        del_lengths = [ make_list(args.dellength,'int'  , column = 0)   ,
+                        make_list(args.dellength,'float', column = 1)   ]
+        CRISPR      = True
+
+    # initial sequence specification
+    if (args.f is not None):
+
+        handle = gzip.open(args.f, 'rt')
+        sequences = SeqIO.parse(handle, 'fasta')
+        initseq = str(list(sequences)[0].seq)
+        L = len(initseq)
+        handle.close()
+
+    elif (args.polyC):
+        initseq = 'C' * L  # initial sequence
+    else:
+        initseq = ''.join([
+            np.random.choice(['A', 'G', 'C', 'T']) for i in range(L)
+            ])
+    
+    # initial indel specification (for distributed computing mode)
+    if(CRISPR):
+        if (args.indels is not None):
+            initindels = []
+            with open(args.indels, 'r') as handle:
+                for line in handle:
+                    chunks = line.split()
+                    if (chunks[0] == "del") : initindels.append([chunks[0], int(chunks[1]), int(chunks[2])])
+                    elif (chunks[1] == "in"): initindels.append([chunks[0], int(chunks[1]), int(chunks[2]), chunks[3]])
+        else:
+            initindels=[]
+    else:
+        initindels=None
 
     # setup directory
+    OUTDIR = args.output
     if not os.path.exists(OUTDIR):
         os.makedirs(OUTDIR)
     os.chdir(OUTDIR)
