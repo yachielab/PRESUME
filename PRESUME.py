@@ -984,7 +984,10 @@ def main(timelimit):
             return 1
             
     if (timelimit is None):
-        timelimit = SEQqueue[0].t
+        if (processed_args.sigma_origin==0):
+            timelimit = prev_seq_t
+        else:
+            timelimit = SEQqueue[0].t
 
 
     ##########Simulation finished############
