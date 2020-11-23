@@ -883,17 +883,26 @@ def main(timelimit):
                         break
 
         if (SEQqueue[0].is_alive):
-
-            if timelimit is not None:
-                if SEQqueue[0].t >= timelimit:
-                    time_over = True
+            
+            if (processed_args.sigma_origin==0):
+                if timelimit is not None:
+                    if SEQqueue[0].t > timelimit:
+                        time_over = True
+                    else:
+                        time_over = False
                 else:
                     time_over = False
             else:
-                time_over = False
+                if timelimit is not None:
+                    if SEQqueue[0].t >= timelimit:
+                        time_over = True
+                    else:
+                        time_over = False
+                else:
+                    time_over = False
 
             if not time_over:
-              
+            
                 esu        = SEQqueue.pop(0)
 
                 #print(esu.t)
