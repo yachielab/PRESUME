@@ -212,9 +212,7 @@ class SEQ():
     def daughterseq(self, seq, dM):
         dseq = ""
         for i in range(processed_args.L):
-            if(args.homoplasy is not None):
-                dseq = dseq + self.homoplastic_mutation(seq[i], i)
-            elif(args.constant is not None):
+            if(args.constant is not None):
                 dseq = dseq + self.time_independent_mutation(seq[i], processed_args.mu[i])
             elif(args.gtrgamma is not None):
                 dseq = dseq+self.time_dependent_mutation(seq[i], processed_args.gamma[i], dM)
@@ -1156,7 +1154,6 @@ def main(timelimit):
                         + " --idANC "    + str(esu.id)\
                         + " --tMorigin " + str(esu.t - esu.d)\
                         + " --seed "     + str(np.random.randint(1,10000))\
-                        + " --chunks "   + str(args.chunks)\
                         + " --dist "   + str(args.dist) # use the same seed: topologies of bottom trees are same as that of the top tree
                     if args.CV:
                         python_command += " --CV"
@@ -1288,6 +1285,13 @@ if __name__ == "__main__":
         )
 
     parser.add_argument(
+        "--tree",
+        help="file name of a guide tree in Newick format(for debug, unsupported.)",
+        type=str,
+        default=None,
+    )
+
+    parser.add_argument(
         "-L",
         help="length of sequence (default=1000)",
         type=int,
@@ -1299,6 +1303,13 @@ if __name__ == "__main__":
         help="fasta file name　of the common ancestor sequence.\
             (default: poly-C)",
         type=str
+        )
+
+    parser.add_argument(
+        "--polyC",
+        help="use polyC sequence as root ",
+        action='store_true',
+        default=False
         )
 
     parser.add_argument(
@@ -1315,11 +1326,11 @@ if __name__ == "__main__":
         default=0
         )
 
-    parser.add_argument(
-        "-a", help="CV of CV of doubling time of origin sequence (default=0)",
-        type=float,
-        default=0
-        )
+    # parser.add_argument(
+    #     "-a", help="CV of CV of doubling time of origin sequence (default=0)",
+    #     type=float,
+    #     default=0
+    #     )
 
     parser.add_argument(
         "-T",
@@ -1476,21 +1487,6 @@ if __name__ == "__main__":
     '''
 
     parser.add_argument(
-        "--polyC",
-        help="use polyC sequence as root ",
-        action='store_true',
-        default=False
-        )
-
-    parser.add_argument(
-        "--tree",
-        help="file name of a guide tree in Newick format(for debug, unsupported.)",
-        type=str,
-        default=None,
-    )
-
-
-    parser.add_argument(
         "--inprob",
         help="file name of insertion probability for each position",
         type=str,
@@ -1525,12 +1521,12 @@ if __name__ == "__main__":
         default=None,
     )
 
-    parser.add_argument(
-        "--chunks",
-        help="number of chunks for each sequence unit",
-        type=int,
-        default=1,
-    )
+    # parser.add_argument(
+    #     "--chunks",
+    #     help="number of chunks for each sequence unit",
+    #     type=int,
+    #     default=1,
+    # )
 
     parser.add_argument(
         "--dop",
@@ -1539,19 +1535,19 @@ if __name__ == "__main__":
         default="",
     )
 
-    parser.add_argument(
-        "--homoplasy",
-        help="file name of parameters of homoplasy model",
-        type=str,
-        default=None
-    )
+    # parser.add_argument(
+    #     "--homoplasy",
+    #     help="file name of parameters of homoplasy model",
+    #     type=str,
+    #     default=None
+    # )
 
-    parser.add_argument(
-        "--STV",
-        help="enable survival time variation model",
-        action="store_true",
-        default=False
-    )
+    # parser.add_argument(
+    #     "--STV",
+    #     help="enable survival time variation model",
+    #     action="store_true",
+    #     default=False
+    # )
 
     parser.add_argument(
         "--dist",
