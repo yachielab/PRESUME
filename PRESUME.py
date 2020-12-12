@@ -169,7 +169,7 @@ class SEQ():
     def __init__(self, SEQid, idM, mseq, CVM, rM, dM, tM, indelsM, CV=False, STV=False): # indels: list of [('in' or 'del', start_pos, length)]
         self.id = SEQid  # for example: 0,1,2,...
         self.idM = idM
-        self.CV = max(np.random.normal(CVM, CVM*processed_args.alpha), 0)  # should be > 0
+        self.CV = max(np.random.normal(CVM, CVM), 0)  # should be > 0
 
         LOWER_LIMIT_doubling_time = args.ld
         self.d = 0
@@ -212,7 +212,14 @@ class SEQ():
     def daughterseq(self, seq, dM):
         dseq = ""
         for i in range(processed_args.L):
+<<<<<<< HEAD
             if(args.constant is not None):
+=======
+            if(processed_args.CRISPR is not None):
+                # dseq = dseq + self.homoplastic_mutation(seq[i], i)
+                dseq = dseq + self.time_independent_mutation(seq[i], processed_args.mu[i])
+            elif(args.constant is not None):
+>>>>>>> 7b325568709c8c3feef1b04910b17442edbccd61
                 dseq = dseq + self.time_independent_mutation(seq[i], processed_args.mu[i])
             elif(args.gtrgamma is not None):
                 dseq = dseq+self.time_dependent_mutation(seq[i], processed_args.gamma[i], dM)
@@ -221,14 +228,20 @@ class SEQ():
     # mutation of a site (NOT Jukes Cantor model.
     # directly define mutation matrix, not the mutation rate matrix
     # it's enough for calculate mutation of each duplication
-    def homoplastic_mutation(self, c, position):
-        base = {'A': 0, 'T': 1, 'G': 2, 'C': 3}
+    # def homoplastic_mutation(self, c, position):
+    #     base = {'A': 0, 'T': 1, 'G': 2, 'C': 3}
     
-        matrix = SUBSTITUTION_RATE_MATRIX[position]
+    #     # matrix = SUBSTITUTION_RATE_MATRIX[position]
+    #     matrix = [
+    #         [1-mu, mu/3, mu/3, mu/3],
+    #         [mu/3, 1-mu, mu/3, mu/3],
+    #         [mu/3, mu/3, 1-mu, mu/3],
+    #         [mu/3, mu/3, mu/3, 1-mu]
+    #         ]
 
-        return random.choices(
-            ['A', 'C', 'G', 'T'], k=1, weights=matrix[base[c]]
-            )[0]
+    #     return random.choices(
+    #         ['A', 'C', 'G', 'T'], k=1, weights=matrix[base[c]]
+    #         )[0]
     
     def time_independent_mutation(self, c, mu):
         base = {'A': 0, 'C': 1, 'G': 2, 'T': 3}
@@ -504,7 +517,7 @@ def create_newick(Lineage, Timepoint, timelimit, upper_tree=False):
     #     raise CreateNewickError(e)
 
 
-def fasta_writer(name, seq, indels, file_name, overwrite_mode, Nchunks, filepath2writer=None, indelseq=True):
+def fasta_writer(name, seq, indels, file_name, overwrite_mode, Nchunks =1, filepath2writer=None, indelseq=True):
 
     if overwrite_mode:
         writer_mode = "a"
@@ -900,7 +913,7 @@ def main(timelimit):
                     prev_seq_t = esu.t
                     # save ancestoral sequences
                     if args.viewANC:
-                        true_indels, is_dead = fasta_writer(esu.id, esu.seq, esu.indels, "ancestral_sequences.fasta", True, Nchunks = args.chunks)
+                        true_indels, is_dead = fasta_writer(esu.id, esu.seq, esu.indels, "ancestral_sequences.fasta", True)
                     # duplication
                     if args.CV:
                         if args.STV:
@@ -1197,16 +1210,6 @@ def main(timelimit):
         if args.f is None:
             if(processed_args.CRISPR):
                 command = "cat intermediate/DOWN/*/PRESUMEout/PRESUMEout.indel.gz > PRESUMEout.indel.gz 2> /dev/null;"
-                
-            if (args.chunks == 1):
-                command += "cat intermediate/DOWN/*/PRESUMEout/PRESUMEout.fa.gz > PRESUMEout.fa.gz;"
-                if(processed_args.CRISPR):
-                    command += "cat intermediate/DOWN/*/PRESUMEout/PRESUMEout.aligned.fa.gz > PRESUMEout.aligned.fa.gz 2> /dev/null;"
-            else:
-                for i in range(args.chunks):
-                    command += "cat intermediate/DOWN/*/PRESUMEout/PRESUMEout."+str(i)+".fa.gz > PRESUMEout."+str(i)+".fa.gz;"
-                    if(processed_args.CRISPR):
-                        command += "cat intermediate/DOWN/*/PRESUMEout/PRESUMEout."+str(i)+".aligned.fa.gz > PRESUMEout."+str(i)+".aligned.fa.gz 2> /dev/null;"
             subprocess.call(command, shell=True)  # combine fasta
 
             
@@ -1215,13 +1218,6 @@ def main(timelimit):
         # os.rename("PRESUMEout_combined.nwk", "PRESUMEout.nwk")
         if (not args.debug):
             shutil.rmtree("intermediate")
-
-    # error check
-    if(args.chunks == 1):
-        fa_count = count_sequence("PRESUMEout.fa.gz")
-        if (fa_count!=tip_count):
-            raise OutputError(fa_count, tip_count)
-            return 0
 
     # remove PRESUME.aligned.fa.gz when indel mode is not active
     if (not processed_args.CRISPR):
@@ -1258,10 +1254,18 @@ if __name__ == "__main__":
     # interface
     parser = argparse.ArgumentParser(description='PRESUME.py', add_help=True)
     parser.add_argument(
+        "--tree",
+        help="file name of a guide tree in Newick format(for debug, unsupported.)",
+        type=str,
+        default=None,
+    )
+
+    parser.add_argument(
         "--param",
         help="load argument file(csv file)",
         type=str
         )
+
     parser.add_argument(
         "-V",
         "--version",
@@ -1271,9 +1275,9 @@ if __name__ == "__main__":
 
     parser.add_argument(
         "--monitor",
-        help="time limit (default=None)",
+        help="time limit (default=1)",
         type=float,
-        default=None
+        default=1
         )
 
     parser.add_argument(
@@ -1326,15 +1330,18 @@ if __name__ == "__main__":
         default=0
         )
 
+<<<<<<< HEAD
     # parser.add_argument(
     #     "-a", help="CV of CV of doubling time of origin sequence (default=0)",
     #     type=float,
     #     default=0
     #     )
 
+=======
+>>>>>>> 7b325568709c8c3feef1b04910b17442edbccd61
     parser.add_argument(
         "-T",
-        help="Threashold of doubling time to be deleted (default = 1000)",
+        help="Threashold of doubling time to be deleted (default=1000)",
         type=float,
         default=1000
         )
@@ -1366,7 +1373,7 @@ if __name__ == "__main__":
         type=int,
         default=np.power(2, 20)
         )
-    
+
     parser.add_argument(
         "--ud",
         help="upper limit of doubling time (default=10^10)",
@@ -1474,9 +1481,10 @@ if __name__ == "__main__":
         "--seed",
         help="random seed used to initialize \
             the pseudo-random number generator",
-        type=int,
+        type=str,
         default=None
         )
+<<<<<<< HEAD
     '''
     parser.add_argument(
         "-h", "--help",
@@ -1485,6 +1493,8 @@ if __name__ == "__main__":
         default=False
         )
     '''
+=======
+>>>>>>> 7b325568709c8c3feef1b04910b17442edbccd61
 
     parser.add_argument(
         "--inprob",
@@ -1521,6 +1531,7 @@ if __name__ == "__main__":
         default=None,
     )
 
+<<<<<<< HEAD
     # parser.add_argument(
     #     "--chunks",
     #     help="number of chunks for each sequence unit",
@@ -1528,6 +1539,8 @@ if __name__ == "__main__":
     #     default=1,
     # )
 
+=======
+>>>>>>> 7b325568709c8c3feef1b04910b17442edbccd61
     parser.add_argument(
         "--dop",
         help="Option of qsub for downstream simulation (for distributed computing mode)",
@@ -1535,6 +1548,7 @@ if __name__ == "__main__":
         default="",
     )
 
+<<<<<<< HEAD
     # parser.add_argument(
     #     "--homoplasy",
     #     help="file name of parameters of homoplasy model",
@@ -1548,6 +1562,14 @@ if __name__ == "__main__":
     #     action="store_true",
     #     default=False
     # )
+=======
+    parser.add_argument(
+        "--editprofile",
+        help="path of editprofile",
+        type=str,
+        default=None,
+    )
+>>>>>>> 7b325568709c8c3feef1b04910b17442edbccd61
 
     parser.add_argument(
         "--dist",
@@ -1556,12 +1578,6 @@ if __name__ == "__main__":
         default='gamma2'
     )
 
-    parser.add_argument(
-        "--editprofile",
-        help="file name of a base editing profile(for debug, unsupported.)",
-        type=str,
-        default=None
-    )
     args = parser.parse_args()
     
     # "Code Ocean" specific process
@@ -1586,14 +1602,16 @@ if __name__ == "__main__":
     # initialize the pseudo-random number generator
     if (args.seed is None):
         args.seed = np.random.randint(1,10000)
-    np.random.seed(args.seed)
-    random.seed(args.seed)
+    np.random.seed(int(args.seed))
+    random.seed(int(args.seed))
     processed_args = args_reader.PARSED_ARGS(args)
     
     if args.tree:
         if (os.path.exists(os.getcwd() + "/" + args.tree)):
             args.tree      = os.getcwd() + "/" + args.tree
-        from submodule import nwk2fa as n2f
+
+        import nwk2fa as n2f
+        print("tree mode!")
         os.chdir(OUTDIR)
         os.makedirs("PRESUMEout", exist_ok=True)
         os.chdir("PRESUMEout")
@@ -1602,11 +1620,7 @@ if __name__ == "__main__":
             n2f.nwk2fa_single(args, processed_args)
         else:
             n2f.nwk2fa_qsub(args, processed_args)
-
-        print("\n=====================================================")
-        print("Seed for random number generation: "+str(processed_args.seed))
-        print("=====================================================\n")
-        sys.exit(0)
+        exit()
 
     # setup directory
     if not os.path.exists(OUTDIR):

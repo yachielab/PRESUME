@@ -62,10 +62,10 @@ class PARSED_ARGS():
 
         self.growing_rate_origin = 1 / args.d
         self.sigma_origin = args.s
-        self.alpha = args.a
         self.T = args.T
         self.e = args.e
         self.m = args.m
+        self.n = args.n
         self.constant = args.constant
         self.gtrgamma = args.gtrgamma
         self.save_N_mutations = args.debug
@@ -82,9 +82,6 @@ class PARSED_ARGS():
             self.initseq = str(list(sequences)[0].seq)
             self.L = len(self.initseq)
             handle.close()
-
-        elif (args.polyC):
-            self.initseq = 'C' * self.L  # initial sequence
         else:
             self.initseq = ''.join([
                 np.random.choice(['A', 'G', 'C', 'T']) for i in range(args.L)
@@ -182,7 +179,13 @@ class PARSED_ARGS():
         if args.tree:
             self.tree = args.tree
                 
-
+        # other specification
+        self.bar = args.bar
+        self.qsub = args.qsub
+        self.u = args.u
+        self.debug = args.debug
+        self.CV = args.CV
+        self.tMorigin = args.tMorigin
     # return transition matrix
     def P(self, gamma, t):
         exp_rambda = np.diag(
