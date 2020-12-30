@@ -166,32 +166,22 @@ class ExceptionOfCodeOcenan(PresumeException):
 #   for Simulation
 class SEQ():
     # idM & mseq means id & sequence of mother SEQ, respectively.
-    def __init__(self, SEQid, idM, mseq, CVM, rM, dM, tM, indelsM, CV=False, STV=False): # indels: list of [('in' or 'del', start_pos, length)]
+    def __init__(self, SEQid, idM, mseq, CVM, rM, dM, tM, indelsM, CV=False): # indels: list of [('in' or 'del', start_pos, length)]
         self.id = SEQid  # for example: 0,1,2,...
         self.idM = idM
-        self.CV = max(np.random.normal(CVM, CVM*processed_args.alpha), 0)  # should be > 0
+        self.CV = max(np.random.normal(CVM, CVM), 0)  # should be > 0
 
         LOWER_LIMIT_doubling_time = args.ld
         self.d = 0
         while self.d < LOWER_LIMIT_doubling_time:
-            if STV:
-                if CV:
-                    self.d = custom_dist(dM, dM*self.CV, dist=args.dist)
-                else:
-                    self.d = custom_dist(dM, self.CV, dist=args.dist)
-                if self.d == 0:
-                    self.r = float("inf")
-                else:
-                    self.r = 1/self.d
+            if CV:
+                self.r = custom_dist(rM, rM*self.CV, dist=args.dist)
             else:
-                if CV:
-                    self.r = custom_dist(rM, rM*self.CV, dist=args.dist)
-                else:
-                    self.r = custom_dist(rM, self.CV, dist=args.dist)
-                if self.r == 0:
-                    self.d = float("inf")
-                else:
-                    self.d = 1/self.r
+                self.r = custom_dist(rM, self.CV, dist=args.dist)
+            if self.r == 0:
+                self.d = float("inf")
+            else:
+                self.d = 1/self.r
 
         self.is_alive = (np.random.rand() > processed_args.e)
         
@@ -212,16 +202,18 @@ class SEQ():
     def daughterseq(self, seq, dM):
         dseq = ""
         for i in range(processed_args.L):
-            if(args.constant is not None):
+            if(args.constant):
                 dseq = dseq + self.time_independent_mutation(seq[i], processed_args.mu[i])
-            elif(args.gtrgamma is not None):
+            elif(args.gtrgamma):
                 dseq = dseq+self.time_dependent_mutation(seq[i], processed_args.gamma[i], dM)
+            elif(args.editprofile):
+                dseq = dseq+self.homoplastic_mutation(seq[i], i, processed_args.sub_prob_mtx_list)
         return dseq
 
     # mutation of a site (NOT Jukes Cantor model.
     # directly define mutation matrix, not the mutation rate matrix
     # it's enough for calculate mutation of each duplication
-    def homoplastic_mutation(self, c, position):
+    def homoplastic_mutation(self, c, position, SUBSTITUTION_RATE_MATRIX):
         base = {'A': 0, 'T': 1, 'G': 2, 'C': 3}
     
         matrix = SUBSTITUTION_RATE_MATRIX[position]
@@ -892,7 +884,7 @@ def main(timelimit):
 
             if not time_over:
               
-                esu        = SEQqueue.pop(0)
+                esu = SEQqueue.pop(0)
 
                 #print(esu.t)
 
@@ -900,30 +892,18 @@ def main(timelimit):
                     prev_seq_t = esu.t
                     # save ancestoral sequences
                     if args.viewANC:
-                        true_indels, is_dead = fasta_writer(esu.id, esu.seq, esu.indels, "ancestral_sequences.fasta", True, Nchunks = args.chunks)
+                        true_indels, is_dead = fasta_writer(esu.id, esu.seq, esu.indels, "ancestral_sequences.fasta", True, Nchunks = processed_args.chunks)
                     # duplication
                     if args.CV:
-                        if args.STV:
-                            daughter = [SEQ(i, esu.id, esu.seq, esu.CV,
-                                            esu.r, esu.d, esu.t, esu.indels, True, True),
-                                        SEQ(i+1, esu.id, esu.seq, esu.CV,
-                                        esu.r, esu.d, esu.t, esu.indels, True, True)]
-                        else:
-                            daughter = [SEQ(i, esu.id, esu.seq, esu.CV,
-                                            esu.r, esu.d, esu.t, esu.indels, True),
-                                        SEQ(i+1, esu.id, esu.seq, esu.CV,
-                                        esu.r, esu.d, esu.t, esu.indels, True)]
+                        daughter = [SEQ(i, esu.id, esu.seq, esu.CV,
+                                        esu.r, esu.d, esu.t, esu.indels, True),
+                                    SEQ(i+1, esu.id, esu.seq, esu.CV,
+                                    esu.r, esu.d, esu.t, esu.indels, True)]
                     else:
-                        if args.STV:
-                            daughter = [SEQ(i, esu.id, esu.seq, esu.CV,
-                                            esu.r, esu.d, esu.t, esu.indels, False, True),
-                                        SEQ(i+1, esu.id, esu.seq, esu.CV,
-                                        esu.r, esu.d, esu.t, esu.indels, False, True)]
-                        else:
-                            daughter = [SEQ(i, esu.id, esu.seq, esu.CV,
-                                            esu.r, esu.d, esu.t, esu.indels),
-                                        SEQ(i+1, esu.id, esu.seq, esu.CV,
-                                        esu.r, esu.d, esu.t, esu.indels)]
+                        daughter = [SEQ(i, esu.id, esu.seq, esu.CV,
+                                        esu.r, esu.d, esu.t, esu.indels),
+                                    SEQ(i+1, esu.id, esu.seq, esu.CV,
+                                    esu.r, esu.d, esu.t, esu.indels)]
                     
                     # propagation!
                     SEQqueue = SEQqueue_push(SEQqueue, daughter[0])
@@ -960,7 +940,7 @@ def main(timelimit):
         else:
             # Note: Variable name "esu" means Evolutionally Sequence Unit
             # as container of SEQ object
-            
+            esu = SEQqueue.pop(0)
             Lineage[esu.id] = ["dead"]
             if(esu.id != 0):
                 death(Lineage, esu.idM)
@@ -992,17 +972,17 @@ def main(timelimit):
     # or "downstream SEQ simulation of distributed computing"
     if(not args.qsub):
         # output initial sequence
-        fasta_writer("root", processed_args.initseq, None, "root.fa", False, Nchunks = args.chunks)
+        fasta_writer("root", processed_args.initseq, None, "root.fa", False, Nchunks = processed_args.chunks)
         # create fasta
         print("Generating a FASTA file...")
 
         # open .gz file to write
         filepath2writer={}
-        if (args.chunks == 1):
+        if (processed_args.chunks == 1):
             filepath2writer["PRESUMEout.fa.gz"]                = gzip.open("PRESUMEout.fa.gz"           , 'wb')
             filepath2writer["PRESUMEout.aligned.fa.gz"]        = gzip.open("PRESUMEout.aligned.fa.gz"   , 'wb')
         else:
-            for i in range(args.chunks):
+            for i in range(processed_args.chunks):
                 filepath2writer["PRESUMEout."+str(i)+".fa.gz"]         = gzip.open("PRESUMEout."+str(i)+".fa.gz", 'wb')
                 filepath2writer["PRESUMEout."+str(i)+".aligned.fa.gz"] = gzip.open("PRESUMEout."+str(i)+".aligned.fa.gz", 'wb')
 
@@ -1017,7 +997,7 @@ def main(timelimit):
                     format(esu_name_prefix, esu_name_suffix)
                 esu_name = new_esu_name
             
-            true_indels, esu_zero_length = fasta_writer(esu_name, esu.seq, esu.indels, "PRESUMEout.fa", True, filepath2writer=filepath2writer, Nchunks=args.chunks) # fasta_writer() returns True if the seq. length <= 0
+            true_indels, esu_zero_length = fasta_writer(esu_name, esu.seq, esu.indels, "PRESUMEout.fa", True, filepath2writer=filepath2writer, Nchunks=processed_args.chunks) # fasta_writer() returns True if the seq. length <= 0
             esu.indels = true_indels
             esuname2zerolength[esu_name] = esu_zero_length
 
@@ -1082,7 +1062,7 @@ def main(timelimit):
     # in case of distributed computing
     else :
         # Root sequence
-        fasta_writer("root", processed_args.initseq, None, "root.fa", False, Nchunks = args.chunks)
+        fasta_writer("root", processed_args.initseq, None, "root.fa", False, Nchunks = processed_args.chunks)
         # preparation for qsub
         os.mkdir("intermediate")
         os.mkdir("intermediate/DOWN")
@@ -1198,12 +1178,12 @@ def main(timelimit):
             if(processed_args.CRISPR):
                 command = "cat intermediate/DOWN/*/PRESUMEout/PRESUMEout.indel.gz > PRESUMEout.indel.gz 2> /dev/null;"
                 
-            if (args.chunks == 1):
+            if (processed_args.chunks == 1):
                 command += "cat intermediate/DOWN/*/PRESUMEout/PRESUMEout.fa.gz > PRESUMEout.fa.gz;"
                 if(processed_args.CRISPR):
                     command += "cat intermediate/DOWN/*/PRESUMEout/PRESUMEout.aligned.fa.gz > PRESUMEout.aligned.fa.gz 2> /dev/null;"
             else:
-                for i in range(args.chunks):
+                for i in range(processed_args.chunks):
                     command += "cat intermediate/DOWN/*/PRESUMEout/PRESUMEout."+str(i)+".fa.gz > PRESUMEout."+str(i)+".fa.gz;"
                     if(processed_args.CRISPR):
                         command += "cat intermediate/DOWN/*/PRESUMEout/PRESUMEout."+str(i)+".aligned.fa.gz > PRESUMEout."+str(i)+".aligned.fa.gz 2> /dev/null;"
@@ -1217,7 +1197,7 @@ def main(timelimit):
             shutil.rmtree("intermediate")
 
     # error check
-    if(args.chunks == 1):
+    if(processed_args.chunks == 1):
         fa_count = count_sequence("PRESUMEout.fa.gz")
         if (fa_count!=tip_count):
             raise OutputError(fa_count, tip_count)
@@ -1280,8 +1260,9 @@ if __name__ == "__main__":
         "-n",
         help="required number of sequences: if you specified this parameter,\
             timelimit will be postponed until the number of the sequence reach\
-            the specified number (default=None)",
-        type=int
+            the specified number (default=1)",
+        type=int,
+        default=1
         )
 
     parser.add_argument(

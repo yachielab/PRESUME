@@ -7,7 +7,9 @@ import gzip
 from Bio import SeqIO
 
 class PARSED_ARGS():
+    ###########################################################################
     # idM & mseq means id & sequence of mother SEQ, respectively.
+    ###########################################################################
     def __init__(self, args): # indels: list of [('in' or 'del', start_pos, length)]
 
         # read argument from input CSV
@@ -70,28 +72,13 @@ class PARSED_ARGS():
         self.gtrgamma = args.gtrgamma
         self.save_N_mutations = args.debug
         self.editprofile      = args.editprofile
-
-
-        # initial sequence specification
-        if (args.f is not None):
-            if args.f.split(".")[-1]=='gz':
-                handle = gzip.open(args.f, 'rt')
-            else:
-                handle = open(args.f, 'r')
-            sequences = SeqIO.parse(handle, 'fasta')
-            self.initseq = str(list(sequences)[0].seq)
-            self.L = len(self.initseq)
-            handle.close()
-        else:
-            self.initseq = ''.join([
-                np.random.choice(['A', 'G', 'C', 'T']) for i in range(args.L)
-                ])
+        self.chunks = 1
 
         # In case expected number of mutation is independent
         # on the doubling time of the SEQ
         if args.editprofile is not None:
             self.sub_prob_mtx_list = self.sub_mat_parser(args.editprofile)
-            args.editprofile       = os.getcwd() + "/" + args.editprofile
+            self.L = len(self.sub_prob_mtx_list)
         elif(args.constant is not None):
             self.mu = [args.constant] * self.L
 
@@ -186,7 +173,27 @@ class PARSED_ARGS():
         self.debug = args.debug
         self.CV = args.CV
         self.tMorigin = args.tMorigin
-    # return transition matrix
+
+
+        # initial sequence specification
+        if (args.f is not None):
+            if args.f.split(".")[-1]=='gz':
+                handle = gzip.open(args.f, 'rt')
+            else:
+                handle = open(args.f, 'r')
+            sequences = SeqIO.parse(handle, 'fasta')
+            self.initseq = str(list(sequences)[0].seq)
+            self.L = len(self.initseq)
+            handle.close()
+
+        else:
+            self.initseq = ''.join([
+                np.random.choice(['A', 'G', 'C', 'T']) for i in range(args.L)
+                ])
+
+    ###########################################################################
+    # some functions
+    ###########################################################################
     def P(self, gamma, t):
         exp_rambda = np.diag(
                 np.array([
@@ -197,7 +204,7 @@ class PARSED_ARGS():
                 )
             )
         return np.dot(np.dot(self.U, exp_rambda), np.linalg.inv(self.U))
-    
+
     def sub_mat_parser(self,infile):
 
         # substitution matrix
