@@ -28,20 +28,18 @@ class Lineage(Phylo.BaseTree.Clade):
             elif(parsed_args.gtrgamma is not None):
                 #dseq = dseq + self.time_dependent_mutation(seq[i], parsed_args.gamma[i], self.mother_clade.branch_length, parsed_args) ### Important: equal to original PRESUME
                 dseq = dseq + self.time_dependent_mutation(seq[i], parsed_args.gamma[i], self.branch_length, parsed_args) ### Important: different from original PRESUME
+            elif(parsed_args.editprofile is not None):
+                dseq = dseq + self.base_editing(seq[i], i, parsed_args.sub_prob_mtx_list)
         return dseq
     
     # mutation of a site (NOT Jukes Cantor model.
     # directly define mutation matrix, not the mutation rate matrix
     # it's enough for calculate mutation of each duplication
-    def homoplastic_mutation(self, c, mu):
+    def base_editing(self, c, position, matrix_list):
+
         base = {'A': 0, 'C': 1, 'G': 2, 'T': 3}
-    
-        matrix = [
-            [1-mu, mu/3, mu/3, mu/3],
-            [mu/3, 1-mu, mu/3, mu/3],
-            [mu/3, mu/3, 1-mu, mu/3],
-            [mu/3, mu/3, mu/3, 1-mu]
-            ]
+        matrix      = matrix_list[position]
+
         return random.choices(
             ['A', 'C', 'G', 'T'], k=1, weights=matrix[base[c]]
             )[0]

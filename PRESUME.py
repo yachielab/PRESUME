@@ -883,17 +883,26 @@ def main(timelimit):
                         break
 
         if (SEQqueue[0].is_alive):
-
-            if timelimit is not None:
-                if SEQqueue[0].t >= timelimit:
-                    time_over = True
+            
+            if (processed_args.sigma_origin==0):
+                if timelimit is not None:
+                    if SEQqueue[0].t > timelimit:
+                        time_over = True
+                    else:
+                        time_over = False
                 else:
                     time_over = False
             else:
-                time_over = False
+                if timelimit is not None:
+                    if SEQqueue[0].t >= timelimit:
+                        time_over = True
+                    else:
+                        time_over = False
+                else:
+                    time_over = False
 
             if not time_over:
-              
+            
                 esu        = SEQqueue.pop(0)
 
                 #print(esu.t)
@@ -984,7 +993,10 @@ def main(timelimit):
             return 1
             
     if (timelimit is None):
-        timelimit = SEQqueue[0].t
+        if (processed_args.sigma_origin==0):
+            timelimit = prev_seq_t
+        else:
+            timelimit = SEQqueue[0].t
 
 
     ##########Simulation finished############
@@ -1560,6 +1572,12 @@ if __name__ == "__main__":
         default='gamma2'
     )
 
+    parser.add_argument(
+        "--editprofile",
+        help="file name of a base editing profile(for debug, unsupported.)",
+        type=str,
+        default=None
+    )
     args = parser.parse_args()
     
     # "Code Ocean" specific process
@@ -1591,9 +1609,7 @@ if __name__ == "__main__":
     if args.tree:
         if (os.path.exists(os.getcwd() + "/" + args.tree)):
             args.tree      = os.getcwd() + "/" + args.tree
-
-        import nwk2fa as n2f
-        print("tree mode!")
+        from submodule import nwk2fa as n2f
         os.chdir(OUTDIR)
         os.makedirs("PRESUMEout", exist_ok=True)
         os.chdir("PRESUMEout")
@@ -1602,7 +1618,11 @@ if __name__ == "__main__":
             n2f.nwk2fa_single(args, processed_args)
         else:
             n2f.nwk2fa_qsub(args, processed_args)
-        exit()
+
+        print("\n=====================================================")
+        print("Seed for random number generation: "+str(processed_args.seed))
+        print("=====================================================\n")
+        sys.exit(0)
 
     # setup directory
     if not os.path.exists(OUTDIR):
