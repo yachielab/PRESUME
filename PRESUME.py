@@ -879,7 +879,13 @@ def main(timelimit):
                 else:
                     time_over = False
             else:
-                time_over = False
+                if timelimit is not None:
+                    if SEQqueue[0].t >= timelimit:
+                        time_over = True
+                    else:
+                        time_over = False
+                else:
+                    time_over = False
 
             if not time_over:
               
@@ -961,7 +967,10 @@ def main(timelimit):
             return 1
             
     if (timelimit is None):
-        timelimit = SEQqueue[0].t
+        if (processed_args.sigma_origin==0):
+            timelimit = prev_seq_t
+        else:
+            timelimit = SEQqueue[0].t
 
 
     ##########Simulation finished############
