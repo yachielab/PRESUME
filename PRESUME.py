@@ -865,14 +865,13 @@ def main(timelimit):
     # SEQs propagation
     while(True):
         #check_sort_SEQqueue(SEQqueue)
-
         if SEQqueue[0].is_alive:
             if C is not None:
                 if c >= C:
                     if prev_seq_t != SEQqueue[0].t:
                         break
 
-        if (SEQqueue[0].is_alive):
+        if SEQqueue[0].is_alive:
 
             if timelimit is not None:
                 if SEQqueue[0].t >= timelimit:
@@ -931,7 +930,7 @@ def main(timelimit):
                     if args.bar:
                         progress_bar(pbar, c)
                 else:
-                    print("SEQ.d > "+str(UPPER_LIMIT_doubling_time)+"!!")
+                    print("a doubling time of sequence(SEQ.d) is larger than "+str(UPPER_LIMIT_doubling_time)+" !!")
                     sys.exit()
             
             else:
@@ -1262,7 +1261,6 @@ if __name__ == "__main__":
             timelimit will be postponed until the number of the sequence reach\
             the specified number (default=1)",
         type=int,
-        default=1
         )
 
     parser.add_argument(

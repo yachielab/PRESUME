@@ -1,30 +1,42 @@
 {
-    // Use IntelliSense to learn about possible attributes.
-    // Hover to view descriptions of existing attributes.
-    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "PRESUME",
+            "name": "PRESUME_debug_006",
             "type": "python",
             "request": "launch",
             "program": "${file}",
             "console": "integratedTerminal",
+            "pythonPath":"/home/ha5654/anaconda3/bin/python3",
             "args": [
-                "-n",
-                "380",
+                "--monitor",
+                "12.0",
+                "--ud",
+                "12",
                 "-L",
-                "1",
+                "1000",
+                "-d",
+                "1.0",
                 "-s",
-                "10",
-                "--STV",
+                "0",
+                "-T",
+                "1000",
+                "-e",
+                "0",
+                "-u",
+                "1048576",
+                "--idANC",
+                "32",
+                "--tMorigin",
+                "5.0",
+                "--seed",
+                "3972",
+                "--dist",
+                "gamma2",
                 "--constant",
                 "0.1",
                 "--output",
-                "/Users/iwatano/Desktop/tmp_PRESUME/out",
-                "--bar",
-                "-u",
-                "10000"
+                "/home/ha5654/tmp/PRESUME/debug_1122/tmp_006"
             ]
         }
     ]
