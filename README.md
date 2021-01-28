@@ -1,6 +1,6 @@
 <h2>PRESUME Installation and User Manual</h2>
 
-- [Overview of PRESUME](#overview-of-fractal)
+- [Overview of PRESUME](#overview-of-presume)
 - [Supported Environment](#supported-environment)
 - [Software Dependency](#software-dependency)
 - [Software installation](#software-installation)
