@@ -1,5 +1,11 @@
 <h2>PRESUME Installation and User Manual</h2>
 
+- [Overview of PRESUME](#overview-of-fractal)
+- [Supported Environment](#supported-environment)
+- [Software Dependency](#software-dependency)
+- [Software installation](#software-installation)
+- [Sample Codes](#sample-codes)
+- [PRESUME Usage](#presume-usage)
 ### Overview of PRESUME
 
 **PRESUME** is a software tool that simulates cell division or speciation and diversification of DNA sequences in the growing population. By employing a distributed computing platform, PRESUME progressively
@@ -126,78 +132,92 @@ Note that as the number of sequences are only sporadically monitored during the 
 
 In the distributed computing mode, the number of jobs will be around √N; PRESUME first generates ~√N number of sequences in a single node, each of which is then subjected to the further downstream process in a distributed computing node.
 
+**Executable samplecode**  
+To see the executable sample code, please see Jupyter Notebook [here](https://github.com/yachielab/PRESUME/blob/hotfix/debug/TEST_20201122.ipynb).
 
 #### PRESUME Usage
 
 ```
-Usage:
-    PRESUME.py 
-    [-v] [--version] [-h] [--help] [-n sequence_number] [-L sequence_length] [-s standard_deviation]
-    [-e extinction_probability] [--gtrgamma model_parameters] [-m mean_substitution_rate]
-    [--constant substitution_probability] [--qsub] [--output directory_path] [-f input_file]
-    [--load file_name] [-u sequences_number] [--debug] [--bar] [--save] 
-    [-r max_retrial_number] [--seed random_seed] [--limit time_limit] 
+usage: PRESUME.py [-h] [--param PARAM] [-V] [--monitor MONITOR] [-n N]
+                  [--tree TREE] [-L L] [-f F] [--polyC] [-d D] [-s S] [-T T]
+                  [-e E] [--gtrgamma GTRGAMMA] [-u U] [--ud UD] [--ld LD]
+                  [-m M] [--constant CONSTANT] [--output OUTPUT] [--qsub]
+                  [--idANC IDANC] [--tMorigin TMORIGIN] [--debug] [--bar]
+                  [--viewANC] [--save] [--CV] [-r R] [--seed SEED]
+                  [--inprob INPROB] [--inlength INLENGTH] [--delprob DELPROB]
+                  [--dellength DELLENGTH] [--indels INDELS] [--chunks CHUNKS]
+                  [--dop DOP] [--dist DIST] [--editprofile EDITPROFILE]
 
-Options:
-    -v --version
-      Print PRESUME version; ignore all of the other parameters
-    -h --help
-      Print the usage of PRESUME; ignore all of the other parameters
-    -n <Integer>
-      Number of sequences to be generated. Default: 100
-    -L <Integer>
-      Length of sequences to be generated. Default: 1000
-    -s <Float>
-      Standard deviation of propagation speed. Default: 0
-    -e <Float>
-      Probability of extinction. Default: 0
-    --gtrgamma <String>
-      GTR-Gamma model parameters
-        Format： --gtrgamma GTR{A-C/A-G/A-T/C-G/C-T/G-T}+FU{piA/piC/piG/piT}+G{alpha}
-        For more details, see https://github.com/yachielab/PRESUME/blob/master/SubstitutionModelDetails.PRESUME.pdf
-        or you can use the default parameter set by 
-          --gtrgamma default
-        which is equivalent to
-          --gtrgamma GTR{0.03333/0.03333/0.03333/0.03333/0.03333/0.03333}+FU{0.25/0.25/0.25/0.25}+G4{10000}
-    -m <Float>
-      Mean of gamma distribution for relative substitution rates of different sequence 
-        Positions. Default: 1
-    --constant <Float>
-　　　　　 Execute time-independent model to simulate sequence diversification with a parameter of
-　　　　　   constant substitution probability per generation of every sequence position
-    --qsub
-　　　　　 Execute the distributed computing mode
-    --output <String>
-　　　　　 Output directory path. PRESUME creates a directory unless exists. Default: current directory
-    -f <String>
-　　　　　 Input FASTA file name for the root sequence. Random sequence will be generated unless specified
-    -u <Integer>
-　　　　　 Maximum number of sequences to be generated. Default: 1000000000
-    --debug
-　　　　　 Output intermediate files
-    --bar
-　　　　　 Activate the monitoring of simulation progress with Python tqdm module
-    --save
-　　　　　 Output a CSV file for parameter values used for the simulation
-    --param <String>
-　　　　　 CSV file for parameter values.
-　　　　　 This file can be obtained from a previous simulation run executed with –-save option.
-    -r <Integer>
-　　　　　 Maximum number of retrials of simulation when all sequences are extinct
-    --seed <Integer>
-　　　　　 Seed value for generation of random values. Default: 0
-    --monitor <float>
-　　　　　 Stepper size parameter for monitoring of lineage generation. Default: 1
-    --tree <String>
-　　　　　 Input Newick format file name if a template tree is given.
-　　　　　   The following parameters will be ignored:
-　　　　　     -L -s -e -f -u -r --constant –-qsub –-load –-debug –-bar –-save –-seed --limit
+PRESUME.py
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --param PARAM         load argument file(csv file)
+  -V, --version
+  --monitor MONITOR     time limit (default=None)
+  -n N                  required number of sequences: if you specified this
+                        parameter, timelimit will be postponed until the
+                        number of the sequence reach the specified number
+                        (default=None)
+  --tree TREE           file name of a guide tree in Newick format(for debug,
+                        unsupported.)
+  -L L                  length of sequence (default=1000)
+  -f F                  fasta file name　of the common ancestor sequence.
+                        (default: poly-C)
+  --polyC               use polyC sequence as root
+  -d D                  doubling time of origin sequence (default=1)
+  -s S                  sigma of doubling time of origin sequence (default=0)
+  -T T                  Threashold of doubling time to be deleted (default =
+                        1000)
+  -e E                  random deletion probability (default=0)
+  --gtrgamma GTRGAMMA   parameters for substitution rate matrix
+                        GTR{A-C/A-G/A-T/C-G/C-T/G-T} +FU{piA/piC/piG/piT}
+                        +G4{shape of gamma distribution} Or, you can use
+                        default parameters by "--gtrgamma default" default:
+                        GTR{0.3333/0.3333/0.3333/0.3333/0.3333/0.3333}
+                        +FU{0.25/0.25/0.25/0.25} +G4{10000}
+  -u U                  upper limit of number of sequences (default=2^20)
+  --ud UD               upper limit of doubling time (default=10^10)
+  --ld LD               lower limit of doubling time (default=10^(-5))
+  -m M                  mean of relative subtitution rate according to gamma
+                        distribution (default=1)
+  --constant CONSTANT   fixed mutation rate of each site (default=None)
+  --output OUTPUT       output folder (default:current directory)
+  --qsub                activate preparation for distributed processes
+                        (defalt=inactivated)
+  --idANC IDANC         corresponging ancestral sequence (in upstream tree),
+                        in case of distributed computing (default=None)
+  --tMorigin TMORIGIN   birth time of origin sequence
+  --debug               inactivate deletion of intermediate files
+  --bar                 deactivate unstable functions
+  --viewANC             generate fasta of ancestoral sequences
+  --save                generate args.csv
+  --CV                  sigma use as CV(Coefficient Variance) of Normal
+                        Distribution
+  -r R                  limit of retrying simulation (default=100000)
+  --seed SEED           random seed used to initialize the pseudo-random
+                        number generator
+  --inprob INPROB       file name of insertion probability for each position
+  --inlength INLENGTH   file name of insertion length distribution
+  --delprob DELPROB     file name of deletion probability for each position
+  --dellength DELLENGTH
+                        file name of insertion length distribution
+  --indels INDELS       file name of indels accumulated before simualtion (for
+                        distributed computing mode)
+  --chunks CHUNKS       number of chunks for each sequence unit
+  --dop DOP             Option of qsub for downstream simulation (for
+                        distributed computing mode)
+  --dist DIST           Distribution of d or 1/d (permissive values: 'norm',
+                        'lognorm', 'gamma', 'gamma2') (default: 'gamma2)
+  --editprofile EDITPROFILE
+                        file name of a base editing profile(for debug,
+                        unsupported.)
 
 ```
 
 ### Contact
 
-1. Keito Watano (The University of Tokyo) watano.k10.yachielab@gmail.com
+1. Keito Watano (The University of Tokyo) [watano.k10.yachielab@gmail.com](watano.k10.yachielab@gmail.com)
 2. Naoki Konno (The University of Tokyo) [naoki@bs.s.u-tokyo.ac.jp](mailto:naoki@bs.s.u-tokyo.ac.jp)
 3. Nozomu Yachie (The University of Tokyo) [nzmyachie@gmail.com](mailto:yachie@synbiol.rcast.u-tokyo.ac.jp)
 
