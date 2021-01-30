@@ -124,6 +124,17 @@ Input data: [`prob.txt`](https://github.com/yachielab/PRESUME/example/example_4/
 
 Output data: a directory [`PRESUMEout`](https://github.com/yachielab/PRESUME/example/example_4/PRESUMEout) will be created in your working directory.
 
+**Example 5**
+
+Generation of ~100 sequences using time-independent model with the substitution frequency of each site specified in `editprofile.txt`. The computation will take ~1 minute.
+
+```shell
+PRESUME.py -n 100  --editprofile editprofile.txt
+```
+Input data: [`editprofile.txt`]() defines substitution matrix of each site.
+
+Output data: a directory [`PRESUMEout`]() will be created in your working directory.
+
 See [SubstitutionModelDetails.PRESUME.pdf](https://github.com/yachielab/PRESUME/blob/master/SubstitutionModelDetails.PRESUME.pdf) for more details of how to specify the GTR-Gamma model parameters.
 
 ***
@@ -132,8 +143,6 @@ Note that as the number of sequences are only sporadically monitored during the 
 
 In the distributed computing mode, the number of jobs will be around √N; PRESUME first generates ~√N number of sequences in a single node, each of which is then subjected to the further downstream process in a distributed computing node.
 
-**Executable samplecode**  
-To see the executable sample code, please see Jupyter Notebook [here](https://github.com/yachielab/PRESUME/blob/hotfix/debug/TEST_20201122.ipynb).
 
 #### PRESUME Usage
 
@@ -204,7 +213,6 @@ optional arguments:
                         file name of insertion length distribution
   --indels INDELS       file name of indels accumulated before simualtion (for
                         distributed computing mode)
-  --chunks CHUNKS       number of chunks for each sequence unit
   --dop DOP             Option of qsub for downstream simulation (for
                         distributed computing mode)
   --dist DIST           Distribution of d or 1/d (permissive values: 'norm',
