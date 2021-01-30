@@ -169,7 +169,7 @@ class SEQ():
     def __init__(self, SEQid, idM, mseq, CVM, rM, dM, tM, indelsM, CV=False): # indels: list of [('in' or 'del', start_pos, length)]
         self.id = SEQid  # for example: 0,1,2,...
         self.idM = idM
-        self.CV = max(np.random.normal(CVM, CVM), 0)  # should be > 0
+        self.CV = CVM
 
         LOWER_LIMIT_doubling_time = args.ld
         self.d = 0
