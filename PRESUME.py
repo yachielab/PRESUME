@@ -166,7 +166,7 @@ class ExceptionOfCodeOcenan(PresumeException):
 #   for Simulation
 class SEQ():
     # idM & mseq means id & sequence of mother SEQ, respectively.
-    def __init__(self, SEQid, idM, mseq, CVM, rM, dM, tM, indelsM, CV=False): # indels: list of [('in' or 'del', start_pos, length)]
+    def __init__(self, SEQid, idM, mseq, CVM, rM, dM, tM, indelsM, use_CV=False): # indels: list of [('in' or 'del', start_pos, length)]
         self.id = SEQid  # for example: 0,1,2,...
         self.idM = idM
         self.CV = CVM
@@ -174,10 +174,12 @@ class SEQ():
         LOWER_LIMIT_doubling_time = args.ld
         self.d = 0
         while self.d < LOWER_LIMIT_doubling_time:
-            if CV:
-                self.r = custom_dist(rM, rM*self.CV, dist=args.dist)
+            if use_CV:
+                variance = rM*self.CV
             else:
-                self.r = custom_dist(rM, self.CV, dist=args.dist)
+                variance = self.CV
+            self.r = custom_dist(rM, variance, dist=args.dist)
+
             if self.r == 0:
                 self.d = float("inf")
             else:
@@ -287,7 +289,7 @@ class SEQ():
             
         return generated_indels
 
-def custom_dist(param1, param2, dist = 'norm'):
+def custom_dist(param1, param2, dist = 'gamma2'):
     if   dist == 'norm':
         mean  = param1
         sigma = param2 
@@ -1244,7 +1246,7 @@ def recursive_main(timelimit, limit, main_func, repeated=1):
 #   interface
 if __name__ == "__main__":
     # interface
-    parser = argparse.ArgumentParser(description='PRESUME.py', add_help=True)
+    parser = argparse.ArgumentParser(description='PRESUME.py', add_help=False)
     parser.add_argument(
         "--param",
         help="load argument file(csv file)",
@@ -1465,14 +1467,13 @@ if __name__ == "__main__":
         type=int,
         default=None
         )
-    '''
+
     parser.add_argument(
         "-h", "--help",
         help="print help document",
         action='store_true',
         default=False
         )
-    '''
 
     parser.add_argument(
         "--inprob",
@@ -1558,12 +1559,10 @@ if __name__ == "__main__":
     #     quit()
     
     #   to show help
-    '''
     if args.help:
         import PRESUME_help as ph
         print(ph.help_description())
         exit()
-    '''
 
     if args.version:
         print(LOGO)

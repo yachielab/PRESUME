@@ -7,7 +7,7 @@
             "request": "launch",
             "program": "${file}",
             "console": "integratedTerminal",
-            "pythonPath":"/home/ha5654/anaconda3/bin/python3",
+            "python":"/home/ha5654/anaconda3/bin/python3",
             "args": [
                 "--monitor",
                 "12.0",
