@@ -169,7 +169,7 @@ class SEQ():
     def __init__(self, SEQid, idM, mseq, CVM, rM, dM, tM, indelsM, use_CV=False): # indels: list of [('in' or 'del', start_pos, length)]
         self.id = SEQid  # for example: 0,1,2,...
         self.idM = idM
-        self.CV = CVM
+        self.CV = max(np.random.normal(CVM, CVM*processed_args.alpha), 0)
 
         LOWER_LIMIT_doubling_time = args.ld
         self.d = 0
@@ -203,7 +203,7 @@ class SEQ():
     # return daughter sequence.
     def daughterseq(self, seq, dM):
         dseq = ""
-        for i in range(processed_args.L):
+        for i in range(len(seq)):
             if(args.constant):
                 dseq = dseq + self.time_independent_mutation(seq[i], processed_args.mu[i])
             elif(args.gtrgamma):
@@ -846,9 +846,9 @@ def main(timelimit):
 
     # First of all, there exits only 1 SEQ.
     SEQqueue.append(
-        SEQ(i, -1, processed_args.initseq, processed_args.sigma_origin, processed_args.growing_rate_origin,
+        SEQ(i, -1, "A", processed_args.sigma_origin, processed_args.growing_rate_origin,
             processed_args.dorigin, args.tMorigin, processed_args.initindels))
-    SEQqueue[0].seq = processed_args.initseq
+    SEQqueue[0].seq = "A"
     SEQqueue[0].indels = processed_args.initindels
 
     if args.idANC == 0:
@@ -873,11 +873,14 @@ def main(timelimit):
                     if prev_seq_t != SEQqueue[0].t:
                         break
 
-        if SEQqueue[0].is_alive:
+        if (SEQqueue[0].is_alive):
 
-            if timelimit is not None:
-                if SEQqueue[0].t >= timelimit:
-                    time_over = True
+            if (processed_args.sigma_origin==0):
+                if timelimit is not None:
+                    if SEQqueue[0].t > timelimit:
+                        time_over = True
+                    else:
+                        time_over = False
                 else:
                     time_over = False
             else:
@@ -981,8 +984,9 @@ def main(timelimit):
     # in case of "sequential computing"
     # or "downstream SEQ simulation of distributed computing"
     if(not args.qsub):
+        initseq = processed_args.initseq
         # output initial sequence
-        fasta_writer("root", processed_args.initseq, None, "root.fa", False, Nchunks = processed_args.chunks)
+        fasta_writer("root", initseq, None, "root.fa", False, Nchunks = processed_args.chunks)
         # create fasta
         print("Generating a FASTA file...")
 
@@ -1057,22 +1061,30 @@ def main(timelimit):
                             handle.write("\n".encode())
                 handle.close()
 
-            # create newick
-            del(SEQqueue)
-            print("Generating a Newick file......")
-            tip_count, returned_tree, list_of_dead = create_newick(Lineage, Timepoint, timelimit)
+        # create newick
+        # del(SEQqueue)
+        print("Generating a Newick file......")
+        tip_count, returned_tree, list_of_dead = create_newick(Lineage, Timepoint, timelimit)
 
-            if args.debug:
-                mut_rate_log_writer(mut_rate_log, list_of_dead)
+        if args.debug:
+            mut_rate_log_writer(mut_rate_log, list_of_dead)
 
-            # close FASTA
-            for writer in list(filepath2writer.values()):
-                writer.close()
+        # close FASTA
+        for writer in list(filepath2writer.values()):
+            writer.close()
+
+
+        # generating sequences
+        from submodule import nwk2fa as n2f
+        args.tree = "{}/PRESUMEout/PRESUMEout.nwk".format(OUTDIR)
+        n2f.nwk2fa_single(args, processed_args)
 
     # in case of distributed computing
     else :
+        initseq = processed_args.initseq
+        # initseq = ""
         # Root sequence
-        fasta_writer("root", processed_args.initseq, None, "root.fa", False, Nchunks = processed_args.chunks)
+        fasta_writer("root", initseq, None, "root.fa", False, Nchunks = processed_args.chunks)
         # preparation for qsub
         os.mkdir("intermediate")
         os.mkdir("intermediate/DOWN")
@@ -1563,6 +1575,7 @@ if __name__ == "__main__":
         import PRESUME_help as ph
         print(ph.help_description())
         exit()
+
     if args.version:
         print(LOGO)
         exit()
@@ -1580,6 +1593,8 @@ if __name__ == "__main__":
         if (os.path.exists(os.getcwd() + "/" + args.tree)):
             args.tree      = os.getcwd() + "/" + args.tree
         from submodule import nwk2fa as n2f
+        if not os.path.exists(OUTDIR):
+            os.makedirs(OUTDIR)
         os.chdir(OUTDIR)
         os.makedirs("PRESUMEout", exist_ok=True)
         os.chdir("PRESUMEout")
