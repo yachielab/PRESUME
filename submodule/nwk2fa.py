@@ -38,8 +38,8 @@ LOGO='''
 #      #####  #    # #    #    #  # # #      # ## # # #      #  #   
 #      #   #  #    # #    #    #   ## #      ##  ## # #    # #   #  
 #      #    #  ####  #    #    #    # ###### #    # #  ####  #    # 
-                                                                    
-                                                  
+
+
 #####  ####     ######   ##    ####  #####   ##   
   #   #    #    #       #  #  #        #    #  #  
   #   #    #    #####  #    #  ####    #   #    # 
@@ -84,8 +84,6 @@ def topology_shaper(tree):
         else:
             raise ValueError('wrong clades! \n # of clades {}'.format(len(clade.clades)))
             pass
-
-    
     for clade in terminal_nodes:
         topology[clade.name] = []
         if clade.name != root.name:

@@ -1622,4 +1622,4 @@ if __name__ == "__main__":
         return_main = main(args.monitor)
     else:
         counter = recursive_main(args.monitor, args.r, main)
-#       print("Number of retrials:", counter)
+        print("Number of retrials:", counter)

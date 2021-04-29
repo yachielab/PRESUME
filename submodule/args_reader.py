@@ -1,6 +1,7 @@
 import csv
 import sys
 import numpy as np
+import pandas as pd
 import random
 import os
 import gzip
@@ -73,6 +74,7 @@ class PARSED_ARGS():
         self.save_N_mutations = args.debug
         self.editprofile      = args.editprofile
         self.chunks = 1
+        self.alpha = 0
 
         # In case expected number of mutation is independent
         # on the doubling time of the SEQ
@@ -207,7 +209,7 @@ class PARSED_ARGS():
             )
         return np.dot(np.dot(self.U, exp_rambda), np.linalg.inv(self.U))
 
-    def sub_mat_parser(self,infile):
+    def sub_mat_parser(self, infile):
 
         # substitution matrix
         # = [
@@ -219,32 +221,31 @@ class PARSED_ARGS():
 
         base = {'A': 0, 'C': 1, 'G': 2, 'T': 3}
 
-        with open(infile, 'r') as handle:
-            
-            row = 0
-            for line in handle:
-
-                if (row == 0):
-                    
-                    substitution_prob_matrix = np.zeros((self.L, 4, 4))
-                
-                else:
-
-                    transition = line.split(",")[0] # eg. 'CT'
-                    prob_list  = [float(prob_str) for prob_str in line.split(",")[1:]]
-
-                    for pos, prob in enumerate(prob_list):
-
-                        if (pos < self.L):
-                            substitution_prob_matrix[pos][base[transition[0]]][base[transition[1]]] = prob
-                        else:
-                            print("args_reader.py: Edit profile assumes longer sequence than the actual sequence length")
-                            sys.exit(1)
-
-                row       += 1
+        data = []
+        with open(infile, 'r') as f:
+            for cols in csv.reader(f, delimiter='\t'):
+                if cols[0][0] !="#":
+                    pos_base_prob = [int(cols[0]),str(cols[1]),float(cols[2])]
+                    # print(f"DEBUG:profile loaded as follows. position:{pos_base_prob[0]}(type:{type(pos_base_prob[0])}), kind:{pos_base_prob[1]}(type:{type(pos_base_prob[1])}), prob:{pos_base_prob[2]}(type:{type(pos_base_prob[2])})")
+                    data.append(pos_base_prob)
         
-        for pos in range(self.L):
-            
+        # create matrix
+        # for line in handle:
+        substitution_prob_matrix = np.zeros((self.L, 4, 4))
+        for item in data:
+            pos = item[0]
+            transition = item[1] # eg. 'CT'
+            prob = item[2]
+            if (pos < self.L):
+                substitution_prob_matrix[pos][base[transition[0]]][base[transition[1]]] = prob
+            else:
+                print("args_reader.py: Edit profile assumes longer sequence than the actual sequence length")
+                sys.exit(1)
+
+
+        
+        for pos in range(self.L):  
+
             for i in range(4):
 
                 change_prob = 0
