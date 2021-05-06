@@ -3,7 +3,7 @@
 - [Overview of PRESUME](#overview-of-presume)
 - [Supported Environment](#supported-environment)
 - [Software Dependency](#software-dependency)
-- [Software installation](#software-installation)
+- [Software nstallation](#software-installation)
 - [Sample Codes](#sample-codes)
 - [PRESUME Usage](#presume-usage)
 ### Overview of PRESUME
@@ -119,10 +119,10 @@ Output data: a directory [`PRESUMEout`](https://github.com/yachielab/PRESUME/tre
 Generation of approximately 128 sequences using GTR-Gamma model and an indel model with user-defined parameters with distributed computing. This will take approximately 1 minute.
 
 ```shell
-PRESUME.py -n 100 --gtrgamma default --inprob prob.txt --inlength length.txt --delprob prob.txt --dellength length.txt
+PRESUME.py -n 100 --gtrgamma default --inprob indel_probability.txt --inlength indel_length.txt --delprob indel_probability.txt --dellength indel_length.txt
 ```
 
-Input data: [`prob.txt`](https://github.com/yachielab/PRESUME/example/example_4/example_4/prob.txt) defines indel probability per generation for each initial sequence postion and [`length.txt`](https://github.com/yachielab/PRESUME/example/example_4/length.txt) defines the distribution of each indel 
+Input data: [`indel_probability.txt`](https://github.com/yachielab/PRESUME/blob/hotfix/example/example_4/indel_probability.txt) defines indel probability per generation for each initial sequence postion and [`indel_length.txt`](https://github.com/yachielab/PRESUME/blob/hotfix/example/example_4/indel_length.txt) defines the distribution of each indel 
 
 Output data: a directory [`PRESUMEout`](https://github.com/yachielab/PRESUME/example/example_4/PRESUMEout) will be created in your working directory.
 
@@ -131,11 +131,11 @@ Output data: a directory [`PRESUMEout`](https://github.com/yachielab/PRESUME/exa
 Generation of approximately 128 sequences using a time-independent model with the substitution frequency of each nucleotide character in each sequence position specified in transition_probability.txt. This will take approximately 1 minute.
 
 ```shell
-PRESUME.py -n 100  --editprofile editprofile.txt
+PRESUME.py -n 100  --editprofile transition_probability.txt
 ```
-Input data: [`editprofile.txt`]() defines substitution matrix of each site.
+Input data: [`transition_probability.txt`](https://github.com/yachielab/PRESUME/blob/hotfix/example/example_5/transition_probability.txt) defines substitution matrix of each site.
 
-Output data: a directory [`PRESUMEout`]() will be created in your working directory.
+Output data: a directory [`PRESUMEout`](https://github.com/yachielab/PRESUME/example/example_5/PRESUMEout) will be created in your working directory.
 
 See [SubstitutionModelDetails.PRESUME.pdf](https://github.com/yachielab/PRESUME/blob/master/SubstitutionModelDetails.PRESUME.pdf) for more details of how to specify the GTR-Gamma model parameters.
 
