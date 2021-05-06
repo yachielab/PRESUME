@@ -12,8 +12,8 @@
 
 <img src=images/github_PRESUME.jpg width=60%>
 
-**Figure 1.** Schematic diagram of PRESUME.  
-Unless a tree of defined topology is provided by the user, PRESUME first simulates a template tree topology for the proliferation of propagating units (PUs) (i.e., sequences or cells as units to harbor multiple sequences) using a single parameter *σ*. Following a linear time *T* progression, PRESUME progressively proliferates PUs, in which each PU duplicates when its generation time *d* has passed since its birth. The generation time *d* is given to each new PU, so its reciprocal (doubling speed) follows a gamma probability distribution, wherein the mean and variance are 1 and *σ*<sup>2</sup>, respectively.
+**Figure 1. Schematic diagram of PRESUME.**
+<span style="font-size: 60%; color: black;">**Unless a tree of defined topology is provided by the user, PRESUME first simulates a template tree topology for the proliferation of propagating units (PUs) (i.e., sequences or cells as units to harbor multiple sequences) using a single parameter *σ*. Following a linear time *T* progression, PRESUME progressively proliferates PUs, in which each PU duplicates when its generation time *d* has passed since its birth. The generation time *d* is given to each new PU, so its reciprocal (doubling speed) follows a gamma probability distribution, wherein the mean and variance are 1 and *σ*<sup>2</sup>, respectively.**</span>
 
 Upon a template tree is provided by the simulation or by the user, the mutational processes of sequences are simulated along with it. In the present implementation of PRESUME, substitutions are simulated either with time-dependent probability functions assigned for different sequence positions using the GTR-Gamma model or time-independent probabilities per branch (or generation) defined for independent sequence positions by the user.
 
