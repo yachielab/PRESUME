@@ -1075,7 +1075,8 @@ def main(timelimit):
         for writer in list(filepath2writer.values()):
             writer.close()
 
-        if os.path.exists(os.getcwd() + '/all_SEQ_dead.out')
+        if os.path.exists(os.getcwd() + '/all_SEQ_dead.out'):
+            os.remove(os.getcwd() + '/all_SEQ_dead.out')
 
     # in case of distributed computing
     else :
