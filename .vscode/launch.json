@@ -1,0 +1,43 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "PRESUME_debug_006",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "python":"/home/ha5654/anaconda3/bin/python3",
+            "args": [
+                "--monitor",
+                "12.0",
+                "--ud",
+                "12",
+                "-L",
+                "1000",
+                "-d",
+                "1.0",
+                "-s",
+                "0",
+                "-T",
+                "1000",
+                "-e",
+                "0",
+                "-u",
+                "1048576",
+                "--idANC",
+                "32",
+                "--tMorigin",
+                "5.0",
+                "--seed",
+                "3972",
+                "--dist",
+                "gamma2",
+                "--constant",
+                "0.1",
+                "--output",
+                "/home/ha5654/tmp/PRESUME/debug_1122/tmp_006"
+            ]
+        }
+    ]
+}
