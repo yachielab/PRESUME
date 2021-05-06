@@ -8,21 +8,23 @@
 - [PRESUME Usage](#presume-usage)
 ### Overview of PRESUME
 
-**PRESUME** is a software tool that simulates cell division or speciation and diversification of DNA sequences in the growing population. By employing a distributed computing platform, PRESUME progressively
-generates a large number of sequences that accumulate substitutions with their lineage history information. In this process, daughter sequences are duplicated at a certain speed which is incompletely inherited from that of the maternal sequence under a stochastic model (Figure 1). The substitution probability at different positions in each sequence is defined in a time-dependent manner using GTR-Gamma model or set to a certain rate. The software allows the user to simulate various types of sequence diversification processes with different sets of input parameters.
+**PRESUME** enables the simulation of various sequence diversification processes based on user-defined models (Figure 1). It is executed with the input information of a root sequence, a target number of sequences to be generated *n*, as well as a parameter *σ* that determines the branch unbalancedness of the generating tree, and parameters that determine how to introduce mutations in sequences. A template tree with defined branch lengths (or generation times) can also be given, such that the mutational process is simulated along with the provided tree.
 
-<img src=images/presume_concept.jpg width=50%>
+<img src=images/github_PRESUME.jpg width=60%>
 
-**Figure 1.** Schematic diagram of PRESUME. PRESUME simulates the propagation and diversification of sequences that accumulate substitutions and generates a large set of descendant sequences with lineage information. *m* refers to a maternal sequence, and *d<sub>1</sub>* and *d<sub>2</sub>* refers to two daughter sequences derived from *m*. In this simulation, the doubling times of the two daughter sequences (*t<sub>d1</sub>* and *t<sub>d2</sub>*) are incompletely inherited from the doubling time of the mother sequence (*t<sub>m</sub>*). This occurs under a stochastic model, in which 1/*t<sub>d1</sub>* and 1/*t<sub>d2</sub>* follow a normal distribution where the mean and variance are 1/*t<sub>m</sub>* and *&sigma;*<sup>2</sup> respectively. Additionally, sequence extinction is set at a random rate (&epsilon;) and also occurs when the sequence doubling speed reaches a negative value. The substitution probabilities at different positions in each sequence of length *L* are defined in a time-dependent manner using GTR-Gamma model with parameters *Q*, *&alpha;* and *&mu;*, or set to a certain rate *&phi;* (see [SubstitutionModelDetails.PRESUME.pdf](https://github.com/yachielab/PRESUME/blob/master/SubstitutionModelDetails.PRESUME.pdf)).
+**Figure 1.** Schematic diagram of PRESUME.  
+Unless a tree of defined topology is provided by the user, PRESUME first simulates a template tree topology for the proliferation of propagating units (PUs) (i.e., sequences or cells as units to harbor multiple sequences) using a single parameter *σ*. Following a linear time *T* progression, PRESUME progressively proliferates PUs, in which each PU duplicates when its generation time *d* has passed since its birth. The generation time *d* is given to each new PU, so its reciprocal (doubling speed) follows a gamma probability distribution, wherein the mean and variance are 1 and *σ*<sup>2</sup>, respectively.
+
+Upon a template tree is provided by the simulation or by the user, the mutational processes of sequences are simulated along with it. In the present implementation of PRESUME, substitutions are simulated either with time-dependent probability functions assigned for different sequence positions using the GTR-Gamma model or time-independent probabilities per branch (or generation) defined for independent sequence positions by the user.
 
 ### Supported Environment
 
-1. PRESUME can be executed on MacOS or Linux.
-2. The distributed computing mode of PRESUME requires UGE (Univa Grid Engine) 
+1.	PRESUME can be executed on MacOS or Linux.
+2.	The distributed computing mode of PRESUME requires UGE (Univa Grid Engine)
 
 ### Software Dependency
 
-1. Python3 (newer than 3.7.0) with Biopython module *required* and tqdm module *optional; if you want to visualize a simulation progress*
+1. 1.	Python3 (newer than 3.7.0) with Biopython module *required* and tqdm module *optional; for visualization of simulation progress*
 
 ### Software Installation
 
@@ -76,7 +78,7 @@ The software functions can be tested by the following example commands:
 
 **Example 1**
 
-Generation of ~100 sequences using GTR-Gamma model with the default parameter set without distributed computing. The computation will take several minutes.
+Generation of approximately 100 sequences using the GTR-Gamma model with the default parameter set without distributed computing. This computing will take several minutes.
 
 ```
 PRESUME.py -n 100 --gtrgamma default --save
@@ -94,7 +96,7 @@ Output: a directory [`PRESUMEout`](https://github.com/yachielab/PRESUME/tree/mas
 
 **Example 2**
 
-Generation of ~100 sequences using a time-independent model with the substitution frequency of 5% per site per generation along with a highly unbalanced lineage trajectory (*&sigma;* of 10). The computation will take several minutes.
+Generation of approximately 100 sequences using a time-independent model with the substitution frequency of 5% per nucleotide position per generation along with a highly unbalanced lineage trajectory (*σ* of 10). This will take several minutes.
 
 ```
 PRESUME.py -n 100 --constant 0.05 -s 10
@@ -104,7 +106,7 @@ Output data: a directory [`PRESUMEout`](https://github.com/yachielab/PRESUME/tre
 
  **Example 3**
 
-Generation of ~10,000 sequences using GTR-Gamma model with a defined parameter set with distributed computing. The computation will take several minutes.
+Generation of approximately 10,000 sequences using the GTR-Gamma model with a user-defined parameter set with distributed computing. This will take several minutes.
 
 ```
 PRESUME.py -n 10000 --gtrgamma GTR{0.927000/2.219783/1.575175/0.861651/4.748809/1.000000}+FU{0.298/0.215/0.304/0.183}+G{0.553549} --qsub 
@@ -114,7 +116,7 @@ Output data: a directory [`PRESUMEout`](https://github.com/yachielab/PRESUME/tre
 
 **Example 4**
 
-Generation of ~100 sequences using GTR-Gamma model and an original indel model with a defined parameter set with distributed computing. The computation will take ~1 minute.
+Generation of approximately 128 sequences using GTR-Gamma model and an indel model with user-defined parameters with distributed computing. This will take approximately 1 minute.
 
 ```shell
 PRESUME.py -n 100 --gtrgamma default --inprob prob.txt --inlength length.txt --delprob prob.txt --dellength length.txt
@@ -126,7 +128,7 @@ Output data: a directory [`PRESUMEout`](https://github.com/yachielab/PRESUME/exa
 
 **Example 5**
 
-Generation of ~100 sequences using time-independent model with the substitution frequency of each site specified in `editprofile.txt`. The computation will take ~1 minute.
+Generation of approximately 128 sequences using a time-independent model with the substitution frequency of each nucleotide character in each sequence position specified in transition_probability.txt. This will take approximately 1 minute.
 
 ```shell
 PRESUME.py -n 100  --editprofile editprofile.txt
@@ -147,79 +149,79 @@ In the distributed computing mode, the number of jobs will be around √N; PRESU
 #### PRESUME Usage
 
 ```
-usage: PRESUME.py [-h] [--param PARAM] [-V] [--monitor MONITOR] [-n N]
-                  [--tree TREE] [-L L] [-f F] [--polyC] [-d D] [-s S] [-T T]
-                  [-e E] [--gtrgamma GTRGAMMA] [-u U] [--ud UD] [--ld LD]
-                  [-m M] [--constant CONSTANT] [--output OUTPUT] [--qsub]
-                  [--idANC IDANC] [--tMorigin TMORIGIN] [--debug] [--bar]
-                  [--viewANC] [--save] [--CV] [-r R] [--seed SEED]
-                  [--inprob INPROB] [--inlength INLENGTH] [--delprob DELPROB]
-                  [--dellength DELLENGTH] [--indels INDELS] [--chunks CHUNKS]
-                  [--dop DOP] [--dist DIST] [--editprofile EDITPROFILE]
+Usage:
+    PRESUME.py 
+    [-v] [--version] [-h] [--help] [-n sequence_number] [-L sequence_length]
+    [-s standard_deviation] [-e extinction_probability] 
+    [--gtrgamma model_parameters] [-m mean_substitution_rate]
+    [--constant substitution_probability] [--qsub] [--output directory_path]
+    [-f input_file] [--load file_name] [-u sequences_number] [--debug] [--bar] [--save] [-r max_retrial_number] 
+    [--seed random_seed] [--limit time_limit] 
 
-PRESUME.py
+Options:
+    -v --version
+      Print PRESUME version. Ignore all of the other parameters
+    -h --help
+      Print the usage of PRESUME. Ignore all of the other parameters
+    --output <String>
+　　　 Output directory path. PRESUME creates a directory unless exists. Default: current directory
+    -n <Integer>
+      Number of sequences to be generated. Default: 100
+    --tree <String>
+　　　 Input Newick format file path if a template tree is given. Ignore -s -e -f -u -r --constant –-qsub –-load 
+        –-debug –-bar –-save –-seed and --limit
+    -s <Float>
+      Standard deviation of propagation speed. Default: 0
+    -e <Float>
+      Probability of extinction. Default: 0
+    -f <String>
+　　　 Input FASTA file path for the root sequence. Random sequence will be generated unless specified. Ignore -L 
+    -L <Integer>
+      Length of sequences to be generated. Default: 1000 
+    --gtrgamma <String>
+      GTR-Gamma model parameters
+        Format： --gtrgamma GTR{A-C/A-G/A-T/C-G/C-T/G-T}+FU{piA/piC/piG/piT}+G{alpha}
+        For more details, see https://github.com/yachielab/PRESUME/blob/master/SubstitutionModelDetails.PRESUME.pdf
+        or you can use the default parameter set by 
+          --gtrgamma default
+        which is equivalent to
+          --gtrgamma GTR{0.03333/0.03333/0.03333/0.03333/0.03333/0.03333}+FU{0.25/0.25/0.25/0.25}+G4{10000}
+    -m <Float>
+      Mean of gamma distribution for relative substitution rates of different sequence positions. Default: 1
+    --inprob <String>       
+      File path for insertion probability at each sequence position per generation
+        (Default: Indels are inactivated)
+    --inlength <String>
+      File path for insertion length distribution
+    --delprob <String>
+      File path for deletion probability at each sequence position per generation
+    --dellength <String>
+      File path for deletion length distribution
+    --editprofile <String>
+      File path for substitution probabilities at each sequence position per generation
+    --qsub
+　　　 Execute the distributed computing mode. PRESUME is executed with only a single node unless specified
+    --dop <String>
+      Option of qsub command when distributed computing mode is enabled with –qsub. Default: ""
+    -u <Integer>
+　　　 Maximum number of sequences to be generated. Default: 1000000000
+    --ud <float>
+      Upper limit of doubling time. Default: 10^10
+    --ld <float>
+      Lower limit of doubling time. Default: 10^(-5)
+    --bar
+　　　 Activate the monitoring of simulation progress with Python tqdm module
+    --save
+　　　 Output a CSV file for parameter values used for the simulation. Default: False
+    --param <String>
+　　　 CSV file for parameter values. This file can be obtained from a previous simulation run executed with
+        –-save option.
+    --seed <Integer>
+　　　 Seed value for generation of random values. Default: 0
+    -r <Integer>
+　　　 Maximum number of retrials of simulation when all sequences are extinct
+      (Default: 100000)    
 
-optional arguments:
-  -h, --help            show this help message and exit
-  --param PARAM         load argument file(csv file)
-  -V, --version
-  --monitor MONITOR     time limit (default=None)
-  -n N                  required number of sequences: if you specified this
-                        parameter, timelimit will be postponed until the
-                        number of the sequence reach the specified number
-                        (default=None)
-  --tree TREE           file name of a guide tree in Newick format(for debug,
-                        unsupported.)
-  -L L                  length of sequence (default=1000)
-  -f F                  fasta file name　of the common ancestor sequence.
-                        (default: poly-C)
-  --polyC               use polyC sequence as root
-  -d D                  doubling time of origin sequence (default=1)
-  -s S                  sigma of doubling time of origin sequence (default=0)
-  -T T                  Threashold of doubling time to be deleted (default =
-                        1000)
-  -e E                  random deletion probability (default=0)
-  --gtrgamma GTRGAMMA   parameters for substitution rate matrix
-                        GTR{A-C/A-G/A-T/C-G/C-T/G-T} +FU{piA/piC/piG/piT}
-                        +G4{shape of gamma distribution} Or, you can use
-                        default parameters by "--gtrgamma default" default:
-                        GTR{0.3333/0.3333/0.3333/0.3333/0.3333/0.3333}
-                        +FU{0.25/0.25/0.25/0.25} +G4{10000}
-  -u U                  upper limit of number of sequences (default=2^20)
-  --ud UD               upper limit of doubling time (default=10^10)
-  --ld LD               lower limit of doubling time (default=10^(-5))
-  -m M                  mean of relative subtitution rate according to gamma
-                        distribution (default=1)
-  --constant CONSTANT   fixed mutation rate of each site (default=None)
-  --output OUTPUT       output folder (default:current directory)
-  --qsub                activate preparation for distributed processes
-                        (defalt=inactivated)
-  --idANC IDANC         corresponging ancestral sequence (in upstream tree),
-                        in case of distributed computing (default=None)
-  --tMorigin TMORIGIN   birth time of origin sequence
-  --debug               inactivate deletion of intermediate files
-  --bar                 deactivate unstable functions
-  --viewANC             generate fasta of ancestoral sequences
-  --save                generate args.csv
-  --CV                  sigma use as CV(Coefficient Variance) of Normal
-                        Distribution
-  -r R                  limit of retrying simulation (default=100000)
-  --seed SEED           random seed used to initialize the pseudo-random
-                        number generator
-  --inprob INPROB       file name of insertion probability for each position
-  --inlength INLENGTH   file name of insertion length distribution
-  --delprob DELPROB     file name of deletion probability for each position
-  --dellength DELLENGTH
-                        file name of insertion length distribution
-  --indels INDELS       file name of indels accumulated before simualtion (for
-                        distributed computing mode)
-  --dop DOP             Option of qsub for downstream simulation (for
-                        distributed computing mode)
-  --dist DIST           Distribution of d or 1/d (permissive values: 'norm',
-                        'lognorm', 'gamma', 'gamma2') (default: 'gamma2)
-  --editprofile EDITPROFILE
-                        file name of a base editing profile(for debug,
-                        unsupported.)
 
 ```
 
