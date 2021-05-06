@@ -3,7 +3,7 @@
 - [Overview of PRESUME](#overview-of-presume)
 - [Supported Environment](#supported-environment)
 - [Software Dependency](#software-dependency)
-- [Software installation](#software-installation)
+- [Software Installation](#software-installation)
 - [Sample Codes](#sample-codes)
 - [PRESUME Usage](#presume-usage)
 ### Overview of PRESUME
