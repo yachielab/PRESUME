@@ -76,6 +76,33 @@ class PARSED_ARGS():
         self.chunks = 1
         self.alpha = 0
 
+                # other specification
+        self.bar = args.bar
+        self.qsub = args.qsub
+        self.u = args.u
+        self.debug = args.debug
+        self.CV = args.CV
+        self.tMorigin = args.tMorigin
+
+
+        # initial sequence specification
+        if (args.f is not None):
+            if args.f.split(".")[-1]=='gz':
+                handle = gzip.open(args.f, 'rt')
+            else:
+                handle = open(args.f, 'r')
+            sequences = SeqIO.parse(handle, 'fasta')
+            self.initseq = str(list(sequences)[0].seq)
+            self.L = len(self.initseq)
+            handle.close()
+
+        elif (args.polyC):
+            self.initseq = 'C' * self.L  # initial sequence
+        else:
+            self.initseq = ''.join([
+                np.random.choice(['A', 'G', 'C', 'T']) for i in range(args.L)
+                ])
+
         # In case expected number of mutation is independent
         # on the doubling time of the SEQ
         if args.editprofile is not None:
@@ -137,8 +164,9 @@ class PARSED_ARGS():
                 List=[]
                 with open(txtfile, 'r') as handle:
                     for line in handle:
-                        if(datatype=='float'): List.append(float(line.split("\n")[0].split("\t")[column]))
-                        elif(datatype=='int'): List.append(int  (line.split("\n")[0].split("\t")[column]))
+                        if line[0] != "#":
+                            if(datatype=='float'): List.append(float(line.split("\n")[0].split("\t")[column]))
+                            elif(datatype=='int'): List.append(int  (line.split("\n")[0].split("\t")[column]))
                 return List
             args.inprob    = os.path.abspath(args.inprob)
             args.inlength  = os.path.abspath(args.inlength)
@@ -170,30 +198,7 @@ class PARSED_ARGS():
         if args.tree:
             self.tree = args.tree
                 
-        # other specification
-        self.bar = args.bar
-        self.qsub = args.qsub
-        self.u = args.u
-        self.debug = args.debug
-        self.CV = args.CV
-        self.tMorigin = args.tMorigin
 
-
-        # initial sequence specification
-        if (args.f is not None):
-            if args.f.split(".")[-1]=='gz':
-                handle = gzip.open(args.f, 'rt')
-            else:
-                handle = open(args.f, 'r')
-            sequences = SeqIO.parse(handle, 'fasta')
-            self.initseq = str(list(sequences)[0].seq)
-            self.L = len(self.initseq)
-            handle.close()
-
-        else:
-            self.initseq = ''.join([
-                np.random.choice(['A', 'G', 'C', 'T']) for i in range(args.L)
-                ])
 
     ###########################################################################
     # some functions

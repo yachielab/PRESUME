@@ -755,8 +755,9 @@ def make_list(txtfile, datatype, column):
     List=[]
     with open(txtfile, 'r') as handle:
         for line in handle:
-            if(datatype=='float'): List.append(float(line.split("\n")[0].split("\t")[column]))
-            elif(datatype=='int'): List.append(int  (line.split("\n")[0].split("\t")[column]))
+            if line[0] != "#":
+                if(datatype=='float'): List.append(float(line.split("\n")[0].split("\t")[column]))
+                elif(datatype=='int'): List.append(int  (line.split("\n")[0].split("\t")[column]))
     return List
 
 
@@ -867,6 +868,7 @@ def main(timelimit):
     # SEQs propagation
     while(True):
         #check_sort_SEQqueue(SEQqueue)
+
         if SEQqueue[0].is_alive:
             if C is not None:
                 if c >= C:
@@ -1062,7 +1064,7 @@ def main(timelimit):
                 handle.close()
 
         # create newick
-        # del(SEQqueue)
+        del(SEQqueue)
         print("Generating a Newick file......")
         tip_count, returned_tree, list_of_dead = create_newick(Lineage, Timepoint, timelimit)
 
@@ -1072,12 +1074,6 @@ def main(timelimit):
         # close FASTA
         for writer in list(filepath2writer.values()):
             writer.close()
-
-
-        # generating sequences
-        from submodule import nwk2fa as n2f
-        args.tree = "{}/PRESUMEout/PRESUMEout.nwk".format(OUTDIR)
-        n2f.nwk2fa_single(args, processed_args)
 
     # in case of distributed computing
     else :
@@ -1236,6 +1232,20 @@ def main(timelimit):
 
     if (args.qsub):
         timelimit = timelimit * 2
+
+    # generating sequences
+    # initialize the pseudo-random number generator
+    if (args.seed is None):
+        args.seed = np.random.randint(1,10000)
+    np.random.seed(args.seed)
+    random.seed(args.seed)
+    from submodule import nwk2fa as n2f
+    if (args.qsub):
+        args.tree = "{}/PRESUMEout/PRESUMEout_combined.nwk".format(OUTDIR)
+        n2f.nwk2fa_qsub(args, processed_args)
+    else:
+        args.tree = "{}/PRESUMEout/PRESUMEout.nwk".format(OUTDIR)
+        n2f.nwk2fa_single(args, processed_args)
 
     print("\n=====================================================")
     print("Simulation end time point:         "+str(timelimit))
