@@ -1075,6 +1075,8 @@ def main(timelimit):
         for writer in list(filepath2writer.values()):
             writer.close()
 
+        if os.path.exists(os.getcwd() + '/all_SEQ_dead.out')
+
     # in case of distributed computing
     else :
         initseq = processed_args.initseq
@@ -1632,4 +1634,5 @@ if __name__ == "__main__":
         return_main = main(args.monitor)
     else:
         counter = recursive_main(args.monitor, args.r, main)
-        print("Number of retrials:", counter)
+        if args.debug:
+            print("[DEBUG]:Number of retrials:", counter)
