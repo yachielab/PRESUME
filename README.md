@@ -229,5 +229,5 @@ Options:
 
 1. Keito Watano (The University of Tokyo) [watano.k10.yachielab@gmail.com](watano.k10.yachielab@gmail.com)
 2. Naoki Konno (The University of Tokyo) [naoki@bs.s.u-tokyo.ac.jp](mailto:naoki@bs.s.u-tokyo.ac.jp)
-3. Nozomu Yachie (The University of Tokyo) [nzmyachie@gmail.com](mailto:yachie@synbiol.rcast.u-tokyo.ac.jp)
+3. Nozomu Yachie (The University of British Columbia and The University of Tokyo) [nozomu.yachie@ubc.ca](mailto:nozomu.yachie@ubc.ca)
 
