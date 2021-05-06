@@ -24,7 +24,7 @@ Upon a template tree is provided by the simulation or by the user, the mutationa
 
 ### Software Dependency
 
-1. 1.	Python3 (newer than 3.7.0) with Biopython module *required* and tqdm module *optional; for visualization of simulation progress*
+1.	Python3 (newer than 3.7.0) with Biopython module *required* and tqdm module *optional; for visualization of simulation progress*
 
 ### Software Installation
 
