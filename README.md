@@ -3,7 +3,7 @@
 - [Overview of PRESUME](#overview-of-presume)
 - [Supported Environment](#supported-environment)
 - [Software Dependency](#software-dependency)
-- [Software nstallation](#software-installation)
+- [Software Installation](#software-installation)
 - [Sample Codes](#sample-codes)
 - [PRESUME Usage](#presume-usage)
 ### Overview of PRESUME
@@ -12,8 +12,8 @@
 
 <img src=images/github_PRESUME.jpg width=60%>
 
-**Figure 1.** Schematic diagram of PRESUME.  
-Unless a tree of defined topology is provided by the user, PRESUME first simulates a template tree topology for the proliferation of propagating units (PUs) (i.e., sequences or cells as units to harbor multiple sequences) using a single parameter *σ*. Following a linear time *T* progression, PRESUME progressively proliferates PUs, in which each PU duplicates when its generation time *d* has passed since its birth. The generation time *d* is given to each new PU, so its reciprocal (doubling speed) follows a gamma probability distribution, wherein the mean and variance are 1 and *σ*<sup>2</sup>, respectively.
+**Figure 1. Schematic diagram of PRESUME.**
+<span style="font-size: 60%; color: black;">**Unless a tree of defined topology is provided by the user, PRESUME first simulates a template tree topology for the proliferation of propagating units (PUs) (i.e., sequences or cells as units to harbor multiple sequences) using a single parameter *σ*. Following a linear time *T* progression, PRESUME progressively proliferates PUs, in which each PU duplicates when its generation time *d* has passed since its birth. The generation time *d* is given to each new PU, so its reciprocal (doubling speed) follows a gamma probability distribution, wherein the mean and variance are 1 and *σ*<sup>2</sup>, respectively.**</span>
 
 Upon a template tree is provided by the simulation or by the user, the mutational processes of sequences are simulated along with it. In the present implementation of PRESUME, substitutions are simulated either with time-dependent probability functions assigned for different sequence positions using the GTR-Gamma model or time-independent probabilities per branch (or generation) defined for independent sequence positions by the user.
 
@@ -24,7 +24,7 @@ Upon a template tree is provided by the simulation or by the user, the mutationa
 
 ### Software Dependency
 
-1. 1.	Python3 (newer than 3.7.0) with Biopython module *required* and tqdm module *optional; for visualization of simulation progress*
+1.	Python3 (newer than 3.7.0) with Biopython module *required* and tqdm module *optional; for visualization of simulation progress*
 
 ### Software Installation
 
@@ -229,5 +229,5 @@ Options:
 
 1. Keito Watano (The University of Tokyo) [watano.k10.yachielab@gmail.com](watano.k10.yachielab@gmail.com)
 2. Naoki Konno (The University of Tokyo) [naoki@bs.s.u-tokyo.ac.jp](mailto:naoki@bs.s.u-tokyo.ac.jp)
-3. Nozomu Yachie (The University of Tokyo) [nzmyachie@gmail.com](mailto:yachie@synbiol.rcast.u-tokyo.ac.jp)
+3. Nozomu Yachie (The University of British Columbia and The University of Tokyo) [nozomu.yachie@ubc.ca](mailto:nozomu.yachie@ubc.ca)
 
