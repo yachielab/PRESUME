@@ -1207,7 +1207,7 @@ def main(timelimit):
                         command += "cat intermediate/DOWN/*/PRESUMEout/PRESUMEout."+str(i)+".aligned.fa.gz > PRESUMEout."+str(i)+".aligned.fa.gz 2> /dev/null;"
             subprocess.call(command, shell=True)  # combine fasta
 
-            
+         
         tip_count = CombineTrees()  # Combine trees
         # shutil.move("PRESUMEout.nwk", "intermediate")
         # os.rename("PRESUMEout_combined.nwk", "PRESUMEout.nwk")
@@ -1243,6 +1243,7 @@ def main(timelimit):
     if (args.qsub):
         args.tree = "{}/PRESUMEout/PRESUMEout_combined.nwk".format(OUTDIR)
         n2f.nwk2fa_qsub(args, processed_args)
+        os.remove(args.tree)
     else:
         args.tree = "{}/PRESUMEout/PRESUMEout.nwk".format(OUTDIR)
         n2f.nwk2fa_single(args, processed_args)
