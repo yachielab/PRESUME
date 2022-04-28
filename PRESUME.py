@@ -1028,40 +1028,39 @@ def main(timelimit):
             fa_count = 0
             tip_count = 0
 
-        else: 
+        # else: 
+        #     # record indels
+        #     if(processed_args.CRISPR):
+        #         handle = gzip.open("PRESUMEout.indel.gz", "wb")
+        #         if (True):
+        #         #with open("indel.txt", 'w') as handle:
+        #             for esu_idx, esu in enumerate(SEQqueue):
 
-            # record indels
-            if(processed_args.CRISPR):
-                handle = gzip.open("PRESUMEout.indel.gz", "wb")
-                if (True):
-                #with open("indel.txt", 'w') as handle:
-                    for esu_idx, esu in enumerate(SEQqueue):
+        #                 if(args.idANC == 0):
+        #                     esu_name = str(esu.id)
+        #                 else:
+        #                     esu_name_prefix = str(hex(args.idANC)).split("x")[1]
+        #                     esu_name_suffix = str(hex(esu.id)).split("x")[1]
+        #                     new_esu_name = "{}_{}".\
+        #                         format(esu_name_prefix, esu_name_suffix)
+        #                     esu_name = new_esu_name
 
-                        if(args.idANC == 0):
-                            esu_name = str(esu.id)
-                        else:
-                            esu_name_prefix = str(hex(args.idANC)).split("x")[1]
-                            esu_name_suffix = str(hex(esu.id)).split("x")[1]
-                            new_esu_name = "{}_{}".\
-                                format(esu_name_prefix, esu_name_suffix)
-                            esu_name = new_esu_name
-
-                        if (not esuname2zerolength[esu_name]):
-                            handle.write((esu_name+"\t").encode())
+        #                 if (not esuname2zerolength[esu_name]):
+        #                     handle.write((esu_name+"\t").encode())
                             
-                            for indel_idx, indel in enumerate(esu.indels):
-                                if (indel[0] == "del") : 
-                                    mid    = indel[1] # pos is the midpoint of deletion
-                                    length = indel[2]
-                                    handle.write(("D_mid"+str(mid)+"_len"+str(length)).encode())
-                                elif (indel[0] == "in"): 
-                                    pos    = indel[1] # pos is the midpoint of deletion
-                                    seq    = indel[3]
-                                    handle.write(("I_"+str(pos+0.5)+"_"+seq).encode())
-                                if (indel_idx < len(esu.indels)-1):
-                                    handle.write(";".encode())
-                            handle.write("\n".encode())
-                handle.close()
+        #                     for indel_idx, indel in enumerate(esu.indels):
+        #                         if (indel[0] == "del") : 
+        #                             mid    = indel[1] # pos is the midpoint of deletion
+        #                             length = indel[2]
+        #                             handle.write(("D_mid"+str(mid)+"_len"+str(length)).encode())
+        #                         elif (indel[0] == "in"): 
+        #                             pos    = indel[1] # pos is the midpoint of deletion
+        #                             seq    = indel[3]
+        #                             handle.write(("I_"+str(pos+0.5)+"_"+seq).encode())
+        #                         if (indel_idx < len(esu.indels)-1):
+        #                             handle.write(";".encode())
+        #                     handle.write("\n".encode())
+        #         handle.close()
 
         # create newick
         del(SEQqueue)
@@ -1192,20 +1191,20 @@ def main(timelimit):
                    cat PRESUME.o*.* > intermediate/out 2> /dev/null; \
                    rm PRESUME.*;"
         #subprocess.call(command, shell=True)
-        if args.f is None:
-            if(processed_args.CRISPR):
-                command = "cat intermediate/DOWN/*/PRESUMEout/PRESUMEout.indel.gz > PRESUMEout.indel.gz 2> /dev/null;"
+        # if args.f is None:
+        #     if(processed_args.CRISPR):
+        #         command = "cat intermediate/DOWN/*/PRESUMEout/PRESUMEout.indel.gz > PRESUMEout.indel.gz 2> /dev/null;"
                 
-            if (processed_args.chunks == 1):
-                command += "cat intermediate/DOWN/*/PRESUMEout/PRESUMEout.fa.gz > PRESUMEout.fa.gz;"
-                if(processed_args.CRISPR):
-                    command += "cat intermediate/DOWN/*/PRESUMEout/PRESUMEout.aligned.fa.gz > PRESUMEout.aligned.fa.gz 2> /dev/null;"
-            else:
-                for i in range(processed_args.chunks):
-                    command += "cat intermediate/DOWN/*/PRESUMEout/PRESUMEout."+str(i)+".fa.gz > PRESUMEout."+str(i)+".fa.gz;"
-                    if(processed_args.CRISPR):
-                        command += "cat intermediate/DOWN/*/PRESUMEout/PRESUMEout."+str(i)+".aligned.fa.gz > PRESUMEout."+str(i)+".aligned.fa.gz 2> /dev/null;"
-            subprocess.call(command, shell=True)  # combine fasta
+        #     if (processed_args.chunks == 1):
+        #         command += "cat intermediate/DOWN/*/PRESUMEout/PRESUMEout.fa.gz > PRESUMEout.fa.gz;"
+        #         if(processed_args.CRISPR):
+        #             command += "cat intermediate/DOWN/*/PRESUMEout/PRESUMEout.aligned.fa.gz > PRESUMEout.aligned.fa.gz 2> /dev/null;"
+        #     else:
+        #         for i in range(processed_args.chunks):
+        #             command += "cat intermediate/DOWN/*/PRESUMEout/PRESUMEout."+str(i)+".fa.gz > PRESUMEout."+str(i)+".fa.gz;"
+        #             if(processed_args.CRISPR):
+        #                 command += "cat intermediate/DOWN/*/PRESUMEout/PRESUMEout."+str(i)+".aligned.fa.gz > PRESUMEout."+str(i)+".aligned.fa.gz 2> /dev/null;"
+        #     subprocess.call(command, shell=True)  # combine fasta
 
          
         tip_count = CombineTrees()  # Combine trees
