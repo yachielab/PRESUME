@@ -1207,23 +1207,23 @@ def main(timelimit):
         #     subprocess.call(command, shell=True)  # combine fasta
 
          
-        tip_count = CombineTrees()  # Combine trees
+        tip_count = CombineTrees()  # Combine treesƒ
         # shutil.move("PRESUMEout.nwk", "intermediate")
         # os.rename("PRESUMEout_combined.nwk", "PRESUMEout.nwk")
         if (not args.debug):
             shutil.rmtree("intermediate")
 
-    # error check
-    if(processed_args.chunks == 1):
-        fa_count = count_sequence("PRESUMEout.fa.gz")
-        if (fa_count!=tip_count):
-            raise OutputError(fa_count, tip_count)
-            return 0
+    # # error check
+    # if(processed_args.chunks == 1):
+    #     fa_count = count_sequence("PRESUMEout.fa.gz")
+    #     if (fa_count!=tip_count):
+    #         raise OutputError(fa_count, tip_count)
+    #         return 0
 
-    # remove PRESUME.aligned.fa.gz when indel mode is not active
-    if (not processed_args.CRISPR):
-        if (os.path.isfile("PRESUMEout.aligned.fa.gz")):
-            os.remove("PRESUMEout.aligned.fa.gz")
+    # # remove PRESUME.aligned.fa.gz when indel mode is not active
+    # if (not processed_args.CRISPR):
+    #     if (os.path.isfile("PRESUMEout.aligned.fa.gz")):
+    #         os.remove("PRESUMEout.aligned.fa.gz")
 
     # finish
     if args.save:
@@ -1244,7 +1244,10 @@ def main(timelimit):
         n2f.nwk2fa_qsub(args, processed_args)
         os.remove(args.tree)
     else:
-        args.tree = "{}/PRESUMEout/PRESUMEout.nwk".format(OUTDIR)
+        if args.idANC == 0:
+            args.tree = "{}/PRESUMEout/PRESUMEout.nwk".format(OUTDIR)
+        else:
+            args.tree = "{}/PRESUMEout/SEQ_{}.nwk".format(OUTDIR, args.idANC)
         n2f.nwk2fa_single(args, processed_args)
 
     print("\n=====================================================")
