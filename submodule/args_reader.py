@@ -236,16 +236,13 @@ class PARSED_ARGS():
         
         # create matrix
         # for line in handle:
-        substitution_prob_matrix = np.zeros((self.L, 4, 4))
+        length_of_prob_matrix = sorted(data,reverse=True,key=lambda pos_base_prob: pos_base_prob[0])[0][0] + 1
+        substitution_prob_matrix = np.zeros((length_of_prob_matrix, 4, 4))
         for item in data:
             pos = item[0]
             transition = item[1] # eg. 'CT'
             prob = item[2]
-            if (pos < self.L):
-                substitution_prob_matrix[pos][base[transition[0]]][base[transition[1]]] = prob
-            else:
-                print("args_reader.py: Edit profile assumes longer sequence than the actual sequence length")
-                sys.exit(1)
+            substitution_prob_matrix[pos][base[transition[0]]][base[transition[1]]] = prob
 
 
         
