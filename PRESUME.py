@@ -1168,6 +1168,8 @@ def main(timelimit):
                         qf.write(" --gtrgamma "+str(args.gtrgamma)+"\n")
                     if (args.constant is not None):
                         qf.write(" --constant "+str(args.constant)+"\n")
+                    if(args.editprofile):
+                        qf.write(" --constant 0.1\n")
 
         del(SEQqueue)
         # submit job script to grid engine
