@@ -398,7 +398,7 @@ def nwk2fa_qsub(args, parsed_args):
     terminals = []
     for file in filelist:
         if file.split("_")[0] == "Down":
-            filename_without_ext = file.split(".")[0]
+            filename_without_ext = file.split(".nwk")[0]
             terminal_name = "_".join(filename_without_ext.split("_")[1:])
             terminals.append(terminal_name)
     
@@ -438,7 +438,7 @@ def nwk2fa_qsub(args, parsed_args):
 
     for file in nwk_filelist:
         if file.split("_")[0] == "Down":
-            filename_without_ext = file.split(".")[0]
+            filename_without_ext = file.split(".nwk")[0]
             nodename = "_".join(filename_without_ext.split("_")[1:])
             if not ("{}.fasta".format(nodename) in fasta_filelist):
                 print(nodename,".fasta not found!")
@@ -451,7 +451,7 @@ def nwk2fa_qsub(args, parsed_args):
     treefile_list, fastafile_list, indelfile_list = [], [], []
     for file_nwk in nwk_filelist:
         if file_nwk.split("_")[0] == "Down":
-            filename_without_ext = file_nwk.split(".")[0]
+            filename_without_ext = file_nwk.split(".nwk")[0]
             nodename = "_".join(filename_without_ext.split("_")[1:])
             file_fasta = "{}.fasta".format(nodename)
 

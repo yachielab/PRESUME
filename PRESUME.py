@@ -505,7 +505,10 @@ def fasta_writer(name, seq, indels, file_name, overwrite_mode, Nchunks, filepath
     else:
         writer_mode = "w"
 
-    Lchunk = len(seq) // Nchunks
+    if len(seq) == 0:
+        Lchunk = 1
+    else:
+        Lchunk = len(seq) // Nchunks
 
     is_dead = True
     true_indels = [] # List of indels 
